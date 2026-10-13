@@ -17,11 +17,11 @@ const originalManifest=JSON.parse(fs.readFileSync(path.join(root,'original-manif
 for(const e of originalManifest)if(hash(fs.readFileSync(path.resolve(root,'../AutoEllipso_Original',e.path))).toUpperCase()!==e.sha256)throw new Error('Original source changed: '+e.path);
 const exclude=new Set(['node_modules','.git','dist','build','coverage','.qa','.playwright','test-results']);
 function walk(dir,skip=true){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{
-  if(skip&&(exclude.has(e.name)||/\.(zip|log)$/.test(e.name)||e.name==='v21-packages.json'||/^expert-ui.*\.png$/.test(e.name)||e.name.startsWith('.env')&&e.name!=='.env.example.txt'))return [];
+  if(skip&&(exclude.has(e.name)||/\.(zip|log)$/.test(e.name)||['v21-packages.json','v21-zip-verification.json'].includes(e.name)||/^expert-ui.*\.png$/.test(e.name)||e.name.startsWith('.env')&&e.name!=='.env.example.txt'))return [];
   const full=path.join(dir,e.name);return e.isDirectory()?walk(full,skip):[full];
 });}
 const existing=walk(root), baseline=new Map(manifest.map(e=>[e.path,e.sha256]));
-fs.writeFileSync(path.join(root,'v21-modified-files.json'),JSON.stringify({modified:existing.map(f=>path.relative(root,f).replaceAll('\\','/')).filter(p=>baseline.has(p)&&hash(fs.readFileSync(path.join(root,p)))!==baseline.get(p)),added:existing.map(f=>path.relative(root,f).replaceAll('\\','/')).filter(p=>!baseline.has(p)),removed:manifest.map(e=>e.path).filter(p=>!fs.existsSync(path.join(root,p)))},null,2));
+fs.writeFileSync(path.join(root,'v21-modified-files.json'),JSON.stringify({modified:existing.map(f=>path.relative(root,f).replaceAll('\\','/')).filter(p=>baseline.has(p)&&hash(fs.readFileSync(path.join(root,p)))!==baseline.get(p)),added:[...new Set([...existing.map(f=>path.relative(root,f).replaceAll('\\','/')).filter(p=>!baseline.has(p)),'v21-modified-files.json','v21-integrity.json','v21-packages.json','v21-zip-verification.json'])].sort(),removed:manifest.map(e=>e.path).filter(p=>!fs.existsSync(path.join(root,p)))},null,2));
 fs.writeFileSync(path.join(root,'v21-integrity.json'),JSON.stringify({at:new Date().toISOString(),originalArchiveSha256:originalHash,originalFilesVerified:originalManifest.length,v2FilesVerified:manifest.length,v2Unchanged:true,scientificCoreFilesVerified:core.length,scientificCoreUnchanged:true},null,2));
 const table=Array.from({length:256},(_,i)=>{let c=i;for(let j=0;j<8;j++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
 const crc=buf=>{let c=0xffffffff;for(const b of buf)c=table[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0;};
