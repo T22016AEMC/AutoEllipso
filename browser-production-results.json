@@ -1,0 +1,242 @@
+{
+  "productionOnly": true,
+  "https": true,
+  "selfSignedLocalQa": true,
+  "url": "https://127.0.0.1:51780",
+  "results": [
+    {
+      "engine": "edge",
+      "name": "Production HTTPS, version and deep-link refresh",
+      "passed": true,
+      "ms": 2484
+    },
+    {
+      "engine": "edge",
+      "name": "Real module-worker Forward equals core TMM point-for-point",
+      "passed": true,
+      "ms": 521
+    },
+    {
+      "engine": "edge",
+      "name": "Real worker multi-AOI expert fit restores edited B-spline parameter",
+      "passed": true,
+      "ms": 696
+    },
+    {
+      "engine": "edge",
+      "name": "Real worker automatic fitting and final full-spectrum verification",
+      "passed": true,
+      "ms": 6667
+    },
+    {
+      "engine": "edge",
+      "name": "Real worker physical mixed-model handoff retains locked peak types",
+      "passed": true,
+      "ms": 292
+    },
+    {
+      "engine": "edge",
+      "name": "Worker Error / cooperative Cancel / Termination protocol",
+      "passed": true,
+      "ms": 353
+    },
+    {
+      "engine": "edge",
+      "name": "UI Cancel stays responsive and manual edits remain current",
+      "passed": true,
+      "ms": 1763
+    },
+    {
+      "engine": "edge",
+      "name": "Duplicate start and new input invalidate the obsolete UI job",
+      "passed": true,
+      "ms": 2765
+    },
+    {
+      "engine": "edge",
+      "name": "CSV browser import and Validation Report / CSV / project download",
+      "passed": true,
+      "ms": 2844
+    },
+    {
+      "engine": "edge",
+      "name": "Independent tabs and browser sessions; no stored or uploaded experimental data",
+      "passed": true,
+      "ms": 7209
+    },
+    {
+      "engine": "edge",
+      "name": "Wide production layout and real wavelength zoom",
+      "passed": true,
+      "ms": 404
+    },
+    {
+      "engine": "edge",
+      "name": "Responsive phone: all scientific controls and touch-style pointer edit",
+      "passed": true,
+      "ms": 3732
+    },
+    {
+      "engine": "edge",
+      "name": "Responsive tablet: all scientific controls and touch-style pointer edit",
+      "passed": true,
+      "ms": 4908
+    },
+    {
+      "engine": "firefox",
+      "name": "Production HTTPS, version and deep-link refresh",
+      "passed": true,
+      "ms": 4120
+    },
+    {
+      "engine": "firefox",
+      "name": "Real module-worker Forward equals core TMM point-for-point",
+      "passed": true,
+      "ms": 435
+    },
+    {
+      "engine": "firefox",
+      "name": "Real worker multi-AOI expert fit restores edited B-spline parameter",
+      "passed": true,
+      "ms": 854
+    },
+    {
+      "engine": "firefox",
+      "name": "Real worker automatic fitting and final full-spectrum verification",
+      "passed": true,
+      "ms": 5288
+    },
+    {
+      "engine": "firefox",
+      "name": "Real worker physical mixed-model handoff retains locked peak types",
+      "passed": true,
+      "ms": 444
+    },
+    {
+      "engine": "firefox",
+      "name": "Worker Error / cooperative Cancel / Termination protocol",
+      "passed": true,
+      "ms": 655
+    },
+    {
+      "engine": "firefox",
+      "name": "UI Cancel stays responsive and manual edits remain current",
+      "passed": true,
+      "ms": 3792
+    },
+    {
+      "engine": "firefox",
+      "name": "Duplicate start and new input invalidate the obsolete UI job",
+      "passed": true,
+      "ms": 2081
+    },
+    {
+      "engine": "firefox",
+      "name": "CSV browser import and Validation Report / CSV / project download",
+      "passed": true,
+      "ms": 2464
+    },
+    {
+      "engine": "firefox",
+      "name": "Independent tabs and browser sessions; no stored or uploaded experimental data",
+      "passed": true,
+      "ms": 5577
+    },
+    {
+      "engine": "firefox",
+      "name": "Wide production layout and real wavelength zoom",
+      "passed": true,
+      "ms": 780
+    },
+    {
+      "engine": "firefox",
+      "name": "Responsive phone: all scientific controls and touch-style pointer edit",
+      "passed": true,
+      "ms": 6095
+    },
+    {
+      "engine": "firefox",
+      "name": "Responsive tablet: all scientific controls and touch-style pointer edit",
+      "passed": true,
+      "ms": 6400
+    },
+    {
+      "engine": "webkit",
+      "name": "Production HTTPS, version and deep-link refresh",
+      "passed": true,
+      "ms": 1487
+    },
+    {
+      "engine": "webkit",
+      "name": "Real module-worker Forward equals core TMM point-for-point",
+      "passed": true,
+      "ms": 507
+    },
+    {
+      "engine": "webkit",
+      "name": "Real worker multi-AOI expert fit restores edited B-spline parameter",
+      "passed": true,
+      "ms": 1567
+    },
+    {
+      "engine": "webkit",
+      "name": "Real worker automatic fitting and final full-spectrum verification",
+      "passed": true,
+      "ms": 6605
+    },
+    {
+      "engine": "webkit",
+      "name": "Real worker physical mixed-model handoff retains locked peak types",
+      "passed": true,
+      "ms": 362
+    },
+    {
+      "engine": "webkit",
+      "name": "Worker Error / cooperative Cancel / Termination protocol",
+      "passed": true,
+      "ms": 627
+    },
+    {
+      "engine": "webkit",
+      "name": "UI Cancel stays responsive and manual edits remain current",
+      "passed": true,
+      "ms": 8688
+    },
+    {
+      "engine": "webkit",
+      "name": "Duplicate start and new input invalidate the obsolete UI job",
+      "passed": true,
+      "ms": 2131
+    },
+    {
+      "engine": "webkit",
+      "name": "CSV browser import and Validation Report / CSV / project download",
+      "passed": true,
+      "ms": 7078
+    },
+    {
+      "engine": "webkit",
+      "name": "Independent tabs and browser sessions; no stored or uploaded experimental data",
+      "passed": true,
+      "ms": 7817
+    },
+    {
+      "engine": "webkit",
+      "name": "Wide production layout and real wavelength zoom",
+      "passed": true,
+      "ms": 3061
+    },
+    {
+      "engine": "webkit",
+      "name": "Responsive phone: all scientific controls and touch-style pointer edit",
+      "passed": true,
+      "ms": 6711
+    },
+    {
+      "engine": "webkit",
+      "name": "Responsive tablet: all scientific controls and touch-style pointer edit",
+      "passed": true,
+      "ms": 10485
+    }
+  ]
+}

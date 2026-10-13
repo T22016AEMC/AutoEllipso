@@ -1,0 +1,152 @@
+[
+  {
+    "name": "Bare interface TMM agrees with analytic Fresnel at several AOIs",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Single transparent and absorbing layers agree with independent recursion",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Multi-layer absorbing stack agrees with independent recursion",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Zero thickness removes a layer",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Opaque passive layer has finite physical limiting reflection",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Delta circular wrapping including ±360 and multiple rotations",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Unscaled Raw MSE and per AOI use both psi and wrapped delta",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Nonuniform cubic basis partition of unity and endpoint interpolation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Four controls give exact cubic Bezier basis",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Dielectric square root reconstruction including negative eps1 / n below 1",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Gaussian analytic Hilbert transform agrees with independent KK quadrature",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "KK principal value reproduces analytic Lorentz susceptibility including narrow peaks",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Tauc-Lorentz band gap, positivity, linearity and quadrature convergence",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Mixed Lorentz + Drude responses sum epsilon, not n/k",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Every mixed peak type supports duplicate/delete/disable/serialization and free correction",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Manual spline changes affect real TMM and knot projection retains constant response",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Validation rejects absent AOI, invalid bounds and nonfinite data",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Synthetic multi-AOI jointly recovers thickness and n from manual parameters",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Manual physical handoff preserves peak metadata, locked values, substrate, AOI and thickness",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "All locked parameters keep true forward error (no fabricated zero objective)",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Candidate snapshots preserve project data and exclude recursive history",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Manual n and k spline coefficients are optimized from their actual edited values",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Global thickness search evaluates physical TMM and 20 starts recover distant solution",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Locked-variable optimizer returns measured nonzero cost and regularization",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Legacy Lorentz / Tauc / mixed models preserve dielectric conversion without n or eps1 floor",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Mixed Lorentz and Drude synthetic response recovers manually seeded peak amplitudes",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Multi-layer multi-AOI synthetic thickness recovery",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Independent Expert stages 0 through 5 execute and preserve full data and handoff source",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Legacy project JSON upgrades spline grid, while V2 candidate/peak locks round-trip exactly",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Entering peak builder retains manual n/k exactly as a labeled noncausal baseline",
+    "passed": true,
+    "detail": "PASS"
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "checks": [
+    {
+      "name": "Stage 2 editable spline and real live TMM",
+      "passed": true
+    },
+    {
+      "name": "Undo and redo exact manual coefficient",
+      "passed": true
+    },
+    {
+      "name": "Native pointer drag changes actual coefficient and respects lock",
+      "passed": true
+    },
+    {
+      "name": "Add and remove spline control, precise knot movement",
+      "passed": true
+    },
+    {
+      "name": "Candidate persistence and exact restore",
+      "passed": true
+    },
+    {
+      "name": "Continue fitting uses changed manual coefficient and honors all other locks",
+      "passed": true
+    },
+    {
+      "name": "Every peak type has editable real parameters, epsilon graph and lock",
+      "passed": true
+    },
+    {
+      "name": "Stage handoff navigation preserves manual peak type, parameter and lock",
+      "passed": true
+    },
+    {
+      "name": "Run Stage 3 preserves locked physical seed through actual optimizer and fresh TMM",
+      "passed": true
+    }
+  ],
+  "browserErrors": [],
+  "passed": true
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Worker protocol Start / Progress / Result validates exact job and revision",
+    "passed": true
+  },
+  {
+    "name": "Cancel posts Cancel / Termination, rejects and destroys worker",
+    "passed": true
+  },
+  {
+    "name": "Replacement cannot accept the obsolete async result",
+    "passed": true
+  },
+  {
+    "name": "Worker exception and message-decode failure surface without losing input",
+    "passed": true
+  },
+  {
+    "name": "Structured error response is delivered and worker is disposed",
+    "passed": true
+  },
+  {
+    "name": "Worker input omits candidate history but preserves manual parameter values",
+    "passed": true
+  },
+  {
+    "name": "Validation Report independently forwards the complete spectrum at full precision",
+    "passed": true
+  },
+  {
+    "name": "CSV preserves full measurement precision and rejects nonfinite inputs without phase loops",
+    "passed": true
+  }
+]
