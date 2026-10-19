@@ -50,7 +50,6 @@ import { ConvergenceStatus } from './numerics';
 import { optimizeBoundedLM, OptimizationVariable } from './optimizer';
 import {
   generateAdaptiveKnots,
-  setActiveKnots,
   evaluateAdaptiveSpline,
   computeBsplineSmoothness,
 } from '../models/bspline';
@@ -952,7 +951,7 @@ export async function runAutomatedEllipsometryFit(
       );
     }
 
-    setActiveKnots(stageKnots);
+
 
     reportProgress({
       stage: 'stage2_bspline',
@@ -979,6 +978,7 @@ export async function runAutomatedEllipsometryFit(
       },
     };
 
+    stageKnots.forEach((w,i)=>stageParamDict[`_knot${i}`]={id:`_knot${i}`,name:'Knot',unit:'nm',current:w,initial:w,min:150,max:2500,fit:false});
     const stageVars: OptimizationVariable[] = [
       { id: 'thickness', name: 'Thickness', value: activeBsplineThickness, min: tMin, max: tMax },
     ];
@@ -1135,7 +1135,7 @@ export async function runAutomatedEllipsometryFit(
       activeBsplineTotalObj = stageTotalObj;
     } else {
       // Revert active knots if adding more knots did not reduce the weighted regularized objective
-      setActiveKnots(activeKnots);
+
       log(`[3/8] B-spline 節點加密停止：${stageKnotCount} knots 未進一步降低加權目標，保留 ${activeKnots.length} knots 最佳平滑解。`);
       break;
     }
@@ -1151,7 +1151,7 @@ export async function runAutomatedEllipsometryFit(
   }
 
   // Restore best B-spline state cleanly
-  setActiveKnots(activeKnots);
+
   const finalBsplineParamDict: Record<string, ParameterValue> = {};
   const finalBsplineCoeffRecord: Record<string, number> = {};
   for (let i = 0; i < activeKnots.length; i++) {
@@ -1183,6 +1183,8 @@ export async function runAutomatedEllipsometryFit(
     };
   }
 
+  finalBsplineParamDict._knotCount={id:'_knotCount',name:'Count',unit:'',current:activeKnots.length,initial:activeKnots.length,min:4,max:20,fit:false};
+  activeKnots.forEach((w,i)=>finalBsplineParamDict[`_knot${i}`]={id:`_knot${i}`,name:'Knot',unit:'nm',current:w,initial:w,min:150,max:2500,fit:false});
   bsplineLayers[primaryLayerIndex].parameters = finalBsplineParamDict;
   bsplineLayers[primaryLayerIndex].thickness = activeBsplineThickness;
   const finalBsplineThickness = activeBsplineThickness;
@@ -1219,7 +1221,7 @@ export async function runAutomatedEllipsometryFit(
   const bsplineContinuousSpectrum: { wavelength: number; n: number; k: number }[] = [];
   const stepWl = Math.max(1, Math.round((fitWlMax - fitWlMin) / 80));
   for (let w = fitWlMin; w <= fitWlMax; w += stepWl) {
-    const opt = bsplineDef.calculate(w, { ...finalBsplineCoeffRecord, _knotCount: activeKnots.length });
+    const opt = bsplineDef.calculate(w, { ...finalBsplineCoeffRecord, _knotCount: activeKnots.length, ...Object.fromEntries(activeKnots.map((w,i)=>[`_knot${i}`,w])) });
     bsplineContinuousSpectrum.push({
       wavelength: Number(w.toFixed(1)),
       n: opt.n,

@@ -6,7 +6,7 @@ import { circularDifferenceDeg, computeMultiAoiResidualMetrics, residualWeights 
 import { ConvergenceStatus } from './numerics';
 import { optimizeBoundedLM, OptimizationVariable } from './optimizer';
 import { cubicBasis, cubicEvaluate } from '../models/cubicSpline';
-import { generateAdaptiveKnots, computeBsplineSmoothness, getActiveKnots } from '../models/bspline';
+import { generateAdaptiveKnots, computeBsplineSmoothness } from '../models/bspline';
 import { peakTypes } from '../models/expertMixed';
 
 export const stageNames = ['Data / AOI / Substrate Validation','Cauchy Initialization','B-spline / Peak Editor','Physical Oscillator Model Fitting','Global + Local Joint Optimization','Final Forward Verification'];
@@ -28,7 +28,7 @@ export function parameter(id:string,current:number,min:number,max:number,fit=tru
 export function values(layer:Layer):Record<string,number> {return Object.fromEntries(Object.entries(layer.parameters).map(([k,p])=>[k,p.current]));}
 export function splineGrid(layer:Layer):number[] {
   const p=values(layer),count=p._knotCount??8;
-  if(p._knot0===undefined){const active=getActiveKnots();return active.length===count?active:generateAdaptiveKnots(active[0],active[active.length-1],count);}
+  if(p._knot0===undefined)return generateAdaptiveKnots(190,900,count);
   return Array.from({length:count},(_,i)=>p[`_knot${i}`]);
 }
 export function activePoints(project:EllipsometryProject,fullSpectrum=false):EllipsometryDataPoint[] {

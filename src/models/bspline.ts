@@ -37,18 +37,6 @@ export function generateAdaptiveKnots(
   return knots;
 }
 
-let globalActiveKnots: number[] = generateAdaptiveKnots(190, 900, 8);
-
-export function getActiveKnots(): number[] {
-  return [...globalActiveKnots];
-}
-
-export function setActiveKnots(knots: number[]): void {
-  if (knots && knots.length >= 4) {
-    globalActiveKnots = [...knots];
-  }
-}
-
 /**
  * Open clamped cubic B-spline evaluation over a nonuniform control grid
  */
@@ -158,39 +146,12 @@ export function computeBsplineSmoothness(
   };
 }
 
-function getEffectiveKnotsAndCount(params: Record<string, number>, prefix: 'N' | 'K'): { knots: number[]; count: number } {
-  if (params['_knotCount'] >= 4 && params['_knot0'] !== undefined) {
-    const count = Math.min(MAX_BSPLINE_NODES, Math.round(params['_knotCount']));
-    return { count, knots: Array.from({length:count},(_,i)=>params[`_knot${i}`]) };
-  }
-  if (params['_knotCount'] !== undefined && params['_knotCount'] >= 4) {
-    const c = Math.min(MAX_BSPLINE_NODES, Math.round(params['_knotCount']));
-    const minWl = globalActiveKnots[0] ?? 190;
-    const maxWl = globalActiveKnots[globalActiveKnots.length - 1] ?? 900;
-    const knots =
-      globalActiveKnots.length === c
-        ? globalActiveKnots
-        : generateAdaptiveKnots(minWl, maxWl, c);
-    return { knots, count: c };
-  }
-
-  let definedCount = 0;
-  while (params[`${prefix}${definedCount}`] !== undefined && definedCount < MAX_BSPLINE_NODES) {
-    definedCount++;
-  }
-
-  // If caller passed a partial subset of knots (e.g., N0..N4 in unit tests), match that exact count
-  if (definedCount >= 4 && definedCount < MAX_BSPLINE_NODES && definedCount !== globalActiveKnots.length) {
-    const minWl = globalActiveKnots[0] ?? 190;
-    const maxWl = globalActiveKnots[globalActiveKnots.length - 1] ?? 900;
-    return { knots: generateAdaptiveKnots(minWl, maxWl, definedCount), count: definedCount };
-  }
-
-  if (globalActiveKnots && globalActiveKnots.length >= 4) {
-    return { knots: globalActiveKnots, count: globalActiveKnots.length };
-  }
-  const count = definedCount > 0 ? definedCount : 8;
-  return { knots: generateAdaptiveKnots(190, 900, count), count };
+function getEffectiveKnotsAndCount(params:Record<string,number>,prefix:'N'|'K'):{knots:number[];count:number} {
+  let defined=0;while(params[`${prefix}${defined}`]!==undefined&&defined<MAX_BSPLINE_NODES)defined++;
+  const count=params._knotCount>=4?Math.min(MAX_BSPLINE_NODES,Math.round(params._knotCount)):
+    defined>=4&&defined<MAX_BSPLINE_NODES?defined:8;
+  const knots=params._knot0!==undefined?Array.from({length:count},(_,i)=>params[`_knot${i}`]):generateAdaptiveKnots(190,900,count);
+  return {knots,count};
 }
 
 export const BSplineModel: ModelDefinition = {
