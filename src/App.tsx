@@ -101,7 +101,7 @@ export default function App() {
         rawRmse: 0,
         weightedMse: 0,
         weightedRmse: 0,
-        chiSquare: 0,
+        chiSquare: 0,dof:1,mseWoollam:0,reducedChiSquare:0,weightingMode:'uniform',
         psiMse: 0,
         deltaMse: 0,
         totalPoints: 0,
@@ -113,9 +113,9 @@ export default function App() {
     return computeMultiAoiResidualMetrics(
       project.experimentData.points,
       project.fittingConfig.activeFitAois,
-      project.fittingConfig.fitWeighting
+      project.fittingConfig.fitWeighting,project.fittingConfig.psiWeight,project.fittingConfig.deltaWeight,project.fittingResult?.numParameters??0
     );
-  }, [project.experimentData, project.fittingConfig.activeFitAois, project.fittingConfig.fitWeighting]);
+  }, [project.experimentData, project.fittingConfig, project.fittingResult]);
 
   // Recalculate optical spectrum with current parameter values (Manual Mode)
   const handleManualCalculate = () => compute.refresh(0);
@@ -572,11 +572,11 @@ export default function App() {
                   </span>
 
                   <span className="text-slate-400">
-                    當前 MSE: <b className="text-amber-400">{workflowProgress.currentMse.toFixed(4)}</b>
+                    當前 MSE (Woollam): <b className="text-amber-400">{workflowProgress.currentMse.toFixed(4)}</b>
                   </span>
 
                   <span className="text-slate-400">
-                    最佳 MSE: <b className="text-emerald-400">{workflowProgress.bestMse.toFixed(4)}</b>
+                    最佳 MSE (Woollam): <b className="text-emerald-400">{workflowProgress.bestMse.toFixed(4)}</b>
                   </span>
 
                   <span className="text-slate-400">

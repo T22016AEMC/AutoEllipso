@@ -7,7 +7,23 @@
  *   - Weighted MSE (with user or experimental uncertainties)
  *   - Information criteria: AIC, BIC for overfitting diagnostics
  */
-import { EllipsometryDataPoint } from '../types/ellipsometry';
+import { EllipsometryDataPoint, FittingConfig } from '../types/ellipsometry';
+
+export function residualWeights(points: EllipsometryDataPoint[], config: Pick<FittingConfig,'fitWeighting'|'psiWeight'|'deltaWeight'>):
+  {weights:number[];mode:'sigma'|'uniform'|'psi_dominant';warning?:string} {
+  const sigma = points.every(p => Number.isFinite(p.psiSigma) && p.psiSigma! > 0 && Number.isFinite(p.deltaSigma) && p.deltaSigma! > 0);
+  const mode = config.fitWeighting === 'standard_deviation' ? (sigma ? 'sigma' : 'uniform') : config.fitWeighting ?? 'uniform';
+  const warning = config.fitWeighting === 'standard_deviation' && !sigma ? '部分資料點缺少 σ，已改用均勻權重（MSE 以 σ = 1° 計算）' : undefined;
+  const psi = config.psiWeight ?? 1, delta = config.deltaWeight ?? 1;
+  if (![psi,delta].every(v=>Number.isFinite(v)&&v>=0)) throw new Error('Residual component weights must be finite and nonnegative');
+  const weights=points.flatMap(p=>{
+    const legacy=mode!=='sigma' ? p.weight ?? 1 : 1;
+    if (!Number.isFinite(legacy)||legacy<0) throw new Error('Point weight must be finite and nonnegative');
+    return [(mode==='sigma'?1/p.psiSigma!:mode==='psi_dominant'?Math.sqrt(2):1)*Math.sqrt(psi*legacy),
+      (mode==='sigma'?1/p.deltaSigma!:mode==='psi_dominant'?Math.sqrt(.5):1)*Math.sqrt(delta*legacy)];
+  });
+  return {weights,mode,warning};
+}
 
 export interface ResidualMetrics {
   mse: number; // Raw MSE (Mean Squared Error)
@@ -17,6 +33,11 @@ export interface ResidualMetrics {
   weightedMse: number;
   weightedRmse: number;
   chiSquare: number;
+  dof: number;
+  mseWoollam: number;
+  reducedChiSquare: number;
+  weightingMode: 'sigma'|'uniform'|'psi_dominant';
+  weightingWarning?: string;
   psiMse: number;
   deltaMse: number;
   totalPoints: number;
@@ -42,75 +63,18 @@ export function computeResidualMetrics(
   deltaWeight: number = 1.0,
   numParameters: number = 0
 ): ResidualMetrics {
-  if (!points || points.length === 0) {
-    return {
-      mse: 0,
-      rmse: 0,
-      rawMse: 0,
-      rawRmse: 0,
-      weightedMse: 0,
-      weightedRmse: 0,
-      chiSquare: 0,
-      psiMse: 0,
-      deltaMse: 0,
-      totalPoints: 0,
-    };
-  }
-
-  let sumPsiSq = 0;
-  let sumDeltaSq = 0;
-  let sumWeightedResidualSq = 0;
-  let validCount = 0;
-
-  for (const pt of points) {
-    if (pt.psiCalc === undefined || pt.deltaCalc === undefined) continue;
-
-    const psiRes = pt.psiCalc - pt.psiExp;
-    const deltaRes = circularDifferenceDeg(pt.deltaCalc, pt.deltaExp);
-
-    let wPsi = psiWeight;
-    let wDelta = deltaWeight;
-
-    if (weightingType === 'psi_dominant') {
-      wPsi *= 2.0;
-      wDelta *= 0.5;
-    } else if (weightingType === 'standard_deviation' && pt.weight) {
-      wPsi *= pt.weight;
-      wDelta *= pt.weight;
-    }
-
-    sumPsiSq += psiRes * psiRes;
-    sumDeltaSq += deltaRes * deltaRes;
-    sumWeightedResidualSq += wPsi * (psiRes * psiRes) + wDelta * (deltaRes * deltaRes);
-    validCount++;
-  }
-
-  if (validCount === 0) {
-    return {
-      mse: 0,
-      rmse: 0,
-      rawMse: 0,
-      rawRmse: 0,
-      weightedMse: 0,
-      weightedRmse: 0,
-      chiSquare: 0,
-      psiMse: 0,
-      deltaMse: 0,
-      totalPoints: 0,
-    };
-  }
-
-  // 2 degrees of freedom per point (Psi and Delta)
-  const totalObs = 2 * validCount;
-  const rawSumSq = sumPsiSq + sumDeltaSq;
-  const rawMse = rawSumSq / totalObs;
-  const rawRmse = Math.sqrt(rawMse);
-
-  const weightedMse = sumWeightedResidualSq / totalObs;
-  const weightedRmse = Math.sqrt(weightedMse);
-
-  const psiMse = sumPsiSq / validCount;
-  const deltaMse = sumDeltaSq / validCount;
+  const {weights,mode,warning}=residualWeights(points,{fitWeighting:weightingType,psiWeight,deltaWeight});
+  let sumPsiSq=0,sumDeltaSq=0,sumWeightedResidualSq=0,validCount=0;
+  points.forEach((pt,i)=>{
+    if (pt.psiCalc===undefined || pt.deltaCalc===undefined) return;
+    const psiRes=pt.psiCalc-pt.psiExp,deltaRes=circularDifferenceDeg(pt.deltaCalc,pt.deltaExp);
+    sumPsiSq+=psiRes*psiRes;sumDeltaSq+=deltaRes*deltaRes;
+    sumWeightedResidualSq+=(weights[2*i]*psiRes)**2+(weights[2*i+1]*deltaRes)**2;validCount++;
+  });
+  const totalObs=2*validCount,dof=Math.max(1,totalObs-numParameters),rawSumSq=sumPsiSq+sumDeltaSq;
+  const rawMse=rawSumSq/Math.max(1,totalObs),rawRmse=Math.sqrt(rawMse);
+  const weightedMse=sumWeightedResidualSq/Math.max(1,totalObs),weightedRmse=Math.sqrt(weightedMse);
+  const psiMse=sumPsiSq/Math.max(1,validCount),deltaMse=sumDeltaSq/Math.max(1,validCount);
 
   // Information criteria for model complexity vs overfitting assessment
   let aic: number | undefined;
@@ -129,6 +93,8 @@ export function computeResidualMetrics(
     weightedMse: weightedMse,
     weightedRmse: weightedRmse,
     chiSquare: sumWeightedResidualSq,
+    dof,mseWoollam:Math.sqrt(sumWeightedResidualSq/dof),reducedChiSquare:sumWeightedResidualSq/dof,
+    weightingMode:mode,weightingWarning:warning,
     psiMse: psiMse,
     deltaMse: deltaMse,
     totalPoints: validCount,
@@ -137,7 +103,7 @@ export function computeResidualMetrics(
   };
 }
 
-export interface AoiMetricBreakdown {
+export interface AoiMetricBreakdown extends ResidualMetrics {
   aoi: number;
   mse: number;
   rmse: number;
@@ -178,8 +144,11 @@ export function computeMultiAoiResidualMetrics(
   const perAoi: Record<number, AoiMetricBreakdown> = {};
   selectedAois.forEach((aoi) => {
     const aoiPoints = points.filter((p) => p.aoi === aoi);
-    const m = computeResidualMetrics(aoiPoints, weightingType, psiWeight, deltaWeight);
+    // A missing sigma anywhere falls back uniformly for the entire joint dataset.
+    const perAoiWeighting = weightingType==='standard_deviation' && globalMetrics.weightingMode!=='sigma' ? 'uniform' : weightingType;
+    const m = computeResidualMetrics(aoiPoints, perAoiWeighting, psiWeight, deltaWeight, numParameters);
     perAoi[aoi] = {
+      ...m,
       aoi,
       mse: m.rawMse,
       rmse: m.rawRmse,

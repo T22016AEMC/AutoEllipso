@@ -10,14 +10,15 @@ import {computeGaussianEps1,computeGaussianEps2} from '../src/models/gaussian';
 import {computeTaucLorentzEps1,computeTaucLorentzEps2} from '../src/models/taucLorentz';
 import {mixedOptics} from '../src/models/expertMixed';
 import {kkReal} from '../src/models/kk';
-import {circularDifferenceDeg,computeMultiAoiResidualMetrics} from '../src/fitting/residual';
+import {circularDifferenceDeg,computeMultiAoiResidualMetrics,computeResidualMetrics,residualWeights} from '../src/fitting/residual';
 import {createSiO2OnSiProject,createMultiAoiSiO2OnSiProject} from '../src/data/defaultProjects';
 import {modelRegistry} from '../src/modelRegistry/registry';
 import {addPeak,changeSplineGrid,clone,deletePeak,fitExpert,freshForward,initializeMixed,initializeSpline,parameter,preparePhysical,runExpertStage,snapshot,splineGrid,validateExpert,values} from '../src/fitting/expertWorkflow';
-import {optimizeBoundedLM} from '../src/fitting/optimizer';
+import {optimizeBoundedLM,centralDifferenceJacobian} from '../src/fitting/optimizer';
 import {importProjectJson} from '../src/data/export';
 import {inspectCsv,convertRowsToPoints} from '../src/data/csvParser';
 import {normalizeDeltaDeg,psiDeltaFromRho} from '../src/solver/ellipsometricAngles';
+import {runAutoFit} from '../src/fitting/engine';
 const results:{name:string;passed:boolean;detail:string}[]=[];
 async function test(name:string,fn:()=>void|Promise<void>) {try{await fn();results.push({name,passed:true,detail:'PASS'});}catch(e){results.push({name,passed:false,detail:String(e)});}}
 function near(a:number,b:number,tol=1e-9){assert.ok(Number.isFinite(a)&&Math.abs(a-b)<tol,`${a} != ${b} (tol ${tol})`);}
@@ -37,6 +38,76 @@ function reference(layers:LayerOpticalState[],sub:Complex,w:number,aoi:number) {
   }
   return {rp:polarization(true),rs:polarization(false)};
 }
+await test('Woollam MSE on synthetic data at ground truth',()=>{
+  const p=createSiO2OnSiProject(),truth={...p.layers[0],thickness:100,parameters:modelRegistry.createParameterSet('cauchy')};
+  const points=calculateSpectrum(p.ambient,[truth],p.substrate,p.experimentData!.points);
+  const m=computeResidualMetrics(points,'standard_deviation',1,1,0);
+  near(m.mseWoollam,.9385,.0005);near(m.rawMse,1.4094e-3,1e-6);near(m.chiSquare,126.85,.01);
+  near(m.reducedChiSquare,m.mseWoollam**2);assert.equal(m.dof,144);assert.equal(m.weightingMode,'sigma');near(m.mse,m.rawMse);
+  const multi=createMultiAoiSiO2OnSiProject();
+  const mm=computeResidualMetrics(calculateSpectrum(multi.ambient,[truth],multi.substrate,multi.experimentData!.points),'standard_deviation',1,1,0);
+  near(mm.mseWoollam,.9164,.0005);
+});
+await test('Sigma weighting changes the objective but not Raw MSE',()=>{
+  const points=[{id:'a',wavelength:500,aoi:70,psiExp:10,deltaExp:20,psiCalc:11,deltaCalc:30,psiSigma:1,deltaSigma:1}];
+  const a=computeResidualMetrics(points,'standard_deviation'),b=computeResidualMetrics(points.map(p=>({...p,deltaSigma:p.deltaSigma*100})),'standard_deviation');
+  near(a.rawMse,b.rawMse);assert.ok(b.chiSquare<a.chiSquare*.02);near(b.chiSquare,1.01);
+});
+await test('Missing sigma falls back to uniform with warning',()=>{
+  const pts=[{id:'a',wavelength:500,aoi:65,psiExp:10,deltaExp:20,psiCalc:11,deltaCalc:21,psiSigma:.01,deltaSigma:.02},
+    {id:'b',wavelength:500,aoi:75,psiExp:10,deltaExp:20,psiCalc:11,deltaCalc:21}];
+  const w=residualWeights(pts,{fitWeighting:'standard_deviation'});assert.equal(w.mode,'uniform');assert.deepEqual(w.weights,[1,1,1,1]);
+  assert.equal(w.warning,'部分資料點缺少 σ，已改用均勻權重（MSE 以 σ = 1° 計算）');
+  const m=computeMultiAoiResidualMetrics(pts,undefined,'standard_deviation',1,1,1);near(m.chiSquare,4);assert.equal(m.dof,3);assert.equal(m.weightingMode,'uniform');
+  for(const a of [65,75]){near(m.perAoi[a].mseWoollam,Math.sqrt(2));assert.equal(m.perAoi[a].dof,1);}
+});
+await test('Central-difference Jacobian',()=>{
+  const v=[{id:'p',name:'p',value:.7,min:0,max:2}];
+  const J=centralDifferenceJacobian(v,[.7],([p])=>[p*p,Math.sin(p)],()=>false);
+  near(J[0][0]/2,1.4,1e-6);near(J[1][0]/2,Math.cos(.7),1e-6);
+  for(const p of [0,2])assert.ok(centralDifferenceJacobian(v,[p],([p])=>[p*p,Math.sin(p)],()=>false).flat().every(Number.isFinite));
+  const angular=centralDifferenceJacobian(v,[.7],([p])=>[0,circularDifferenceDeg(180+p-.7,0)]);
+  near(angular[1][0]/2,1,1e-6);
+});
+await test('Converged flag is not set by mere improvement',async()=>{
+  const out=await optimizeBoundedLM([{id:'p',name:'p',value:0,min:0,max:2}],([p])=>[p-1,0],{maxIterations:1});
+  assert.equal(out.converged,false);assert.equal(out.improved,true);assert.ok(out.finalRawMse<.5);assert.match(out.message,/not converged/);
+});
+await test('Optimizer weighting, regularization scaling and weight count validation',async()=>{
+  const out=await optimizeBoundedLM([],()=>[3,4],{residualWeights:[2,3],regularizationResidualsFn:()=>[2]});
+  near(out.finalRawMse,12.5);near(out.finalChiSquare,180);near(out.finalWeightedCost,90);near(out.finalRegularizationPenalty,13);near(out.finalCost,103);
+  await assert.rejects(optimizeBoundedLM([],()=>[3,4],{residualWeights:[1]}),/residualWeights/);
+  const w=residualWeights([{id:'a',wavelength:500,aoi:70,psiExp:0,deltaExp:0,weight:4}],{fitWeighting:'psi_dominant',psiWeight:4,deltaWeight:9});
+  near(w.weights[0],Math.sqrt(32));near(w.weights[1],Math.sqrt(18));
+});
+await test('Weighted LM optimum and seventh progress argument are consistent',async()=>{
+  const progress:number[]=[];
+  const out=await optimizeBoundedLM([{id:'p',name:'p',value:2,min:0,max:4}],([p])=>[p-1,p-3],{
+    residualWeights:[1,.1],isAngularResidual:()=>false,tolerance:1e-10,maxIterations:30,onIteration:(_i,_cost,_prev,_p,_raw,_reg,weighted)=>progress.push(weighted!)});
+  near(out.finalParams[0],1.03/1.01,1e-5);assert.ok(progress.every(Number.isFinite));near(progress[0],.505);
+  const stopped=await optimizeBoundedLM([{id:'p',name:'p',value:0,min:0,max:4}],([p])=>[p-1,0],{shouldStop:()=>true});
+  assert.equal(stopped.stopped,true);assert.equal(stopped.converged,false);
+});
+await test('Engine and Expert jointly optimize heterogeneous sigma across AOIs',async()=>{
+  const p=createMultiAoiSiO2OnSiProject();p.layers[0].thickness=90;
+  Object.values(p.layers[0].parameters).forEach(v=>v.fit=false);Object.values(p.substrate.parameters).forEach(v=>v.fit=false);
+  p.fittingConfig.maxIterations=60;p.fittingConfig.tolerance=1e-10;p.fittingConfig.activeFitAois=[65,75];
+  const truth={...p.layers[0],parameters:modelRegistry.createParameterSet('cauchy')};
+  p.experimentData!.points=p.experimentData!.points.filter((pt,i)=>pt.aoi!==70&&i%6===0).map(pt=>{
+    const c=calculatePoint(p.ambient,[{...truth,thickness:pt.aoi===65?100:140}],p.substrate,pt.wavelength,pt.aoi);
+    return {...pt,psiExp:c.psiDeg,deltaExp:c.deltaDeg,psiSigma:pt.aoi===65?.01:100,deltaSigma:pt.aoi===65?.01:100};
+  });
+  // Match the locked optical model used to generate the two conflicting AOI stacks.
+  p.layers[0].parameters=truth.parameters;Object.values(p.layers[0].parameters).forEach(v=>v.fit=false);
+  const engine=await runAutoFit({ambient:p.ambient,layers:p.layers,substrate:p.substrate,points:p.experimentData!.points,config:p.fittingConfig});
+  const progress:number[]=[];const expert=await fitExpert(p,false,v=>progress.push(v.currentMse));
+  near(engine.updatedLayers[0].thickness,100,.01);near(expert.layers[0].thickness,100,.01);assert.ok(progress.length>0&&progress.every(Number.isFinite));
+  for(const [points,result] of [[engine.updatedPoints,engine.fittingResult],[expert.experimentData!.points,expert.fittingResult!]] as const) {
+    const m=computeMultiAoiResidualMetrics(points,[65,75],'standard_deviation',1,1,1);
+    assert.equal(result.weightingMode,'sigma');assert.equal(result.numParameters,1);near(result.mseWoollam!,m.mseWoollam);
+    near(result.chiSquare!,m.chiSquare);near(result.dof!,m.dof);assert.equal(typeof result.converged,'boolean');
+  }
+});
 await test('Delta convention matches Woollam/Horiba/Fujiwara',()=>{
   const sub=new Complex(3.8814827782459407,0.01895389085237777);
   for(const [d,psi,delta] of [[0,10.569,179.231],[2,10.614,173.519],[5,10.815,165.118],[10,11.475,152.027],[25,15.100,122.377]]) {

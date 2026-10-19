@@ -13,7 +13,7 @@ import {
 } from '../types/ellipsometry';
 import { OptimizationVariable, optimizeBoundedLM } from './optimizer';
 import { calculateSpectrum } from '../solver/calculator';
-import { computeResidualMetrics, circularDifferenceDeg } from './residual';
+import { computeResidualMetrics, computeMultiAoiResidualMetrics, circularDifferenceDeg, residualWeights } from './residual';
 import { calculatePoint } from '../solver/calculator';
 
 export interface FitTargetReference {
@@ -161,7 +161,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
   // Initial calculation to obtain baseline metrics
   const initialPoints = calculateSpectrum(ambient, clonedLayers, clonedSubstrate, points);
   const initialFittingPoints = calculateSpectrum(ambient, clonedLayers, clonedSubstrate, fittingPoints);
-  const initialMetrics = computeResidualMetrics(initialFittingPoints, config.fitWeighting);
+  const initialMetrics = computeMultiAoiResidualMetrics(initialFittingPoints, activeAois, config.fitWeighting, config.psiWeight, config.deltaWeight, variables.length);
 
   if (variables.length === 0) {
     return {
@@ -169,7 +169,12 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
       updatedSubstrate: clonedSubstrate,
       updatedPoints: initialPoints,
       fittingResult: {
-        status: 'converged',
+        mseWoollam:initialMetrics.mseWoollam,reducedChiSquare:initialMetrics.reducedChiSquare,chiSquare:initialMetrics.chiSquare,dof:initialMetrics.dof,
+        weightingMode:initialMetrics.weightingMode,weightingWarning:initialMetrics.weightingWarning,
+        converged:true,status: 'converged',
+        numParameters:0,rawMse:initialMetrics.rawMse,rawRmse:initialMetrics.rawRmse,
+        perAoiMse:Object.fromEntries(Object.entries(initialMetrics.perAoi).map(([a,m])=>[a,m.rawMse])),
+        perAoiMseWoollam:Object.fromEntries(Object.entries(initialMetrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),
         iterations: 0,
         initialMse: initialMetrics.mse,
         finalMse: initialMetrics.mse,
@@ -202,35 +207,14 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
     });
   };
 
-  // Residual function for LM: returns [rPsi[0]..rPsi[N-1], rDelta[0]..rDelta[N-1]]
-  const residualFn = (paramVector: number[]): number[] => {
+  const weights=residualWeights(fittingPoints,config).weights;
+  // Interleaved unweighted degrees; LM differences Delta before applying weights.
+  const residualFn = (paramVector:number[]):number[] => {
     applyParameters(paramVector);
-
-    const rPsi: number[] = [];
-    const rDelta: number[] = [];
-
-    let wPsi = 1.0;
-    let wDelta = 1.0;
-    if (config.fitWeighting === 'psi_dominant') {
-      wPsi = 2.0;
-      wDelta = 0.5;
-    }
-
-    const sqrtWPsi = Math.sqrt(wPsi);
-    const sqrtWDelta = Math.sqrt(wDelta);
-
-    for (const pt of fittingPoints) {
-      const calc = calculatePoint(ambient, clonedLayers, clonedSubstrate, pt.wavelength, pt.aoi);
-      const psiDiff = calc.psiDeg - pt.psiExp;
-      const deltaDiff = circularDifferenceDeg(calc.deltaDeg, pt.deltaExp);
-
-      const ptW = pt.weight ? Math.sqrt(pt.weight) : 1.0;
-
-      rPsi.push(psiDiff * sqrtWPsi * ptW);
-      rDelta.push(deltaDiff * sqrtWDelta * ptW);
-    }
-
-    return [...rPsi, ...rDelta];
+    return fittingPoints.flatMap(pt=>{
+      const calc=calculatePoint(ambient,clonedLayers,clonedSubstrate,pt.wavelength,pt.aoi);
+      return [calc.psiDeg-pt.psiExp,circularDifferenceDeg(calc.deltaDeg,pt.deltaExp)];
+    });
   };
 
   // 2. Global Coarse Synthesis / Thickness Pre-scan
@@ -245,14 +229,14 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
         const maxT = target.max;
         const steps = 18;
         let bestT = target.initialValue;
-        let lowestCost = initialMetrics.mse;
+        let lowestCost = initialMetrics.weightedMse;
 
         for (let s = 0; s <= steps; s++) {
           const testT = minT + (s / steps) * (maxT - minT);
           const trialParams = variables.map((v, i) => (i === varIdx ? testT : v.value));
           const testResiduals = residualFn(trialParams);
           const testCost =
-            testResiduals.reduce((acc, r) => acc + r * r, 0) / Math.max(1, testResiduals.length);
+            testResiduals.reduce((acc, r, i) => acc + (weights[i]*r)**2, 0) / Math.max(1, testResiduals.length);
           if (testCost < lowestCost) {
             lowestCost = testCost;
             bestT = testT;
@@ -265,18 +249,21 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
   }
 
   // Run bounded Levenberg-Marquardt optimizer
+  let previousWoollam:number|null=null;
   const optResult = await optimizeBoundedLM(variables, residualFn, {
     maxIterations: config.maxIterations,
     tolerance: config.tolerance,
     initialLambda: config.dampingFactor,
-    isAngularResidual: (index: number) => index >= fittingPoints.length,
+    residualWeights:weights,
+    isAngularResidual: (index: number) => index % 2 === 1,
     shouldStop,
-    onIteration: (iter, currentCost, prevCost, currentParamVals) => {
+    onIteration: (iter, currentCost, prevCost, currentParamVals, _raw, _reg, weightedCost) => {
+      const mseWoollam=Math.sqrt(weightedCost!*2*fittingPoints.length/Math.max(1,2*fittingPoints.length-variables.length));
       if (onProgress) {
         onProgress({
           iteration: iter,
-          currentMse: currentCost,
-          previousMse: prevCost,
+          currentMse: mseWoollam,
+          previousMse: previousWoollam,
           currentRmse: Math.sqrt(currentCost),
           paramValues: variables.map((v, i) => ({
             name: v.name,
@@ -284,6 +271,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
           })),
         });
       }
+      previousWoollam=mseWoollam;
     },
   });
 
@@ -293,7 +281,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
   // Recalculate final spectrum
   const finalPoints = calculateSpectrum(ambient, clonedLayers, clonedSubstrate, points);
   const finalFittingPoints = calculateSpectrum(ambient, clonedLayers, clonedSubstrate, fittingPoints);
-  const finalMetrics = computeResidualMetrics(finalFittingPoints, config.fitWeighting);
+  const finalMetrics = computeResidualMetrics(finalFittingPoints, config.fitWeighting, config.psiWeight, config.deltaWeight, variables.length);
 
   // Build structured parameter comparison report
   const fittedParamResults: FittedParameterResult[] = targets.map((t, idx) => {
@@ -312,28 +300,28 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
     };
   });
 
-  const improved = finalMetrics.mse < initialMetrics.mse - 1e-6;
+  const improved = finalMetrics.weightedMse < initialMetrics.weightedMse;
   const status: FittingResult['status'] = optResult.stopped
     ? 'stopped'
-    : !improved
-    ? 'failed'
     : optResult.converged
     ? 'converged'
+    : !improved
+    ? 'failed'
     : 'max_iter';
 
   const message = optResult.stopped
     ? '使用者已中止擬合程序。'
-    : !improved
-    ? 'Fitting failed to improve the objective function. (擬合無法進一步降低目標誤差)'
     : optResult.converged
     ? `擬合收斂成功！共執行 ${optResult.iterations} 次迭代。`
+    : !improved
+    ? 'Fitting failed to improve the objective function. (擬合無法進一步降低目標誤差)'
     : `已達最大迭代上限 (${config.maxIterations} 次)。`;
 
   const perAoiMse: Record<number, number> = {};
   activeAois.forEach((aoi) => {
     const aoiPts = finalFittingPoints.filter((p) => p.aoi === aoi);
     if (aoiPts.length > 0) {
-      const m = computeResidualMetrics(aoiPts, config.fitWeighting);
+      const m = computeResidualMetrics(aoiPts, initialMetrics.weightingMode==='sigma'?'standard_deviation':initialMetrics.weightingMode, config.psiWeight, config.deltaWeight, variables.length);
       perAoiMse[aoi] = m.mse;
     }
   });
@@ -343,6 +331,11 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
     updatedSubstrate: clonedSubstrate,
     updatedPoints: finalPoints,
     fittingResult: {
+      mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
+        weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,
+      rawMse:finalMetrics.rawMse,rawRmse:finalMetrics.rawRmse,psiRmse:Math.sqrt(finalMetrics.psiMse),deltaRmse:Math.sqrt(finalMetrics.deltaMse),
+      converged:optResult.converged,numParameters:variables.length,
+      perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,config.psiWeight,config.deltaWeight,variables.length).perAoi).map(([a,m])=>[a,m.mseWoollam])),
       status,
       iterations: optResult.iterations,
       initialMse: initialMetrics.mse,

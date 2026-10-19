@@ -8,6 +8,7 @@
  */
 
 import { EllipsometryProject, Layer } from '../types/ellipsometry';
+import { APP_VERSION } from '../version';
 import { modelRegistry } from '../modelRegistry/registry';
 import { computeMultiAoiResidualMetrics } from '../fitting/residual';
 import { splineGrid, values, parameter } from '../fitting/expertWorkflow';
@@ -59,7 +60,8 @@ export function exportFittedCurveCsv(project: EllipsometryProject): void {
   }
 
   const rows: string[] = [];
-  rows.push('Wavelength,AOI,Psi Experimental,Psi Calculated,Psi Residual,Delta Experimental,Delta Calculated,Delta Residual');
+  const metrics=computeMultiAoiResidualMetrics(project.experimentData.points,project.fittingConfig.activeFitAois,project.fittingConfig.fitWeighting,project.fittingConfig.psiWeight,project.fittingConfig.deltaWeight,project.fittingResult?.numParameters??project.fittingResult?.parameters.filter(p=>p.fitted).length??0);
+  rows.push('Wavelength,AOI,Psi Experimental,Psi Calculated,Psi Residual,Delta Experimental,Delta Calculated,Delta Residual,MSE Woollam,Reduced Chi Square,Chi Square,DOF,Weighting Mode,AOI MSE Woollam');
 
   for (const pt of project.experimentData.points) {
     const psiCalc = pt.psiCalc ?? '';
@@ -68,7 +70,7 @@ export function exportFittedCurveCsv(project: EllipsometryProject): void {
     const deltaRes = pt.deltaResidual ?? '';
 
     rows.push(
-      `${pt.wavelength},${pt.aoi},${pt.psiExp},${psiCalc},${psiRes},${pt.deltaExp},${deltaCalc},${deltaRes}`
+      `${pt.wavelength},${pt.aoi},${pt.psiExp},${psiCalc},${psiRes},${pt.deltaExp},${deltaCalc},${deltaRes},${metrics.mseWoollam},${metrics.reducedChiSquare},${metrics.chiSquare},${metrics.dof},${metrics.weightingMode},${metrics.perAoi[pt.aoi]?.mseWoollam??''}`
     );
   }
 
@@ -93,7 +95,7 @@ export function exportFittedParametersJson(
     }
   }
 
-  const liveMetrics = computeMultiAoiResidualMetrics(project.experimentData?.points??[],project.fittingConfig.activeFitAois);
+  const liveMetrics = computeMultiAoiResidualMetrics(project.experimentData?.points??[],project.fittingConfig.activeFitAois,project.fittingConfig.fitWeighting,project.fittingConfig.psiWeight,project.fittingConfig.deltaWeight,project.fittingResult?.numParameters??project.fittingResult?.parameters.filter(p=>p.fitted).length??0);
   const rawMse = liveMetrics.rawMse;
   const rawRmse = liveMetrics.rawRmse;
 
@@ -113,9 +115,12 @@ export function exportFittedParametersJson(
     layers: project.layers,
     parameterBoundsAndLocks: primaryLayer?.parameters,
     selectedAois: liveMetrics.selectedAois,
+    mseWoollam:liveMetrics.mseWoollam,reducedChiSquare:liveMetrics.reducedChiSquare,chiSquare:liveMetrics.chiSquare,dof:liveMetrics.dof,
+    weightingMode:liveMetrics.weightingMode,weightingWarning:liveMetrics.weightingWarning,converged:project.fittingResult?.converged??false,
+    perAoiMseWoollam:Object.fromEntries(Object.entries(liveMetrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),
     perAoiMse: Object.fromEntries(Object.entries(liveMetrics.perAoi).map(([a,m])=>[a,m.mse])),
     application: 'AutoEllipso',
-    version: '2.1.0',
+    version: APP_VERSION,
     exportTimestamp: new Date().toISOString(),
     projectName: project.name,
     thickness: primaryLayer ? primaryLayer.thickness : 0,
@@ -127,6 +132,8 @@ export function exportFittedParametersJson(
     bsplineKnots: primaryLayer?.parameters._knotCount ? splineGrid(primaryLayer) : pipelineData?.bspline?.nodeWavelengths || [],
     bsplineCoefficients: primaryLayer?.modelId==='bspline'?values(primaryLayer):pipelineData?.bspline?.nodeCoefficients || {},
     bsplineDiagnostic: {
+      weightedRegularizationPenalty:pipelineData?.bspline?.weightedRegularizationPenalty??project.fittingResult?.bsplineDiagnostic?.weightedRegularizationPenalty,
+      weightedTotalObjective:pipelineData?.bspline?.weightedTotalObjective??project.fittingResult?.bsplineDiagnostic?.weightedTotalObjective,
       rawMse: pipelineData?.bspline?.rawMse ?? project.fittingResult?.bsplineDiagnostic?.rawMse ?? 0,
       regularizationPenalty:
         pipelineData?.bspline?.regularizationPenalty ??

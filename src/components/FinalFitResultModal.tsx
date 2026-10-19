@@ -112,7 +112,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
               <p className="text-xs text-slate-300 mt-1">
                 {isTargetAchieved
                   ? `真實正向驗算通過！Raw MSE: ${rawMse.toFixed(4)} 達成嚴格物理門檻。`
-                  : `最終 Raw MSE: ${rawMse.toFixed(4)} ≥ ${targetMse.toFixed(1)}。數據已完整擬合至收斂點，請參閱下方診斷分析。`}
+                  : `最終 Raw MSE: ${rawMse.toFixed(4)} ≥ ${targetMse.toFixed(1)}。已完成完整光譜回算；收斂狀態依旗標判讀，請參閱下方診斷分析。`}
               </p>
             </div>
           </div>
@@ -127,20 +127,22 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
 
         {/* Content Body */}
         <div className="p-5 space-y-4 overflow-y-auto text-xs text-slate-200 divide-y divide-slate-800">
+          {fittingResult.weightingWarning&&<p role="alert" className="text-amber-300">{fittingResult.weightingWarning}</p>}
+          {fittingResult.converged===false&&<p className="text-amber-300">未收斂</p>}
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80">
               <span className="text-[10px] text-slate-400 uppercase font-mono block">
-                Final Raw MSE
+                MSE (Woollam)
               </span>
               <span
                 className={`text-lg font-bold font-mono ${
                   isTargetAchieved ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
-                {rawMse.toFixed(4)}
+                {fittingResult.mseWoollam?.toFixed(4)??'—'}
               </span>
-              <span className="text-[10px] text-slate-500 mt-0.5 block">無加權真實均方誤差</span>
+              <span className="text-[10px] text-slate-500 mt-0.5 block">Raw MSE {rawMse.toFixed(4)} deg² · χ²ᵣ {fittingResult.reducedChiSquare?.toFixed(4)??'—'}</span>
             </div>
 
             <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80">
@@ -192,7 +194,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                   </span>
                 </span>
                 <span className="text-[10px] font-mono text-slate-400">
-                  Raw MSE 與二階平滑正則化嚴格分離
+                  Raw MSE 與平滑正則化分離 · 加權目標 {bsplineDiag.weightedTotalObjective?.toFixed(4)??'—'}
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg text-center font-mono">
@@ -209,7 +211,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">Total Objective</span>
+                  <span className="text-[10px] text-slate-500 block">Raw + Reg. 診斷</span>
                   <span className="text-xs text-emerald-300 font-semibold">
                     {(bsplineDiag.totalObjective ?? bsplineDiag.rawMse).toFixed(4)}
                   </span>

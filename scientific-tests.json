@@ -1,5 +1,45 @@
 [
   {
+    "name": "Woollam MSE on synthetic data at ground truth",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Sigma weighting changes the objective but not Raw MSE",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Missing sigma falls back to uniform with warning",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Central-difference Jacobian",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Converged flag is not set by mere improvement",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Optimizer weighting, regularization scaling and weight count validation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Weighted LM optimum and seventh progress argument are consistent",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Engine and Expert jointly optimize heterogeneous sigma across AOIs",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
     "name": "Delta convention matches Woollam/Horiba/Fujiwara",
     "passed": true,
     "detail": "PASS"

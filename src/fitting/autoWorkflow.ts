@@ -40,6 +40,8 @@ import { modelRegistry } from '../modelRegistry/registry';
 import { calculateSpectrum, calculatePoint } from '../solver/calculator';
 import {
   computeResidualMetrics,
+  computeMultiAoiResidualMetrics,
+  residualWeights,
   circularDifferenceDeg,
   findLargestResidualRegion,
 } from './residual';
@@ -106,6 +108,8 @@ export interface KnotStageRecord {
   rawMse: number;
   regularizationPenalty: number;
   totalObjective: number;
+  weightedRegularizationPenalty?:number;
+  weightedTotalObjective?:number;
   thicknessNm: number;
 }
 
@@ -131,6 +135,8 @@ export interface PipelineAuditData {
     thicknessNm: number;
     rawMse: number;
     regularizationPenalty: number;
+    weightedRegularizationPenalty?:number;
+    weightedTotalObjective?:number;
     smoothN: number;
     smoothK: number;
     totalObjective: number;
@@ -152,6 +158,7 @@ export interface PipelineAuditData {
     validStarts: number;
     bestStartIndex: number;
     bestRawMse: number;
+    bestMseWoollam?:number;
     runs: MultiStartRunRecord[];
   };
   physicalModelMismatch?: boolean;
@@ -623,7 +630,9 @@ export async function runAutomatedEllipsometryFit(
 
   let totalOptimizerIterations = 0;
 
+  let bestProgressMse=Infinity;
   const reportProgress = (p: Partial<WorkflowProgress>) => {
+    if(p.currentMse!==undefined)bestProgressMse=Math.min(bestProgressMse,p.currentMse);
     onProgress?.({
       stage: p.stage ?? 'stage1_cauchy',
       stageName: p.stageName ?? '',
@@ -633,7 +642,7 @@ export async function runAutomatedEllipsometryFit(
       iteration: p.iteration ?? totalOptimizerIterations,
       currentMse: p.currentMse ?? 0,
       currentRmse: p.currentRmse ?? 0,
-      bestMse: p.bestMse ?? 0,
+      bestMse: p.bestMse ?? (Number.isFinite(bestProgressMse)?bestProgressMse:0),
       targetMse: TARGET_MSE,
       currentThickness: p.currentThickness ?? workingLayers[primaryLayerIndex].thickness,
       message: p.message ?? '',
@@ -689,7 +698,7 @@ export async function runAutomatedEllipsometryFit(
   let bestCauchyT = cauchyLayers[primaryLayerIndex].thickness;
   let bestCauchyA = 1.46;
   let bestCauchyB = 0.004;
-  let lowestCoarseMse = 1e9;
+  let lowestCoarseMse = Infinity;
 
   // Also explicitly include the current layer thickness in the coarse scan
   const testThicknesses: number[] = [primaryLayer.thickness];
@@ -705,9 +714,9 @@ export async function runAutomatedEllipsometryFit(
     for (const testT of testThicknesses) {
       cauchyLayers[primaryLayerIndex].thickness = testT;
       const calcPts = calculateSpectrum(ambient, cauchyLayers, substrate, cauchyScanPts);
-      const m = computeResidualMetrics(calcPts, config.fitWeighting, psiWeight, deltaWeight);
-      if (m.rawMse < lowestCoarseMse) {
-        lowestCoarseMse = m.rawMse;
+      const m = computeResidualMetrics(calcPts, config.fitWeighting, psiWeight, deltaWeight, 2);
+      if (m.weightedMse < lowestCoarseMse) {
+        lowestCoarseMse = m.weightedMse;
         bestCauchyT = testT;
         bestCauchyA = aVal;
         bestCauchyB = bVal;
@@ -743,7 +752,7 @@ export async function runAutomatedEllipsometryFit(
       }
       return residuals;
     },
-    { maxIterations: 25, tolerance: 1e-5, shouldStop }
+    { maxIterations: 25, tolerance: 1e-5, residualWeights:residualWeights(cauchyScanPts,config).weights, shouldStop }
   );
   totalOptimizerIterations += cauchyLongOpt.iterations;
 
@@ -772,16 +781,17 @@ export async function runAutomatedEllipsometryFit(
     },
     {
       maxIterations: 25,
+      residualWeights:residualWeights(fittingPoints,config).weights,
       tolerance: 1e-5,
       shouldStop,
-      onIteration: (iter, cost) => {
+      onIteration: (iter, cost, _prev, _params, _raw, _reg, weightedCost) => {
         totalOptimizerIterations++;
         reportProgress({
           stage: 'stage1_cauchy',
           stageName: 'Cauchy 0-point Initialization',
           stepNumber: 2,
           progressPercent: 16 + Math.min(8, iter * 0.35),
-          currentMse: cost,
+          currentMse: Math.sqrt(weightedCost!*2*fittingPoints.length/Math.max(1,2*fittingPoints.length-cauchyFullVars.length)),
           currentThickness: cauchyLayers[primaryLayerIndex].thickness,
           message: `[2/8] Cauchy 優化中: 膜厚 = ${cauchyLayers[primaryLayerIndex].thickness.toFixed(2)} nm, Raw MSE = ${cost.toFixed(4)}`,
         });
@@ -790,7 +800,7 @@ export async function runAutomatedEllipsometryFit(
   );
 
   // If full-spectrum Cauchy has large residual (strong UV absorption like TiO2), preserve long-wavelength normal-dispersion baseline
-  const useLongWlBaseline = cauchyFullOpt.finalRawMse > 25.0 && cauchyLongOpt.finalRawMse < cauchyFullOpt.finalRawMse * 0.25;
+  const useLongWlBaseline = cauchyFullOpt.finalRawMse > 25.0 && cauchyLongOpt.finalWeightedCost < cauchyFullOpt.finalWeightedCost * 0.25;
   const chosenCauchyParams = useLongWlBaseline ? cauchyLongOpt.finalParams : cauchyFullOpt.finalParams;
 
   const finalCauchyThickness = chosenCauchyParams[0];
@@ -804,7 +814,7 @@ export async function runAutomatedEllipsometryFit(
   cauchyLayers[primaryLayerIndex].parameters['C'].current = finalCauchyC;
 
   const cauchyEval = calculateSpectrum(ambient, cauchyLayers, substrate, fittingPoints);
-  const cauchyMetrics = computeResidualMetrics(cauchyEval, config.fitWeighting, psiWeight, deltaWeight);
+  const cauchyMetrics = computeResidualMetrics(cauchyEval, config.fitWeighting, psiWeight, deltaWeight, cauchyFullVars.length);
   const cauchyFinalMse = cauchyMetrics.rawMse;
 
   log(
@@ -866,11 +876,11 @@ export async function runAutomatedEllipsometryFit(
         }
         return r;
       },
-      { maxIterations: 22, tolerance: 1e-5, shouldStop }
+      { maxIterations: 22, tolerance: 1e-5, residualWeights:residualWeights(fastScanPoints,config).weights, shouldStop }
     );
     totalOptimizerIterations += preOpt.iterations;
 
-    if (preOpt.finalRawMse < cauchyFinalMse * 0.7) {
+    if (preOpt.finalWeightedCost < cauchyMetrics.weightedMse * 0.7) {
       bsplineInitialThickness = preOpt.finalParams[0];
       const preRec = {
         eps_inf: preOpt.finalParams[1],
@@ -907,10 +917,12 @@ export async function runAutomatedEllipsometryFit(
   );
   let activeBsplineThickness = bsplineInitialThickness;
   let activeBsplineRawMse = cauchyFinalMse;
+  let activeBsplineMseWoollam=cauchyMetrics.mseWoollam;
   let activeBsplineRegPenalty = 0;
+  let activeWeightedRegPenalty=0;
   let activeBsplineSmoothN = 0;
   let activeBsplineSmoothK = 0;
-  let activeBsplineTotalObj = cauchyFinalMse;
+  let activeBsplineTotalObj = cauchyMetrics.weightedMse;
 
   const knotRefinementHistory: KnotStageRecord[] = [];
   const bsplineLayers: Layer[] = JSON.parse(JSON.stringify(workingLayers));
@@ -946,7 +958,7 @@ export async function runAutomatedEllipsometryFit(
       stepNumber: 3,
       progressPercent: 26 + stageIdx * 5,
       bsplineKnots: stageKnotCount,
-      currentMse: activeBsplineRawMse,
+      currentMse: activeBsplineMseWoollam,
       currentThickness: activeBsplineThickness,
       message: `[3/8] B-spline 階梯加密 Stage ${stageIdx + 1} (${stageKnotCount} knots)：二階平滑正則化聯立擬合...`,
     });
@@ -1055,11 +1067,12 @@ export async function runAutomatedEllipsometryFit(
     };
 
     const stageOpt = await optimizeBoundedLM(stageVars, bsplineExpResidualFn, {
+      residualWeights:residualWeights(fittingPoints,config).weights,
       maxIterations: 22,
       tolerance: 1e-5,
       regularizationResidualsFn: bsplineRegResidualFn,
       shouldStop,
-      onIteration: (iter, rawMseVal, _prev, _params, _raw, regPenVal) => {
+      onIteration: (iter, rawMseVal, _prev, _params, _raw, regPenVal, weightedCost) => {
         totalOptimizerIterations++;
         reportProgress({
           stage: 'stage2_bspline',
@@ -1067,7 +1080,7 @@ export async function runAutomatedEllipsometryFit(
           stepNumber: 3,
           progressPercent: 26 + stageIdx * 5 + Math.min(4, iter * 0.2),
           bsplineKnots: stageKnotCount,
-          currentMse: rawMseVal,
+          currentMse: Math.sqrt(weightedCost!*2*fittingPoints.length/Math.max(1,2*fittingPoints.length-stageVars.length)),
           currentThickness: bsplineLayers[primaryLayerIndex].thickness,
           message: `[3/8] B-spline (${stageKnotCount} knots) #${iter}: d=${bsplineLayers[primaryLayerIndex].thickness.toFixed(2)} nm, Raw MSE=${rawMseVal.toFixed(4)}, Reg=${(regPenVal ?? 0).toFixed(4)}`,
         });
@@ -1085,17 +1098,19 @@ export async function runAutomatedEllipsometryFit(
     }
 
     const stageEval = calculateSpectrum(ambient, bsplineLayers, substrate, fittingPoints);
-    const stageMetrics = computeResidualMetrics(stageEval, config.fitWeighting, psiWeight, deltaWeight);
+    const stageMetrics = computeResidualMetrics(stageEval, config.fitWeighting, psiWeight, deltaWeight, stageVars.length);
     const stageRawMse = stageMetrics.rawMse;
     const smoothInfo = computeBsplineSmoothness(stageN, stageK, lambdaN, lambdaK);
-    const stageRegPenalty = smoothInfo.regularizationPenalty;
-    const stageTotalObj = stageRawMse + stageRegPenalty;
+    const stageRegPenalty = stageOpt.finalRegularizationPenalty;
+    const stageTotalObj = stageMetrics.weightedMse + stageRegPenalty;
 
     knotRefinementHistory.push({
       knots: stageKnotCount,
       rawMse: Number(stageRawMse.toFixed(5)),
-      regularizationPenalty: Number(stageRegPenalty.toFixed(5)),
-      totalObjective: Number(stageTotalObj.toFixed(5)),
+      // Preserve the legacy Raw diagnostic contract; weighted fields are the optimized objective.
+      regularizationPenalty: Number(smoothInfo.regularizationPenalty.toFixed(5)),
+      totalObjective: Number((stageRawMse+smoothInfo.regularizationPenalty).toFixed(5)),
+      weightedRegularizationPenalty:stageRegPenalty,weightedTotalObjective:stageTotalObj,
       thicknessNm: Number(stageT.toFixed(2)),
     });
 
@@ -1104,20 +1119,22 @@ export async function runAutomatedEllipsometryFit(
     );
 
     const prevRawMse = activeBsplineRawMse;
-    if (stageIdx === 0 || stageRawMse < activeBsplineRawMse) {
+    if (stageIdx === 0 || stageTotalObj < activeBsplineTotalObj) {
       activeKnots = stageKnots;
       activeNCoeffs = stageN;
       activeKCoeffs = stageK;
       activeBsplineThickness = stageT;
       activeBsplineRawMse = stageRawMse;
-      activeBsplineRegPenalty = stageRegPenalty;
+      activeBsplineMseWoollam=stageMetrics.mseWoollam;
+      activeBsplineRegPenalty = smoothInfo.regularizationPenalty;
+      activeWeightedRegPenalty=stageRegPenalty;
       activeBsplineSmoothN = smoothInfo.smoothN;
       activeBsplineSmoothK = smoothInfo.smoothK;
       activeBsplineTotalObj = stageTotalObj;
     } else {
-      // Revert active knots if adding more knots did not reduce Raw MSE
+      // Revert active knots if adding more knots did not reduce the weighted regularized objective
       setActiveKnots(activeKnots);
-      log(`[3/8] B-spline 節點加密停止：${stageKnotCount} knots 未進一步降低 Raw MSE，保留 ${activeKnots.length} knots 最佳平滑解。`);
+      log(`[3/8] B-spline 節點加密停止：${stageKnotCount} knots 未進一步降低加權目標，保留 ${activeKnots.length} knots 最佳平滑解。`);
       break;
     }
 
@@ -1177,13 +1194,13 @@ export async function runAutomatedEllipsometryFit(
     stepNumber: 4,
     progressPercent: 46,
     bsplineKnots: activeKnots.length,
-    currentMse: activeBsplineRawMse,
+    currentMse: activeBsplineMseWoollam,
     currentThickness: finalBsplineThickness,
     message: '[4/8] B-spline 診斷：分離檢核 Raw MSE、平滑正則化懲罰項與總目標函數...',
   });
 
   const bsplineEval = calculateSpectrum(ambient, bsplineLayers, substrate, fittingPoints);
-  const bsplineMetrics = computeResidualMetrics(bsplineEval, config.fitWeighting, psiWeight, deltaWeight);
+  const bsplineMetrics = computeResidualMetrics(bsplineEval, config.fitWeighting, psiWeight, deltaWeight, 1+2*activeKnots.length);
   const bsplineFinalMse = bsplineMetrics.rawMse;
   const bsplineFinalRmse = bsplineMetrics.rawRmse;
   const { psiRmse: bsplinePsiRmse, deltaRmse: bsplineDeltaRmse } = computePsiDeltaRmse(bsplineEval);
@@ -1229,6 +1246,8 @@ export async function runAutomatedEllipsometryFit(
     thickness: number;
     rawMse: number;
     rawRmse: number;
+    mseWoollam:number;
+    converged:boolean;
     psiRmse: number;
     deltaRmse: number;
     weightedMse: number;
@@ -1323,11 +1342,11 @@ export async function runAutomatedEllipsometryFit(
     for (const tVal of sortedGrid) {
       testLayers[primaryLayerIndex].thickness = tVal;
       const physPts = calculateSpectrum(ambient, testLayers, substrate, fastScanPoints);
-      const physMse = computeResidualMetrics(physPts, config.fitWeighting, psiWeight, deltaWeight).rawMse;
+      const physMse = computeResidualMetrics(physPts, config.fitWeighting, psiWeight, deltaWeight, 1).weightedMse;
 
       bsplineLayers[primaryLayerIndex].thickness = tVal;
       const bspPts = calculateSpectrum(ambient, bsplineLayers, substrate, fastScanPoints);
-      const bspMse = computeResidualMetrics(bspPts, config.fitWeighting, psiWeight, deltaWeight).rawMse;
+      const bspMse = computeResidualMetrics(bspPts, config.fitWeighting, psiWeight, deltaWeight, 1).weightedMse;
 
       landscape.push({ thickness: tVal, mse: Math.min(physMse, bspMse) });
     }
@@ -1390,10 +1409,10 @@ export async function runAutomatedEllipsometryFit(
           }
           return r;
         },
-        { maxIterations: 5, tolerance: 1e-4, shouldStop }
+        { maxIterations: 5, tolerance: 1e-4, residualWeights:residualWeights(fastScanPoints,config).weights, shouldStop }
       );
       totalOptimizerIterations += relaxOpt.iterations;
-      relaxedBasins.push({ thickness: relaxOpt.finalParams[0], mse: relaxOpt.finalRawMse });
+      relaxedBasins.push({ thickness: relaxOpt.finalParams[0], mse: relaxOpt.finalWeightedCost });
     }
 
     relaxedBasins.sort((a, b) => a.mse - b.mse);
@@ -1433,6 +1452,8 @@ export async function runAutomatedEllipsometryFit(
       initialParamsRecord: Record<string, number>;
       layers: Layer[];
       rawMse: number;
+      weightedMse: number;
+      converged:boolean;
       iterations: number;
     }
 
@@ -1522,10 +1543,11 @@ export async function runAutomatedEllipsometryFit(
       };
 
       const optRes = await optimizeBoundedLM(activeVars, residualFn, {
+        residualWeights:residualWeights(ptsForStart,config).weights,
         maxIterations: useFullPtsImmediately ? 25 : 14,
         tolerance: 1e-5,
         shouldStop,
-        onIteration: (iter, cost) => {
+        onIteration: (iter, cost, _prev, _params, _raw, _reg, weightedCost) => {
           totalOptimizerIterations++;
           if (iter % 4 === 0) {
             reportProgress({
@@ -1533,7 +1555,7 @@ export async function runAutomatedEllipsometryFit(
               stageName: `Multi-Start Optimization: ${cModelDef.name}`,
               stepNumber: 7,
               progressPercent: 68 + Math.min(20, Math.round(((startIdx + 1) / minIndependentStarts) * 20)),
-              currentMse: cost,
+              currentMse: Math.sqrt(weightedCost!*2*ptsForStart.length/Math.max(1,2*ptsForStart.length-activeVars.length)),
               currentThickness: startLayers[primaryLayerIndex].thickness,
               currentModelName: cModelDef.name,
               multiStartRun: startIdx + 1,
@@ -1554,7 +1576,7 @@ export async function runAutomatedEllipsometryFit(
 
       // Evaluate exact full-spectrum Raw MSE for this start
       const fullEvalPts = calculateSpectrum(ambient, startLayers, substrate, fittingPoints);
-      const fullMetrics = computeResidualMetrics(fullEvalPts, config.fitWeighting, psiWeight, deltaWeight);
+      const fullMetrics = computeResidualMetrics(fullEvalPts, config.fitWeighting, psiWeight, deltaWeight, activeVars.length);
 
       const finalParamsRecord: Record<string, number> = {};
       for (const [pKey, pVal] of Object.entries(startLayers[primaryLayerIndex].parameters)) {
@@ -1576,12 +1598,13 @@ export async function runAutomatedEllipsometryFit(
         initialParamsRecord,
         layers: startLayers,
         rawMse: fullMetrics.rawMse,
+        weightedMse:fullMetrics.weightedMse,converged:optRes.converged,
         iterations: optRes.iterations,
       });
     }
 
     // Sort all 20+ starts by true full-spectrum Raw MSE ascending
-    startStates.sort((a, b) => a.rawMse - b.rawMse);
+    startStates.sort((a, b) => a.weightedMse - b.weightedMse);
 
     // Polish the top 2 winning starts on the complete experimental spectrum with tight tolerance
     let bestStartState = startStates[0];
@@ -1615,7 +1638,7 @@ export async function runAutomatedEllipsometryFit(
           }
           return residuals;
         },
-        { maxIterations: 35, tolerance: 1e-6, shouldStop }
+        { maxIterations: 35, tolerance: 1e-6, residualWeights:residualWeights(fittingPoints,config).weights, shouldStop }
       );
       totalOptimizerIterations += polishOpt.iterations;
 
@@ -1628,12 +1651,13 @@ export async function runAutomatedEllipsometryFit(
       }
 
       const evalPts = calculateSpectrum(ambient, polishLayers, substrate, fittingPoints);
-      const metrics = computeResidualMetrics(evalPts, config.fitWeighting, psiWeight, deltaWeight);
-      if (metrics.rawMse <= bestStartState.rawMse) {
+      const metrics = computeResidualMetrics(evalPts, config.fitWeighting, psiWeight, deltaWeight, polishVars.length);
+      if (metrics.weightedMse <= bestStartState.weightedMse) {
         bestStartState = {
           ...candidate,
           layers: polishLayers,
           rawMse: metrics.rawMse,
+          weightedMse:metrics.weightedMse,converged:polishOpt.converged,
           iterations: candidate.iterations + polishOpt.iterations,
         };
       }
@@ -1647,7 +1671,7 @@ export async function runAutomatedEllipsometryFit(
     }
 
     const bestEvalPts = calculateSpectrum(ambient, bestStartState.layers, substrate, fittingPoints);
-    const bestMetrics = computeResidualMetrics(bestEvalPts, config.fitWeighting, psiWeight, deltaWeight);
+    const bestMetrics = computeResidualMetrics(bestEvalPts, config.fitWeighting, psiWeight, deltaWeight, 1+Object.values(bestStartState.layers[primaryLayerIndex].parameters).filter(p=>p.fit).length);
     const { psiRmse: candPsiRmse, deltaRmse: candDeltaRmse } = computePsiDeltaRmse(bestEvalPts);
 
     log(
@@ -1697,6 +1721,7 @@ export async function runAutomatedEllipsometryFit(
       psiRmse: candPsiRmse,
       deltaRmse: candDeltaRmse,
       weightedMse: bestMetrics.weightedMse,
+      mseWoollam:bestMetrics.mseWoollam,converged:bestStartState.converged,
       points: bestEvalPts,
       parametersRecord: candidateParamsRecord,
       iterations: bestStartState.iterations,
@@ -1705,7 +1730,7 @@ export async function runAutomatedEllipsometryFit(
     });
   }
 
-  evaluatedCandidates.sort((a, b) => a.rawMse - b.rawMse);
+  evaluatedCandidates.sort((a, b) => a.weightedMse - b.weightedMse);
   const winningCandidate = evaluatedCandidates[0];
 
   const finalLayers: Layer[] = JSON.parse(JSON.stringify(winningCandidate.layers));
@@ -1737,10 +1762,7 @@ export async function runAutomatedEllipsometryFit(
     (p) => activeAois.includes(p.aoi) && p.wavelength >= fitWlMin && p.wavelength <= fitWlMax
   );
 
-  let numActiveParams = finalLayers[primaryLayerIndex].thicknessFit ? 1 : 0;
-  for (const p of Object.values(finalLayers[primaryLayerIndex].parameters)) {
-    if (p.fit) numActiveParams++;
-  }
+  const numActiveParams=winningCandidate.parametersRecord.length;
 
   const finalMetrics = computeResidualMetrics(
     finalFittingPoints,
@@ -1772,7 +1794,7 @@ export async function runAutomatedEllipsometryFit(
   for (const aoi of activeAois) {
     const aoiPts = finalFittingPoints.filter((p) => p.aoi === aoi);
     if (aoiPts.length > 0) {
-      perAoiMse[aoi] = computeResidualMetrics(aoiPts, config.fitWeighting, psiWeight, deltaWeight).rawMse;
+      perAoiMse[aoi] = computeResidualMetrics(aoiPts, finalMetrics.weightingMode==='sigma'?'standard_deviation':finalMetrics.weightingMode, psiWeight, deltaWeight, numActiveParams).rawMse;
     }
   }
 
@@ -1813,7 +1835,7 @@ export async function runAutomatedEllipsometryFit(
     stageName: 'Fitting Completed',
     stepNumber: 8,
     progressPercent: 100,
-    currentMse: finalMetrics.rawMse,
+    currentMse: finalMetrics.mseWoollam,
     currentRmse: finalMetrics.rawRmse,
     currentThickness: finalThickness,
     currentModelName: finalModelDef.name,
@@ -1850,6 +1872,7 @@ export async function runAutomatedEllipsometryFit(
       smoothN: Number(activeBsplineSmoothN.toFixed(6)),
       smoothK: Number(activeBsplineSmoothK.toFixed(6)),
       totalObjective: Number((bsplineFinalMse + activeBsplineRegPenalty).toFixed(5)),
+      weightedRegularizationPenalty:activeWeightedRegPenalty,weightedTotalObjective:activeBsplineTotalObj,
       rmse: bsplineFinalRmse,
       psiRmse: bsplinePsiRmse,
       deltaRmse: bsplineDeltaRmse,
@@ -1868,6 +1891,7 @@ export async function runAutomatedEllipsometryFit(
       validStarts: winningCandidate.multiStartRuns.length,
       bestStartIndex: winningCandidate.bestStartIndex,
       bestRawMse: winningCandidate.rawMse,
+      bestMseWoollam:finalMetrics.mseWoollam,
       runs: winningCandidate.multiStartRuns,
     },
     physicalModelMismatch: isPhysicalModelMismatch,
@@ -1879,6 +1903,9 @@ export async function runAutomatedEllipsometryFit(
     updatedSubstrate: substrate,
     updatedPoints: finalAllPoints,
     fittingResult: {
+      mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
+      weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,
+      perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,psiWeight,deltaWeight,numActiveParams).perAoi).map(([a,m])=>[a,m.mseWoollam])),
       status: finalStatus,
       iterations: totalOptimizerIterations,
       initialMse: cauchyFinalMse,
@@ -1917,6 +1944,7 @@ export async function runAutomatedEllipsometryFit(
         smoothN: Number(activeBsplineSmoothN.toFixed(6)),
         smoothK: Number(activeBsplineSmoothK.toFixed(6)),
         totalObjective: Number((bsplineFinalMse + activeBsplineRegPenalty).toFixed(5)),
+      weightedRegularizationPenalty:activeWeightedRegPenalty,weightedTotalObjective:activeBsplineTotalObj,
         activeKnots: activeKnots.length,
         knotRefinementHistory,
       },
@@ -1925,6 +1953,7 @@ export async function runAutomatedEllipsometryFit(
         validStarts: winningCandidate.multiStartRuns.length,
         bestStartIndex: winningCandidate.bestStartIndex,
         bestRawMse: winningCandidate.rawMse,
+      bestMseWoollam:finalMetrics.mseWoollam,
       },
       physicalModelMismatch: isPhysicalModelMismatch,
       freshCalculationVerified,
@@ -1940,7 +1969,7 @@ export async function runAutomatedEllipsometryFit(
       deltaRmse: c.deltaRmse,
       finalThickness: c.thickness,
       iterations: c.iterations,
-      converged: true,
+      converged: c.converged,
       fittedParameters: c.parametersRecord,
     })),
     workflowLog: logs,

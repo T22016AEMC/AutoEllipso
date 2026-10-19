@@ -180,6 +180,14 @@ export interface FittedParameterResult {
 }
 
 export interface FittingResult {
+  mseWoollam?: number;
+  reducedChiSquare?: number;
+  chiSquare?: number;
+  dof?: number;
+  weightingMode?: 'sigma'|'uniform'|'psi_dominant';
+  weightingWarning?: string;
+  converged?: boolean;
+  perAoiMseWoollam?: Record<number,number>;
   status:
     | 'idle'
     | 'running'
@@ -220,6 +228,8 @@ export interface FittingResult {
     psiRmse: number;
     deltaRmse: number;
     regularizationPenalty?: number;
+    weightedRegularizationPenalty?:number;
+    weightedTotalObjective?:number;
     smoothN?: number;
     smoothK?: number;
     totalObjective?: number;
@@ -229,6 +239,8 @@ export interface FittingResult {
       rawMse: number;
       regularizationPenalty: number;
       totalObjective: number;
+      weightedRegularizationPenalty?:number;
+      weightedTotalObjective?:number;
       thicknessNm: number;
     }[];
   };
@@ -237,6 +249,7 @@ export interface FittingResult {
     validStarts: number;
     bestStartIndex: number;
     bestRawMse: number;
+    bestMseWoollam?: number;
   };
   physicalModelMismatch?: boolean;
   freshCalculationVerified?: boolean;

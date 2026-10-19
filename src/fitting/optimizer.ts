@@ -15,6 +15,7 @@ export interface OptimizationVariable {
 }
 
 export interface OptimizerOptions {
+  residualWeights?: number[];
   maxIterations?: number;
   tolerance?: number;
   initialLambda?: number;
@@ -32,18 +33,22 @@ export interface OptimizerOptions {
     prevCost: number | null,
     currentParams: number[],
     rawMse?: number,
-    regularizationPenalty?: number
+    regularizationPenalty?: number,
+    weightedCost?: number
   ) => void;
   shouldStop?: () => boolean;
 }
 
 export interface OptimizerResult {
   converged: boolean;
+  improved: boolean;
   stopped: boolean;
   iterations: number;
   initialCost: number;
   finalCost: number;
   finalRawMse: number;
+  finalWeightedCost: number;
+  finalChiSquare: number;
   finalRegularizationPenalty: number;
   finalParams: number[];
   message: string;
@@ -103,6 +108,27 @@ function solveLinearSystem(A: number[][], b: number[]): number[] | null {
   return x;
 }
 
+/** Unweighted residual Jacobian in normalized u-space; exported for analytic regression tests. */
+export function centralDifferenceJacobian(variables:OptimizationVariable[],params:number[],residualFn:(p:number[])=>number[],isAngularResidual=(i:number)=>i%2===1):number[][] {
+  const base=residualFn(params),J=base.map(()=>variables.map(()=>0));
+  variables.forEach((v,j)=>{
+    const span=v.max-v.min;if(span<=0)return;
+    const u=Math.max(0,Math.min(1,(params[j]-v.min)/span));
+    const hu=Math.max(1e-5*span,1e-4*Math.abs(params[j]),1e-12)/span;
+    const central=u-hu>=0&&u+hu<=1;
+    const forward=central||u+hu<=1||(u-hu<0&&1-u>=u);
+    const step=central?hu:Math.min(hu,forward?1-u:u);
+    if(step<=0)return;
+    const plus=[...params],minus=[...params];
+    plus[j]=v.min+(central||forward?u+step:u)*span;
+    minus[j]=v.min+(central||!forward?u-step:u)*span;
+    const rp=central||forward?residualFn(plus):base,rm=central||!forward?residualFn(minus):base;
+    if(rp.length!==base.length||rm.length!==base.length)throw new Error('Residual count changed during Jacobian evaluation');
+    for(let i=0;i<base.length;i++) J[i][j]=(isAngularResidual(i)?circularDifferenceDeg(rp[i],rm[i]):rp[i]-rm[i])/(central?2*step:step);
+  });
+  return J;
+}
+
 let lastUiYieldTime = 0;
 
 /**
@@ -122,31 +148,13 @@ export async function optimizeBoundedLM(
   let lambda = options.initialLambda ?? 1e-2;
   const nParams = variables.length;
 
-  if (nParams === 0) {
-    const residual = residualFn([]);
-    const raw = residual.reduce((s,r)=>s+r*r,0)/Math.max(1,residual.length);
-    const reg = options.regularizationResidualsFn?.([])??[];
-    const penalty = reg.reduce((s,r)=>s+r*r,0)/Math.max(1,residual.length);
-    return {
-      converged: true,
-      stopped: false,
-      iterations: 0,
-      initialCost: raw + penalty,
-      finalCost: raw + penalty,
-      finalRawMse: raw,
-      finalRegularizationPenalty: penalty,
-      finalParams: [],
-      message: 'No parameters selected for fitting.',
-    };
-  }
-
   // Normalize parameters to [0, 1] range to avoid ill-conditioning
   // u_i = (p_i - min_i) / (max_i - min_i)
   const toInternal = (params: number[]): number[] => {
     return params.map((p, i) => {
-      const span = Math.max(1e-12, variables[i].max - variables[i].min);
+      const span = variables[i].max - variables[i].min;
       const clamped = Math.max(variables[i].min, Math.min(variables[i].max, p));
-      return (clamped - variables[i].min) / span;
+      return span>0?(clamped - variables[i].min) / span:0;
     });
   };
 
@@ -161,17 +169,24 @@ export async function optimizeBoundedLM(
   const evaluateFullState = (params: number[]) => {
     const expRes = residualFn(params);
     const mExp = Math.max(1, expRes.length);
+    if (options.residualWeights && (options.residualWeights.length!==expRes.length || options.residualWeights.some(w=>!Number.isFinite(w)||w<0))) throw new Error('residualWeights must be finite, nonnegative and match data residual count');
+    const weights=options.residualWeights??expRes.map(()=>1);
+    const meanW2=options.residualWeights?weights.reduce((s,w)=>s+w*w,0)/mExp:1;
+    const chiSquare=expRes.reduce((s,r,i)=>s+(weights[i]*r)**2,0);
+    const weightedCost=chiSquare/mExp;
     const rawMse = expRes.reduce((acc, r) => acc + r * r, 0) / mExp;
 
     const regRes = options.regularizationResidualsFn ? options.regularizationResidualsFn(params) : [];
-    const regPenalty = regRes.length > 0 ? regRes.reduce((acc, r) => acc + r * r, 0) / mExp : 0;
+    const regPenalty = regRes.length > 0 ? regRes.reduce((acc, r) => acc + r * r, 0) / mExp * meanW2 : 0;
 
-    const combinedResiduals = regRes.length > 0 ? [...expRes, ...regRes] : expRes;
-    const totalCost = rawMse + regPenalty;
+    const rowWeights=[...weights,...regRes.map(()=>Math.sqrt(meanW2))];
+    const combinedResiduals=[...expRes,...regRes].map((r,i)=>r*rowWeights[i]);
+    const totalCost = weightedCost + regPenalty;
 
     return {
       expRes,
       regRes,
+      rowWeights,weightedCost,chiSquare,
       combinedResiduals,
       mExp,
       rawMse,
@@ -195,6 +210,9 @@ export async function optimizeBoundedLM(
   let currentRegPenalty = currentState.regPenalty;
 
   const initialCost = currentCost;
+  if (nParams===0) return {converged:true,improved:false,stopped:false,iterations:0,initialCost,finalCost:currentCost,
+    finalRawMse:currentRawMse,finalWeightedCost:currentState.weightedCost,finalChiSquare:currentState.chiSquare,
+    finalRegularizationPenalty:currentRegPenalty,finalParams:[],message:'Converged: no free parameters.'};
   let prevCost: number | null = null;
 
   let iter = 0;
@@ -208,7 +226,7 @@ export async function optimizeBoundedLM(
     }
 
     if (options.onIteration) {
-      options.onIteration(iter, currentRawMse, prevCost, currentParams, currentRawMse, currentRegPenalty);
+      options.onIteration(iter, currentRawMse, prevCost, currentParams, currentRawMse, currentRegPenalty, currentState.weightedCost);
     }
 
     // Yield to browser event loop periodically without artificial 15ms sleep on every step
@@ -222,41 +240,10 @@ export async function optimizeBoundedLM(
     const mExp = currentState.mExp;
     if (mResiduals === 0) break;
 
-    // Compute Jacobian J in normalized u-space using finite differences
-    const J: number[][] = Array.from({ length: mResiduals }, () => new Array(nParams).fill(0));
-    const eps = 1e-4; // step in u-space
-
-    for (let j = 0; j < nParams; j++) {
-      const uPlus = [...currentU];
-      uPlus[j] = Math.min(1, uPlus[j] + eps);
-      const actualStep = uPlus[j] - currentU[j];
-
-      if (actualStep < 1e-7) {
-        // At upper boundary, step backwards
-        const uMinus = [...currentU];
-        uMinus[j] = Math.max(0, uMinus[j] - eps);
-        const backStep = currentU[j] - uMinus[j];
-        const stateMinus = evaluateFullState(toPhysical(uMinus));
-        const rMinus = stateMinus.combinedResiduals;
-        for (let i = 0; i < mResiduals; i++) {
-          let stepDiff = currentResiduals[i] - rMinus[i];
-          if (isAngularIdx(i, mExp)) {
-            stepDiff = circularDifferenceDeg(currentResiduals[i], rMinus[i]);
-          }
-          J[i][j] = stepDiff / Math.max(1e-8, backStep);
-        }
-      } else {
-        const statePlus = evaluateFullState(toPhysical(uPlus));
-        const rPlus = statePlus.combinedResiduals;
-        for (let i = 0; i < mResiduals; i++) {
-          let stepDiff = rPlus[i] - currentResiduals[i];
-          if (isAngularIdx(i, mExp)) {
-            stepDiff = circularDifferenceDeg(rPlus[i], currentResiduals[i]);
-          }
-          J[i][j] = stepDiff / actualStep;
-        }
-      }
-    }
+    // Difference unweighted degrees first, then apply weights (never wrap weighted Delta).
+    const J=centralDifferenceJacobian(variables,currentParams,params=>{
+      const state=evaluateFullState(params);return [...state.expRes,...state.regRes];
+    },i=>isAngularIdx(i,mExp)).map((row,i)=>row.map(v=>v*currentState.rowWeights[i]));
 
     // Compute Approximate Hessian H = (1/mExp) * J^T * J and gradient g = (1/mExp) * J^T * r
     const H: number[][] = Array.from({ length: nParams }, () => new Array(nParams).fill(0));
@@ -289,7 +276,7 @@ export async function optimizeBoundedLM(
 
     // Check projected gradient norm for convergence
     const gradNorm = Math.hypot(...projG);
-    if (gradNorm < tol && iter >= 2) {
+    if (gradNorm < tol) {
       converged = true;
       break;
     }
@@ -362,22 +349,25 @@ export async function optimizeBoundedLM(
     if (converged || !stepAccepted) break;
   }
 
-  const improved = currentCost < initialCost - 1e-7;
+  const improved = currentCost < initialCost;
   const message = stopped
     ? 'Fitting stopped by user.'
-    : !improved
-    ? 'Fitting failed to improve the objective function.'
     : converged
     ? `Converged successfully in ${iter} iterations.`
-    : `Reached maximum iterations (${maxIterations}).`;
+    : !improved
+    ? 'Fitting failed to improve the objective function.'
+    : `Reached maximum iterations (${maxIterations}); not converged.`;
 
   return {
-    converged: converged || improved,
+    converged,
+    improved,
     stopped,
     iterations: iter,
     initialCost,
     finalCost: currentCost,
     finalRawMse: currentRawMse,
+    finalWeightedCost:currentState.weightedCost,
+    finalChiSquare:currentState.chiSquare,
     finalRegularizationPenalty: currentRegPenalty,
     finalParams: currentParams,
     message,

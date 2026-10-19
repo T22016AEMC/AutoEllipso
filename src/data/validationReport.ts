@@ -11,7 +11,7 @@ export function createValidationReport(project:EllipsometryProject) {
   // Independently recompute all input points from the final saved parameter set.
   const comparison=calculateSpectrum(project.ambient,project.layers,project.substrate,input);
   if(comparison.some(p=>![p.psiExp,p.deltaExp,p.psiCalc,p.deltaCalc].every(Number.isFinite)))throw new Error('Validation report requires finite measured and calculated spectra');
-  const metrics=computeMultiAoiResidualMetrics(comparison,project.fittingConfig.activeFitAois);
+  const metrics=computeMultiAoiResidualMetrics(comparison,project.fittingConfig.activeFitAois,project.fittingConfig.fitWeighting,project.fittingConfig.psiWeight,project.fittingConfig.deltaWeight,project.fittingResult?.numParameters??project.fittingResult?.parameters.filter(p=>p.fitted).length??0);
   const wavelengths=Array.from(new Set(input.map(p=>p.wavelength))).sort((a,b)=>a-b);
   return {
     application:'AutoEllipso',version:APP_VERSION,buildCommit:BUILD_COMMIT,buildTime:BUILD_TIME,generatedAt:new Date().toISOString(),
@@ -22,6 +22,9 @@ export function createValidationReport(project:EllipsometryProject) {
       finalThicknessNm:layer.thickness,selectedPhysicalModel:{id:layer.modelId,name:modelRegistry.get(layer.modelId)?.name},oscillatorParameters:layer.parameters,
       containsNoncausalCorrection:layer.modelId==='bspline'||!!layer.parameters._baseEnabled?.current||Object.keys(layer.parameters).some(key=>/^p\d+_type$/.test(key)&&layer.parameters[key].current===4&&layer.parameters[key.replace('_type','_enabled')]?.current),
       finalNk:wavelengths.map(wavelength=>{const optical=modelRegistry.get(layer.modelId)!.calculate(wavelength,values(layer));return {wavelength,...optical};})})),
+    mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
+    weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,converged:project.fittingResult?.converged??false,
+    perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),
     finalRawMse:metrics.rawMse,psiRmse:Math.sqrt(metrics.psiMse),deltaRmse:Math.sqrt(metrics.deltaMse),individualAoiMse:metrics.perAoi,
     finalComparison:comparison,fittingStatus:project.fittingResult?.status??'manual',fittingResult:project.fittingResult,
     finalFreshForwardVerified:true,rawMseDefinition:'sum(Psi residual^2 + shortest circular Delta residual^2) / (2 * point count), in degree^2',

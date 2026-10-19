@@ -37,7 +37,7 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
   const initial=useRef(clone(project));
   const l=project.layers[index],s=session(project),locked=busy||disabled;
   const allPoints=project.experimentData?.points??[],pts=allPoints.filter(p=>p.aoi===viewAoi).sort((a,b)=>a.wavelength-b.wavelength);
-  const metrics=computeMultiAoiResidualMetrics(allPoints,project.fittingConfig.activeFitAois);
+  const metrics=computeMultiAoiResidualMetrics(allPoints,project.fittingConfig.activeFitAois,project.fittingConfig.fitWeighting,project.fittingConfig.psiWeight,project.fittingConfig.deltaWeight,project.fittingResult?.numParameters??0);
   function remember(p:EllipsometryProject){setUndo(u=>[...u.slice(-Math.max(1,Math.min(63,Math.floor(50000/Math.max(1,p.experimentData?.points.length??1))))),{...p,expert:p.expert?{...p.expert,candidates:[]}:undefined}]);setRedo([]);}
   function commit(p:EllipsometryProject,record=true) {
     try { if(p.experimentData?.points.length)validateExpert(p); const next=p;if(record)remember(latest.current);onChange(next);setError(''); }
@@ -103,12 +103,14 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
         <button className={btn} disabled={locked} onClick={onRecalculate}>Fresh TMM Recalculate</button>
         <span className="text-cyan-300">{model?.name}</span>
       </div>
-      {progress&&<p role="status">Start {progress.start}/{progress.totalStarts} · Iteration {progress.iteration} · Current Raw MSE {progress.currentMse.toPrecision(7)} · Best Raw MSE {progress.bestMse.toPrecision(7)}</p>}
+      {progress&&<p role="status">Start {progress.start}/{progress.totalStarts} · Iteration {progress.iteration} · Current MSE (Woollam) {progress.currentMse.toPrecision(7)} · Best MSE (Woollam) {progress.bestMse.toPrecision(7)}</p>}
       {(error||forwardError)&&<p role="alert" className="p-2 bg-red-950 border border-red-600">{error||forwardError}</p>}
       <p role="status" className="expert-forward-status text-amber-300">{forwardPending?'完整 TMM 重算中；目前 Ψ/Δ 曲線與 MSE 為上一輪。':forwardError?'計算失敗；保留上一輪曲線，請修正參數。':project.experimentData?.points.length?'完整光譜 TMM 已更新。':'尚未匯入實驗資料。'}</p>
       <div className="flex flex-wrap gap-5 p-3 border border-cyan-900 rounded bg-cyan-950/20">
-        <span>Raw MSE: <b>{metrics.rawMse.toPrecision(8)}</b> deg²</span><span>Ψ RMSE: {Math.sqrt(metrics.psiMse).toPrecision(6)}°</span><span>Δ RMSE: {Math.sqrt(metrics.deltaMse).toPrecision(6)}°</span>
-        {Object.values(metrics.perAoi).map(m=><span key={m.aoi}>AOI {m.aoi}° MSE {m.mse.toPrecision(6)}</span>)}
+        <span>MSE (Woollam): <b>{metrics.mseWoollam.toPrecision(8)}</b> <small>Raw MSE {metrics.rawMse.toPrecision(8)} deg² · χ²ᵣ {metrics.reducedChiSquare.toPrecision(6)}</small></span>
+        {metrics.weightingWarning&&<span role="alert" className="text-amber-300">{metrics.weightingWarning}</span>}
+        {project.fittingResult?.converged===false&&<span className="text-amber-300">未收斂</span>}<span>Ψ RMSE: {Math.sqrt(metrics.psiMse).toPrecision(6)}°</span><span>Δ RMSE: {Math.sqrt(metrics.deltaMse).toPrecision(6)}°</span>
+        {Object.values(metrics.perAoi).map(m=><span key={m.aoi}>AOI {m.aoi}° MSE (Woollam) {m.mseWoollam.toPrecision(6)}</span>)}
       </div>
       <div className="flex flex-wrap gap-2 items-center">
         <button className={btn} disabled={locked||!undo.length} onClick={()=>{const p=undo[undo.length-1];setRedo(r=>[...r,clone(project)]);setUndo(u=>u.slice(0,-1));onChange({...p,expert:{...session(p),candidates:s.candidates}});}}>Undo</button>

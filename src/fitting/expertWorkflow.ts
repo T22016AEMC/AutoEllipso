@@ -1,7 +1,7 @@
 import { EllipsometryProject, Layer, ParameterValue, EllipsometryDataPoint } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
 import { calculatePoint, calculateSpectrum } from '../solver/calculator';
-import { circularDifferenceDeg, computeMultiAoiResidualMetrics } from './residual';
+import { circularDifferenceDeg, computeMultiAoiResidualMetrics, residualWeights } from './residual';
 import { optimizeBoundedLM, OptimizationVariable } from './optimizer';
 import { cubicBasis, cubicEvaluate } from '../models/cubicSpline';
 import { generateAdaptiveKnots, computeBsplineSmoothness, getActiveKnots } from '../models/bspline';
@@ -186,7 +186,10 @@ const mse=(r:number[])=>r.reduce((s,v)=>s+v*v,0)/r.length;
 
 export async function fitExpert(project:EllipsometryProject,global=false,onProgress?:(v:ExpertProgress)=>void,shouldStop=()=>false):Promise<EllipsometryProject> {
   validateExpert(project);const p=clone(project),points=activePoints(p,true),{vars,refs}=collect(p),startTime=performance.now();
-  const initial=mse(residual(p,points));let best=vars.map(v=>v.value),bestMse=initial,iterations=0;
+  const weights=residualWeights(points,p.fittingConfig).weights,meanW2=weights.reduce((s,w)=>s+w*w,0)/(2*points.length);
+  const weighted=(r:number[])=>r.reduce((s,v,i)=>s+(weights[i]*v)**2,0)/(2*points.length);
+  const woollam=(cost:number)=>Math.sqrt(cost*2*points.length/Math.max(1,2*points.length-vars.length));
+  const initial=mse(residual(p,points));let best=vars.map(v=>v.value),bestMse=woollam(weighted(residual(p,points))),iterations=0,bestConverged=vars.length===0;
   let starts:number[][]=[best];
   if(global && p.fittingConfig.enableMultiStart!==false) {
     // Real TMM grid across complete user thickness bounds. Retain diverse basins.
@@ -195,9 +198,9 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
     for(let s=0;s<64;s++) {
       if(shouldStop())break;
       const v=[...best];thicknessIndices.forEach((i,j)=>v[i]=vars[i].min+((s*(2*j+1))%64)/63*(vars[i].max-vars[i].min));
-      apply(p,refs,v);let cost=Infinity;try{cost=mse(residual(p,points));}catch{}
+      apply(p,refs,v);let cost=Infinity;try{cost=weighted(residual(p,points));}catch{}
       coarse.push({vector:v,cost});
-      if(s%8===0) {onProgress?.({iteration:0,currentMse:cost,bestMse,start:0,totalStarts:20});await new Promise(r=>setTimeout(r,0));}
+      if(s%8===0) {onProgress?.({iteration:0,currentMse:woollam(cost),bestMse,start:0,totalStarts:20});await new Promise(r=>setTimeout(r,0));}
     }
     starts.push(...coarse.sort((a,b)=>a.cost-b.cost).slice(0,9).map(x=>x.vector));
     for(let s=1;starts.length<20;s++) starts.push(best.map((v,i)=>Math.max(vars[i].min,Math.min(vars[i].max,v+Math.sin(s*12.9898+i*78.233)*0.12*(vars[i].max-vars[i].min)))));
@@ -216,7 +219,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
     }
     return r;
   }
-  const objective=(vector:number[])=>{apply(p,refs,vector);try{return mse(residual(p,points))+reg(vector).reduce((s,x)=>s+x*x,0)/(2*points.length);}catch{return Infinity;}};
+  const objective=(vector:number[])=>{apply(p,refs,vector);try{return weighted(residual(p,points))+reg(vector).reduce((s,x)=>s+x*x,0)/(2*points.length)*meanW2;}catch{return Infinity;}};
   let bestObjective=objective(best),validStarts=0,bestStartIndex=0;
   for(let s=0;s<starts.length&&!shouldStop();s++) {
     if(!vars.length)break;
@@ -225,24 +228,26 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
     const out=await optimizeBoundedLM(vars.map((v,i)=>({...v,value:starts[s][i]})),vector=>{
       apply(p,refs,vector);try{return residual(p,points);}catch{return points.flatMap(()=>[1e6,1e6]);}
     },{maxIterations:p.fittingConfig.maxIterations,tolerance:p.fittingConfig.tolerance,initialLambda:p.fittingConfig.dampingFactor,
-      isAngularResidual:i=>i%2===1,regularizationResidualsFn:reg,shouldStop,
-      onIteration:(i,_c,_prev,v)=>{apply(p,refs,v);const raw=mse(residual(p,points));bestMse=Math.min(bestMse,raw);
+      residualWeights:weights,isAngularResidual:i=>i%2===1,regularizationResidualsFn:reg,shouldStop,
+      onIteration:(i,_c,_prev,v)=>{apply(p,refs,v);const raw=woollam(weighted(residual(p,points)));bestMse=Math.min(bestMse,raw);
         onProgress?.({iteration:i,currentMse:raw,bestMse,start:s+1,totalStarts:starts.length});}});
     iterations+=out.iterations;const obj=objective(out.finalParams);
-    if(obj<bestObjective){bestObjective=obj;best=[...out.finalParams];bestStartIndex=s;}
+    if(obj<bestObjective || (obj===bestObjective&&out.converged)){bestObjective=obj;best=[...out.finalParams];bestStartIndex=s;bestConverged=out.converged;}
   }
   apply(p,refs,best);
-  const final=freshForward(p),metrics=computeMultiAoiResidualMetrics(final.experimentData!.points,p.fittingConfig.activeFitAois);
+  const final=freshForward(p),metrics=computeMultiAoiResidualMetrics(final.experimentData!.points,p.fittingConfig.activeFitAois,p.fittingConfig.fitWeighting,p.fittingConfig.psiWeight,p.fittingConfig.deltaWeight,vars.length);
   // Independent fresh full-spectrum pass, using exactly the saved best vector.
   const check=calculateSpectrum(final.ambient,final.layers,final.substrate,final.experimentData!.points);
   const verified=check.every((v,i)=>v.psiCalc===final.experimentData!.points[i].psiCalc&&v.deltaCalc===final.experimentData!.points[i].deltaCalc);
   if(!verified)throw new Error('Final forward verification failed');
-  final.fittingResult={status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
+  final.fittingResult={mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
+        weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
+    converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
     initialMse:initial,finalMse:metrics.rawMse,initialRmse:Math.sqrt(initial),finalRmse:metrics.rawRmse,
     rawMse:metrics.rawMse,rawRmse:metrics.rawRmse,psiRmse:Math.sqrt(metrics.psiMse),deltaRmse:Math.sqrt(metrics.deltaMse),
     targetMse:10,targetAchieved:metrics.rawMse<10,freshCalculationVerified:verified,executionTimeMs:performance.now()-startTime,
     selectedAois:metrics.selectedAois,fittingMode:metrics.fittingMode,perAoiMse:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mse])),
-    multiStartSummary:{totalStarts:vars.length?starts.length:0,validStarts,bestStartIndex,bestRawMse:metrics.rawMse},
+    multiStartSummary:{totalStarts:vars.length?starts.length:0,validStarts,bestStartIndex,bestRawMse:metrics.rawMse,bestMseWoollam:metrics.mseWoollam},
     parameters:refs.map((r,i)=>({layerId:r.kind==='substrate'?'substrate':p.layers[r.index].id,layerName:r.kind==='substrate'?'Substrate':p.layers[r.index].name,
       paramId:r.key||'thickness',paramName:vars[i].name,initialValue:vars[i].value,finalValue:best[i],min:vars[i].min,max:vars[i].max,unit:'',fitted:true})),
     message:'Expert fit; full spectrum fresh TMM verified. Raw MSE is unweighted degrees squared.'};
@@ -250,14 +255,16 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
 }
 export async function preparePhysical(project:EllipsometryProject,index:number):Promise<EllipsometryProject> {
   if(project.layers[index].modelId==='expert_mixed')return clone(project);
-  const source=clone(project.layers[index]),grid=generateAdaptiveKnots(project.experimentData!.wavelengthMin,project.experimentData!.wavelengthMax,32);
+  // Project the manual source through TMM at measured wavelengths/AOIs, in degrees.
+  const points=activePoints(project,true).map(pt=>{
+    const c=calculatePoint(project.ambient,project.layers,project.substrate,pt.wavelength,pt.aoi);
+    return {...pt,psiExp:c.psiDeg,deltaExp:c.deltaDeg};
+  });
   let p=initializeMixed(project,index,false);p.layers[index]=addPeak(p.layers[index],0);
-  const l=p.layers[index],keys=['eps_inf','p0_A','p0_E0','p0_w'],target=modelRegistry.get(source.modelId)!;
-  const targetParams=values(source),desired=grid.map(w=>target.calculate(w,targetParams));
+  const l=p.layers[index],keys=['eps_inf','p0_A','p0_E0','p0_w'];
   const out=await optimizeBoundedLM(keys.map(key=>{const v=l.parameters[key];return {id:key,name:key,value:v.current,min:v.min,max:v.max};}),vec=>{
-    keys.forEach((key,i)=>l.parameters[key].current=vec[i]);const mixed=modelRegistry.get('expert_mixed')!,params=values(l);
-    return grid.flatMap((w,i)=>{const o=mixed.calculate(w,params),t=desired[i];return [o.eps1!-t.eps1!,o.eps2!-t.eps2!];});
-  },{maxIterations:60,isAngularResidual:()=>false});
+    keys.forEach((key,i)=>l.parameters[key].current=vec[i]);return residual(p,points);
+  },{maxIterations:60,residualWeights:residualWeights(points,p.fittingConfig).weights});
   keys.forEach((key,i)=>l.parameters[key].current=out.finalParams[i]);return p;
 }
 export async function runExpertStage(project:EllipsometryProject,stage:number,index:number,onProgress?:(v:ExpertProgress)=>void,shouldStop=()=>false):Promise<EllipsometryProject> {
@@ -269,11 +276,14 @@ export async function runExpertStage(project:EllipsometryProject,stage:number,in
   if(stage===3){p=await preparePhysical(p,index);p=await fitExpert(p,false,onProgress,shouldStop);}
   if(stage===4)p=await fitExpert(p,true,onProgress,shouldStop);
   if(stage===0||stage===5)p=freshForward(p);
-  if(stage===5){const m=computeMultiAoiResidualMetrics(p.experimentData!.points,p.fittingConfig.activeFitAois);
+  if(stage===5){const m=computeMultiAoiResidualMetrics(p.experimentData!.points,p.fittingConfig.activeFitAois,p.fittingConfig.fitWeighting,p.fittingConfig.psiWeight,p.fittingConfig.deltaWeight,collect(p).vars.length);
     p.fittingResult={...(project.fittingResult??{iterations:0,initialMse:m.rawMse,initialRmse:m.rawRmse,executionTimeMs:0,parameters:[]}),
+      mseWoollam:m.mseWoollam,reducedChiSquare:m.reducedChiSquare,chiSquare:m.chiSquare,dof:m.dof,
+        weightingMode:m.weightingMode,weightingWarning:m.weightingWarning,
+      converged:project.fittingResult?.converged??false,numParameters:collect(p).vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(m.perAoi).map(([a,v])=>[a,v.mseWoollam])),
       status:m.rawMse<10?'target_achieved':'target_not_achieved',finalMse:m.rawMse,finalRmse:m.rawRmse,rawMse:m.rawMse,
       psiRmse:Math.sqrt(m.psiMse),deltaRmse:Math.sqrt(m.deltaMse),freshCalculationVerified:true,message:'Independent complete-spectrum TMM verification',perAoiMse:Object.fromEntries(Object.entries(m.perAoi).map(([a,v])=>[a,v.mse]))};}
-  const m=computeMultiAoiResidualMetrics(p.experimentData!.points,p.fittingConfig.activeFitAois),s=session(p);
+  const m=computeMultiAoiResidualMetrics(p.experimentData!.points,p.fittingConfig.activeFitAois,p.fittingConfig.fitWeighting,p.fittingConfig.psiWeight,p.fittingConfig.deltaWeight,collect(p).vars.length),s=session(p);
   p.expert={...s,stage,records:[...s.records,{stage,rawMse:m.rawMse,message:stageNames[stage],at:new Date().toISOString()}]};
   return p;
 }

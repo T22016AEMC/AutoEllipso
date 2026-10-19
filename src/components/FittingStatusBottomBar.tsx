@@ -58,7 +58,7 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
                 {isMultiAoi ? '全域多角度 (Multi-AOI) 擬合中...' : '最佳化擬合中...'} 迭代第 {currentIter} 次
               </span>
               <span className="text-slate-400 font-mono text-[11px]">
-                [Global MSE: {liveCost.toFixed(5)} | 前次: {prevCost !== null && prevCost !== undefined ? prevCost.toFixed(5) : '—'}]
+                [MSE (Woollam): {liveCost.toFixed(5)} | 前次: {prevCost !== null && prevCost !== undefined ? prevCost.toFixed(5) : '—'}]
               </span>
             </div>
           ) : fittingResult ? (
@@ -138,15 +138,18 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
                   className="px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300"
                 >
                   <span className="text-slate-500">{aoiStr}°:</span>{' '}
-                  <span className="text-cyan-300 font-medium">{m.mse.toFixed(4)}</span>
+                  <span className="text-cyan-300 font-medium">{m.mseWoollam.toFixed(4)}</span>
                 </span>
               ))}
             </div>
           )}
 
           <div className="flex items-center space-x-1 text-slate-400">
-            <span>Raw MSE:</span>
-            <span className="text-slate-100 font-bold">{(metrics.rawMse ?? metrics.mse).toFixed(4)}</span>
+            <span>MSE (Woollam):</span>
+            <span className="text-slate-100 font-bold">{(isFitting?liveCost:metrics.mseWoollam).toFixed(4)}</span>
+            <small>Raw MSE {metrics.rawMse.toFixed(4)} deg² · χ²ᵣ {metrics.reducedChiSquare.toFixed(4)}</small>
+            {metrics.weightingWarning&&<small role="alert" title={metrics.weightingWarning} className="text-amber-300 max-w-56 truncate">{metrics.weightingWarning}</small>}
+            {fittingResult?.converged===false&&<small className="text-amber-300">未收斂</small>}
           </div>
 
           {'weightedMse' in metrics &&
@@ -210,13 +213,13 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
           {/* Global Summary Stats */}
           <div className="p-3 bg-slate-950/60 border-b border-slate-800 grid grid-cols-6 gap-2 font-mono text-[11px] text-slate-300">
             <div>
-              <span className="text-slate-500 block">初始 MSE / RMSE</span>
+              <span className="text-slate-500 block">初始 Raw MSE / RMSE</span>
               <span className="text-amber-400 font-bold">
                 {fittingResult.initialMse.toFixed(4)} / {fittingResult.initialRmse.toFixed(4)}
               </span>
             </div>
             <div>
-              <span className="text-slate-500 block">最終 MSE / RMSE</span>
+              <span className="text-slate-500 block">最終 Raw MSE / RMSE</span>
               <span className="text-emerald-400 font-bold">
                 {fittingResult.finalMse.toFixed(4)} / {fittingResult.finalRmse.toFixed(4)}
               </span>

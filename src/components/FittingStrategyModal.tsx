@@ -323,6 +323,13 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
             </div>
           </div>
 
+          <label className="block pt-4 text-xs text-slate-300">擬合權重
+            <select aria-label="擬合權重" value={config.fitWeighting} onChange={e=>onUpdateConfig({...config,fitWeighting:e.target.value as FittingConfig['fitWeighting']})}
+              className="block w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5">
+              <option value="standard_deviation">依量測不確定度 σ（Woollam 標準，建議）</option>
+              <option value="uniform">均勻權重</option><option value="psi_dominant">Ψ 優先</option>
+            </select>
+          </label>
           {/* 5. Switches: Multi-Start & Physical Constraints */}
           <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex items-center space-x-2.5 p-2.5 bg-slate-800/50 border border-slate-700/80 rounded-lg cursor-pointer">
