@@ -45,7 +45,9 @@ export function computeTaucLorentzEps2(
   if (E <= Eg) return 0;
   const num = A * E0 * C * Math.pow(E - Eg, 2);
   const den = Math.pow(E * E - E0 * E0, 2) + C * C * E * E;
-  return num / den / E;
+  const result=num/den/E;
+  if(!Number.isFinite(result))throw new Error('Nonfinite Tauc-Lorentz epsilon2');
+  return result;
 }
 
 export function computeTaucLorentzEps1(
@@ -133,7 +135,7 @@ export const TaucLorentzModel: ModelDefinition = {
       name: 'Oscillator #1 Peak Energy (E₀₁)',
       symbol: 'E₀₁',
       unit: 'eV',
-      description: 'Resonant peak energy of electronic transition for oscillator #1',
+      description: 'Resonant energy E0 > Eg; coupled domain enforced during evaluation',
       defaultValue: 3.65,
       min: 0.5,
       max: 15.0,
@@ -146,7 +148,7 @@ export const TaucLorentzModel: ModelDefinition = {
       name: 'Oscillator #1 Broadening (C₁)',
       symbol: 'C₁',
       unit: 'eV',
-      description: 'Damping / broadening parameter for oscillator #1',
+      description: 'Broadening constrained to 0 < C < 2 E0; trial evaluation uses the safe domain',
       defaultValue: 1.5,
       min: 0.05,
       max: 6.0,
@@ -159,7 +161,7 @@ export const TaucLorentzModel: ModelDefinition = {
       name: 'Optical Bandgap (E_g)',
       symbol: 'E_g',
       unit: 'eV',
-      description: 'Fundamental optical absorption onset threshold',
+      description: 'Optical absorption onset constrained to 0 <= Eg < E0',
       defaultValue: 3.1,
       min: 0.2,
       max: 11.0,
