@@ -19,6 +19,7 @@ export interface OptimizationVariable {
 export interface OptimizerOptions {
   residualWeights?: number[];
   maxIterations?: number;
+  /** Explicit relative cost tolerance (legacy option); omitted uses shared ftol = 1e-9. */
   tolerance?: number;
   initialLambda?: number;
   isAngularResidual?: (index: number) => boolean;

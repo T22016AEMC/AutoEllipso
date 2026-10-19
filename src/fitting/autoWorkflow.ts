@@ -1250,6 +1250,7 @@ export async function runAutomatedEllipsometryFit(
     rawRmse: number;
     mseWoollam:number;
     converged:boolean;
+    improved:boolean;
     convergenceStatus:ConvergenceStatus;
     psiRmse: number;
     deltaRmse: number;
@@ -1457,6 +1458,7 @@ export async function runAutomatedEllipsometryFit(
       rawMse: number;
       weightedMse: number;
       converged:boolean;
+    improved:boolean;
     convergenceStatus:ConvergenceStatus;
       iterations: number;
     }
@@ -1602,7 +1604,7 @@ export async function runAutomatedEllipsometryFit(
         initialParamsRecord,
         layers: startLayers,
         rawMse: fullMetrics.rawMse,
-        weightedMse:fullMetrics.weightedMse,converged:optRes.converged,convergenceStatus:optRes.status,
+        weightedMse:fullMetrics.weightedMse,converged:optRes.converged,improved:optRes.improved,convergenceStatus:optRes.status,
         iterations: optRes.iterations,
       });
     }
@@ -1661,7 +1663,7 @@ export async function runAutomatedEllipsometryFit(
           ...candidate,
           layers: polishLayers,
           rawMse: metrics.rawMse,
-          weightedMse:metrics.weightedMse,converged:polishOpt.converged,convergenceStatus:polishOpt.status,
+          weightedMse:metrics.weightedMse,converged:polishOpt.converged,improved:candidate.improved||polishOpt.improved,convergenceStatus:polishOpt.status,
           iterations: candidate.iterations + polishOpt.iterations,
         };
       }
@@ -1725,7 +1727,7 @@ export async function runAutomatedEllipsometryFit(
       psiRmse: candPsiRmse,
       deltaRmse: candDeltaRmse,
       weightedMse: bestMetrics.weightedMse,
-      mseWoollam:bestMetrics.mseWoollam,converged:bestStartState.converged,convergenceStatus:bestStartState.convergenceStatus,
+      mseWoollam:bestMetrics.mseWoollam,converged:bestStartState.converged,improved:bestStartState.improved,convergenceStatus:bestStartState.convergenceStatus,
       points: bestEvalPts,
       parametersRecord: candidateParamsRecord,
       iterations: bestStartState.iterations,
@@ -1924,7 +1926,7 @@ export async function runAutomatedEllipsometryFit(
     fittingResult: {
       statistics,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
-      weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,convergenceStatus:winningCandidate.convergenceStatus,
+      weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,improved:winningCandidate.improved,convergenceStatus:winningCandidate.convergenceStatus,
       perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,psiWeight,deltaWeight,numActiveParams).perAoi).map(([a,m])=>[a,m.mseWoollam])),
       status: finalStatus,
       iterations: totalOptimizerIterations,
