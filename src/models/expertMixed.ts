@@ -34,7 +34,7 @@ export function mixedOptics(wavelength:number,p:Record<string,number>):OpticalCo
 export const ExpertMixedModel:ModelDefinition = {
   id:'expert_mixed',name:'Expert mixed dielectric response',type:'oscillator',
   description:'Mixed causal oscillators plus explicitly noncausal free dielectric spline corrections',
-  reference:'Lorentz/Drude analytic susceptibilities; Gaussian Hilbert transform; Tauc-Lorentz KK integral',
+  reference:'Lorentz/Drude analytic susceptibilities; Gaussian Hilbert transform; Tauc-Lorentz Jellison–Modine analytic expression',
   equation:'epsilon = epsilon_inf + sum(chi_j) + free_delta_epsilon',parameters:[],
   validRange:{minWavelengthNm:150,maxWavelengthNm:2500},version:'2.0.0',fitSupported:true,isVerified:false,
   calculate:mixedOptics,calculateN:(w,p)=>mixedOptics(w,p).n,calculateK:(w,p)=>mixedOptics(w,p).k,

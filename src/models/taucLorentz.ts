@@ -24,7 +24,8 @@ export function safeTaucLorentzDomain(E0:number,C:number,Eg:number) {
 export function validateTaucLorentzParameters(modelId:string,p:Record<string,number>):void {
   if(modelId==='tauc_lorentz')for(let i=1;i<=3;i++) {
     const suffix=i===1?'':String(i);
-    if((p['A'+suffix]??(i===1?120:0))>0)validateTaucLorentzDomain(p['E0'+suffix]??[0,3.65,4.8,5.8][i],p['C'+suffix]??1.5,p.Eg??3.1);
+    if((p[i===1?'A1':'A'+suffix]??p['A'+suffix]??(i===1?120:0))>0)
+      validateTaucLorentzDomain(p[i===1?'E01':'E0'+suffix]??p['E0'+suffix]??[0,3.65,4.8,5.8][i],p[i===1?'C1':'C'+suffix]??p['C'+suffix]??1.5,p.Eg??3.1);
   }
   if(modelId==='expert_mixed')for(let i=0;i<(p._peakCount??0);i++)if(p[`p${i}_enabled`]&&p[`p${i}_type`]===2)
     validateTaucLorentzDomain(p[`p${i}_E0`],p[`p${i}_w`],p[`p${i}_Eg`]);
@@ -39,6 +40,7 @@ export function computeTaucLorentzEps2(
   C: number,
   Eg: number
 ): number {
+  if(!Number.isFinite(E)||!Number.isFinite(A)||A<0)throw new Error('Invalid Tauc-Lorentz energy/amplitude');
   ({E0,C,Eg}=safeTaucLorentzDomain(E0,C,Eg));
   if (E <= Eg) return 0;
   const num = A * E0 * C * Math.pow(E - Eg, 2);
