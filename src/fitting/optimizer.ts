@@ -5,6 +5,7 @@
  * and disparate physical scales (e.g. thickness in nm vs Cauchy B in μm²) must be strictly respected.
  */
 import { circularDifferenceDeg } from './residual';
+import { solveLeastSquaresSvd } from './svd';
 import { FIT_NUMERICS, ConvergenceStatus } from './numerics';
 
 export interface OptimizationVariable {
@@ -42,6 +43,7 @@ export interface OptimizerOptions {
 
 export interface OptimizerResult {
   status: ConvergenceStatus;
+  truncatedSingularValues: number;
   converged: boolean;
   improved: boolean;
   stopped: boolean;
@@ -54,60 +56,6 @@ export interface OptimizerResult {
   finalRegularizationPenalty: number;
   finalParams: number[];
   message: string;
-}
-
-/**
- * Solve linear system (J^T * J + lambda * diag(J^T * J)) * delta = -J^T * r
- * using Gaussian elimination with partial pivoting.
- */
-function solveLinearSystem(A: number[][], b: number[]): number[] | null {
-  const n = b.length;
-  // Augmented matrix
-  const M: number[][] = A.map((row, i) => [...row, b[i]]);
-
-  for (let i = 0; i < n; i++) {
-    // Pivot selection
-    let maxRow = i;
-    let maxVal = Math.abs(M[i][i]);
-    for (let k = i + 1; k < n; k++) {
-      if (Math.abs(M[k][i]) > maxVal) {
-        maxVal = Math.abs(M[k][i]);
-        maxRow = k;
-      }
-    }
-
-    if (maxVal < 1e-14) {
-      // Singular or near singular
-      return null;
-    }
-
-    // Swap rows
-    if (maxRow !== i) {
-      const temp = M[i];
-      M[i] = M[maxRow];
-      M[maxRow] = temp;
-    }
-
-    // Eliminate below
-    for (let k = i + 1; k < n; k++) {
-      const factor = M[k][i] / M[i][i];
-      for (let j = i; j <= n; j++) {
-        M[k][j] -= factor * M[i][j];
-      }
-    }
-  }
-
-  // Back substitution
-  const x = new Array(n).fill(0);
-  for (let i = n - 1; i >= 0; i--) {
-    let sum = M[i][n];
-    for (let j = i + 1; j < n; j++) {
-      sum -= M[i][j] * x[j];
-    }
-    x[i] = sum / M[i][i];
-  }
-
-  return x;
 }
 
 /** Unweighted residual Jacobian in normalized u-space; exported for analytic regression tests. */
@@ -212,7 +160,7 @@ export async function optimizeBoundedLM(
   let currentRegPenalty = currentState.regPenalty;
 
   const initialCost = currentCost;
-  if (nParams===0) return {status:'gradient',converged:true,improved:false,stopped:false,iterations:0,initialCost,finalCost:currentCost,
+  if (nParams===0) return {truncatedSingularValues:0,status:'gradient',converged:true,improved:false,stopped:false,iterations:0,initialCost,finalCost:currentCost,
     finalRawMse:currentRawMse,finalWeightedCost:currentState.weightedCost,finalChiSquare:currentState.chiSquare,
     finalRegularizationPenalty:currentRegPenalty,finalParams:[],message:'Converged: no free parameters.'};
   let prevCost: number | null = null;
@@ -221,6 +169,7 @@ export async function optimizeBoundedLM(
   let converged = false;
   let stopped = false;
   let status:ConvergenceStatus='max_iter';
+  let truncatedSingularValues=0;
 
   while (iter < maxIterations) {
     if (options.shouldStop && options.shouldStop()) {
@@ -249,26 +198,9 @@ export async function optimizeBoundedLM(
       const state=evaluateFullState(params);return [...state.expRes,...state.regRes];
     },i=>isAngularIdx(i,mExp)).map((row,i)=>row.map(v=>v*currentState.rowWeights[i]));
 
-    // Compute Approximate Hessian H = (1/mExp) * J^T * J and gradient g = (1/mExp) * J^T * r
-    const H: number[][] = Array.from({ length: nParams }, () => new Array(nParams).fill(0));
-    const g: number[] = new Array(nParams).fill(0);
-    const invMExp = 1.0 / mExp;
-
-    for (let i = 0; i < nParams; i++) {
-      let gradSum = 0;
-      for (let k = 0; k < mResiduals; k++) {
-        gradSum += J[k][i] * currentResiduals[k];
-      }
-      g[i] = gradSum * invMExp;
-
-      for (let j = 0; j < nParams; j++) {
-        let sum = 0;
-        for (let k = 0; k < mResiduals; k++) {
-          sum += J[k][i] * J[k][j];
-        }
-        H[i][j] = sum * invMExp;
-      }
-    }
+    const mScale=Math.sqrt(mExp);
+    const g=variables.map((_,j)=>J.reduce((sum,row,i)=>sum+row[j]*currentResiduals[i],0)/mExp);
+    const diagonal=variables.map((_,j)=>J.reduce((sum,row)=>sum+row[j]**2,0)/mExp);
 
     // Project gradient for active bound constraints:
     // If u_i == 0 and gradient points to u_i < 0 (i.e. -g_i < 0 => g_i > 0), or u_i == 1 and -g_i > 0 (g_i < 0)
@@ -294,24 +226,15 @@ export async function optimizeBoundedLM(
 
     while (!stepAccepted) {
       trialAttempts++;
-      const A: number[][] = H.map((row, i) =>
-        row.map((val, j) => {
-          const isBlocked =
-            (currentU[i] <= 1e-8 && g[i] > 0) || (currentU[i] >= 1 - 1e-8 && g[i] < 0);
-          if (i === j) {
-            if (isBlocked) return 1.0;
-            const diagVal = Math.max(1e-6, Math.abs(val));
-            return val + lambda * (diagVal + 1e-4);
-          }
-          if (isBlocked || (currentU[j] <= 1e-8 && g[j] > 0) || (currentU[j] >= 1 - 1e-8 && g[j] < 0)) {
-            return 0.0;
-          }
-          return val;
-        })
-      );
-
-      const rhs = projG.map((gi) => -gi);
-      const deltaU = solveLinearSystem(A, rhs);
+      const free=variables.map((_,i)=>i).filter(i=>!((currentU[i]<=1e-8&&g[i]>0)||(currentU[i]>=1-1e-8&&g[i]<0)));
+      // Identical Marquardt diagonal: max(1e-6, H_jj) + 1e-4; no normal equations.
+      const augmented=J.map(row=>free.map(j=>row[j]/mScale));
+      for(let k=0;k<free.length;k++)augmented.push(free.map((j,l)=>l===k?Math.sqrt(lambda*(Math.max(1e-6,diagonal[j])+1e-4)):0));
+      const rhs=[...currentResiduals.map(r=>-r/mScale),...free.map(()=>0)];
+      const solved=solveLeastSquaresSvd(augmented,rhs);
+      truncatedSingularValues=Math.max(truncatedSingularValues,solved.truncated);
+      const deltaU=variables.map(()=>0);
+      free.forEach((j,k)=>deltaU[j]=solved.solution[k]);
 
       if (deltaU) {
         // Project trial parameters to bounds [0, 1]
@@ -371,6 +294,7 @@ export async function optimizeBoundedLM(
 
   return {
     status,
+    truncatedSingularValues,
     converged,
     improved,
     stopped,
