@@ -67,7 +67,9 @@ export function initializeDetectedPeaks(modelId:string,spectrum:{wavelength:numb
     const mixed=modelId==='multi_oscillator',suffix=i===0&&!mixed?'':String(i+1);
     const type=mixed?(result[`osc${i+1}_type_code`]?.current??(i===2?2:1)):modelId==='gaussian'?1:modelId==='lorentz'?2:3;
     const widthKey=mixed?'w':modelId==='gaussian'?'sigma':modelId==='lorentz'?'gamma':'C';
-    set('E0'+suffix,peak.energy);let width=type===1?peak.width/(2*Math.sqrt(Math.log(2))):peak.width;
+    set('E0'+suffix,peak.energy);
+    if(modelId==='tauc_lorentz')set('E0'+suffix,Math.max(result['E0'+suffix].current,result.Eg.current+.05));
+    let width=type===1?peak.width/(2*Math.sqrt(Math.log(2))):peak.width;
     if(modelId==='tauc_lorentz')width=Math.min(width,1.999*result['E0'+suffix].current);
     set(widthKey+suffix,width);
     const record=Object.fromEntries(Object.entries(result).map(([k,p])=>[k,p.current]));
