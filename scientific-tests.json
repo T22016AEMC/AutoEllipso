@@ -278,5 +278,50 @@
     "name": "Statistics UI renders errors, confidence intervals, warnings and correlation matrix",
     "passed": true,
     "detail": "PASS"
+  },
+  {
+    "name": "Stage4 A: analytic TL versus independent KK, domain and boundary protection",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 B: deterministic two/three peak detection with and without noise",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 B: model-specific multi-peak seeds, metadata and edge seed are reproducible",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 C: explicit grids remain bit-identical under interleaved calls and fits",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: KK basis independent quadrature, positivity, linear Jacobian and instance cache",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: TL epsilon2 projection records epsilon1 truncation deviation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: synthetic multi-AOI TL layer fitted by KK spline",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 E: high physical correlation upgrades condition level without changing kappa",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: Expert stages preserve optional KK model and expose independent parameters",
+    "passed": true,
+    "detail": "PASS"
   }
 ]

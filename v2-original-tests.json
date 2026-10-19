@@ -4,202 +4,202 @@
     "category": "optics",
     "passed": true,
     "message": "Complex operations verified.",
-    "durationMs": 0.5437999999999192
+    "durationMs": 0.25939999999991414
   },
   {
     "name": "Optical Model Registry: All 7 Models Loaded with Full Schema",
     "category": "models",
     "passed": true,
     "message": "All 7 models (Cauchy, Sellmeier, Lorentz, Gaussian, Tauc-Lorentz, Drude, Custom) verified.",
-    "durationMs": 0.7612000000003718
+    "durationMs": 0.24699999999984357
   },
   {
     "name": "Optical Model Engine: Cauchy Refractive Index Calculation",
     "category": "models",
     "passed": true,
     "message": "Evaluated n(632.8nm) = 1.4664, consistent with SiO2.",
-    "durationMs": 0.30130000000008295
+    "durationMs": 0.1869000000001506
   },
   {
     "name": "Multilayer Transfer Matrix Method (TMM) Optical Solver",
     "category": "solver",
     "passed": true,
     "message": "TMM output verified: Bare Si (Ψ=10.57°, Δ=179.23°); 100nm SiO2 (Ψ=41.22°, Δ=79.55°)",
-    "durationMs": 4.171700000000328
+    "durationMs": 1.0902000000000953
   },
   {
     "name": "Residual Calculation & Circular Angle Wrapping",
     "category": "residual",
     "passed": true,
     "message": "Calculated MSE=6.2500, RMSE=2.5000 with robust circle wrapping.",
-    "durationMs": 2.634299999999712
+    "durationMs": 0.7231000000001586
   },
   {
     "name": "Bounded Levenberg-Marquardt Convergence (85nm -> 100nm)",
     "category": "fitting",
     "passed": true,
     "message": "Optimizer converged to 100.00 nm (ground truth: 100.00 nm). Final MSE: 0.000e+0.",
-    "durationMs": 83.48189999999977
+    "durationMs": 60.9666000000002
   },
   {
     "name": "FIT = OFF Parameter Immutability Guard",
     "category": "fitting",
     "passed": true,
     "message": "Fixed parameters remained completely unchanged during optimization.",
-    "durationMs": 3.791200000000117
+    "durationMs": 1.0775000000003274
   },
   {
     "name": "Auto Fit Objective Function Sanity Test (50nm -> 100nm, Final MSE <= Initial MSE)",
     "category": "fitting",
     "passed": true,
     "message": "Deterministic fit verified: Initial MSE=4325.39 → Final MSE=0.00139, Thickness=100.00nm.",
-    "durationMs": 150.4938000000002
+    "durationMs": 173.6639
   },
   {
     "name": "Multi-AOI Global Fitting: Shared Film Parameters over 65°/70°/75°",
     "category": "fitting",
     "passed": true,
     "message": "Global Multi-AOI fit verified: Global MSE 914.738 → 0.0013, Fitted d=100.00 nm, per-AOI MSE: 65°=0.0011, 70°=0.0014, 75°=0.0014.",
-    "durationMs": 870.9513999999999
+    "durationMs": 889.1500999999998
   },
   {
     "name": "Multi-AOI Selective Angle Filtering (Include 65° & 75°, Exclude 70°)",
     "category": "fitting",
     "passed": true,
     "message": "Successfully isolated optimization objective to user-selected AOIs (65° & 75°).",
-    "durationMs": 258.56749999999965
+    "durationMs": 368.83560000000034
   },
   {
     "name": "Gaussian Oscillator: Resonance Peak & Dielectric Response",
     "category": "models",
     "passed": true,
     "message": "Gaussian oscillator verified: Peak ε2=3.000 at 3.5eV, off-peak ε2=0.0004, k=0.881.",
-    "durationMs": 1.2937999999994645
+    "durationMs": 11.504500000000007
   },
   {
     "name": "Drude Free Carrier Model: Conducting Metal/TCO Negative ε1 Response",
     "category": "models",
     "passed": true,
     "message": "Drude response verified: NIR (1500nm) ε1=-5.06 (negative), ε2=1.61, VIS n=1.67.",
-    "durationMs": 0.1500000000005457
+    "durationMs": 0.5141999999996187
   },
   {
     "name": "Custom Dispersion Model: Extensible User-Defined Parameter Calculation",
     "category": "models",
     "passed": true,
     "message": "Custom model calculation verified: n(550nm)=1.6387, k(550nm)=0.0200.",
-    "durationMs": 0.17870000000039
+    "durationMs": 0.8422999999993408
   },
   {
     "name": "Gaussian Layer TMM Integration & Levenberg-Marquardt Auto-Fitting",
     "category": "fitting",
     "passed": true,
     "message": "Gaussian layer fitted successfully: MSE 1400.49 → 0.0000, d=80.00nm (true: 80nm), A=2.500 (true: 2.500).",
-    "durationMs": 48.03909999999996
+    "durationMs": 71.39850000000024
   },
   {
     "name": "Sensitivity TEST 1: Film Thickness Response (50nm vs 100nm vs 200nm)",
     "category": "solver",
     "passed": true,
     "message": "Thickness changes correctly altered P/S: Ψ(50nm)=26.20°, Ψ(100nm)=53.22°, Ψ(200nm)=23.71°.",
-    "durationMs": 0.19549999999981083
+    "durationMs": 0.3319000000001324
   },
   {
     "name": "Sensitivity TEST 2: Angle of Incidence (AOI 65° vs 70°)",
     "category": "solver",
     "passed": true,
     "message": "AOI change altered P/S: at 65° Ψ=54.70°, Δ=105.81° vs at 70° Ψ=53.22°, Δ=84.46°.",
-    "durationMs": 0.058299999999690044
+    "durationMs": 0.409099999999853
   },
   {
     "name": "Sensitivity TEST 3: Cauchy Dispersion Parameter Response",
     "category": "models",
     "passed": true,
     "message": "Cauchy parameter A change verified: n(A=1.45)=1.4620 vs n(A=1.75)=1.7620.",
-    "durationMs": 0.030099999999947613
+    "durationMs": 0.1473999999998341
   },
   {
     "name": "Sensitivity TEST 4: B-Spline Basis Coefficient Response",
     "category": "models",
     "passed": true,
     "message": "B-spline coefficient N1 change verified: n(base)=1.5000 vs n(modified)=1.8935.",
-    "durationMs": 6.194300000000112
+    "durationMs": 5.999300000000403
   },
   {
     "name": "Sensitivity TEST 5: Gaussian Oscillator Amplitude Parameter Response",
     "category": "models",
     "passed": true,
     "message": "Gaussian amplitude A change verified: k(A=1)=0.3455 vs k(A=4)=1.1341.",
-    "durationMs": 5.750100000000202
+    "durationMs": 0.5522000000000844
   },
   {
     "name": "Sensitivity TEST 6: Lorentz Oscillator Amplitude Parameter Response",
     "category": "models",
     "passed": true,
     "message": "Lorentz amplitude A change verified: k(A=2)=1.3842 vs k(A=8)=3.2413.",
-    "durationMs": 0.8554000000003725
+    "durationMs": 2.628000000000611
   },
   {
     "name": "Sensitivity TEST 7: Tauc-Lorentz Optical Bandgap (Eg) Sensitivity",
     "category": "models",
     "passed": true,
     "message": "Tauc-Lorentz Eg bandgap verified: at 550nm (2.25eV), k(Eg=2.8eV)=0.0000 (transparent) vs k(Eg=1.8eV)=0.0786 (absorbing).",
-    "durationMs": 1.480199999999968
+    "durationMs": 2.996900000000096
   },
   {
     "name": "Synthetic Recovery Test: 120nm Target Recovered from 50nm Disturbance",
     "category": "fitting",
     "passed": true,
     "message": "Recovery successful: Target 120nm recovered to 120.00nm from 50nm starting point. MSE reduced from 6475.73 to 0.00000.",
-    "durationMs": 38.47610000000077
+    "durationMs": 25.48120000000017
   },
   {
     "name": "Physical Dispersion: Multi-Oscillator (Gaussian + Lorentz) Summation",
     "category": "models",
     "passed": true,
     "message": "Multi-oscillator verified at 400nm: n=2.0360, k=0.2654, eps1=4.075, eps2=1.081.",
-    "durationMs": 0.5997999999999593
+    "durationMs": 0.707100000000537
   },
   {
     "name": "Statistical Framework: Unfalsifiable Raw MSE & AIC/BIC Protection",
     "category": "residual",
     "passed": true,
     "message": "Raw MSE strictly preserved at 7.500 (Weighted=5.625, AIC=14.06).",
-    "durationMs": 0.17740000000048894
+    "durationMs": 0.16899999999986903
   },
   {
     "name": "Sequential Pipeline Audit: Cauchy 0-pt → B-spline n/k → Gaussian Solver",
     "category": "fitting",
     "passed": true,
     "message": "Pipeline strictly followed: Cauchy MSE=0.001 -> B-spline Knots=8 -> Final Model=Gaussian (高斯振盪子) (Final MSE=0.009).",
-    "durationMs": 4285.224099999999
+    "durationMs": 7994.8263
   },
   {
     "name": "Anti-Model-Switching Guarantee: Aggressive Fit Never Reverts to Cauchy",
     "category": "fitting",
     "passed": true,
     "message": "Model integrity verified: User requested 'lorentz' and optimizer output is strictly 'lorentz', even during Aggressive Fit multi-start.",
-    "durationMs": 1407.7366000000002
+    "durationMs": 2228.7443000000003
   },
   {
     "name": "Spectral Feature Extraction: B-spline Peak -> Oscillator Center & Width",
     "category": "models",
     "passed": true,
-    "message": "Features extracted successfully: Absorption peak at 350nm (~3.54eV) mapped to Gaussian E0=3.54eV, Lorentz E0=3.54eV.",
-    "durationMs": 1.770200000000841
+    "message": "Features extracted successfully: Absorption peak at 350nm (~3.54eV) mapped to Gaussian E0=3.62eV, Lorentz E0=3.62eV.",
+    "durationMs": 3.089300000001458
   },
   {
     "name": "Synthetic Recovery Test: Inverting Known Thickness (85 nm) and n(λ) from True Forward Spectrum",
     "category": "fitting",
     "passed": true,
     "message": "Recovery SUCCESS: True d=85 nm -> Inverted d=85.02 nm (Error: 0.02 nm), Final Raw MSE=0.0004, Fresh Forward Verified: true.",
-    "durationMs": 1475.1106999999993
+    "durationMs": 1799.6176000000014
   },
   {
     "name": "Benchmark Recovery: 100 nm SiO2 / Si (AOI=70°) with Regularized B-spline & 20-Start Gaussian",
     "category": "fitting",
     "passed": true,
     "message": "100nm SiO2/Si verified: d=100.00 nm, Raw MSE=0.0084, Ψ RMSE=0.059°, Δ RMSE=0.115°, B-spline MSE=0.0150 (Reg=0.0024), Starts=20.",
-    "durationMs": 5299.2165
+    "durationMs": 6341.280500000001
   }
 ]
