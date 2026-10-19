@@ -9,6 +9,7 @@
 
 import { EllipsometryProject, Layer } from '../types/ellipsometry';
 import { APP_VERSION } from '../version';
+import {validateTaucLorentzParameters} from '../models/taucLorentz';
 import { modelRegistry } from '../modelRegistry/registry';
 import { computeMultiAoiResidualMetrics } from '../fitting/residual';
 import { splineGrid, values, parameter } from '../fitting/expertWorkflow';
@@ -216,6 +217,12 @@ export function importProjectJson(jsonContent: string, onLegacyProject?: () => v
     throw new Error('Invalid AutoEllipso project: missing substrate or ambient configuration.');
   }
   if (parsed.experimentData) parsed.experimentData.deltaConvention ??= 'standard';
+  const validateDomains=(saved:EllipsometryProject)=>{
+    for(const layer of [...saved.layers,saved.substrate])validateTaucLorentzParameters(layer.modelId,Object.fromEntries(Object.entries(layer.parameters??{}).map(([k,v])=>[k,v.current])));
+  };
+  validateDomains(parsed);
+  for(const candidate of parsed.expert?.candidates??[])validateDomains(candidate.snapshot);
+  if(parsed.expert?.manualSource)validateDomains(parsed.expert.manualSource);
   if (parsed.deltaConventionVersion === undefined) {
     const invalidate = (saved: Omit<EllipsometryProject, 'expert'>) => {
       saved.deltaConventionVersion = 2;

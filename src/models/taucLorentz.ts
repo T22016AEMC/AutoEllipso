@@ -1,6 +1,6 @@
 /**
  * Tauc-Lorentz Dispersion Model
- * Developed by G. E. Jellison Jr. and F. A. Sales (1996)
+ * Jellison–Modine, APL 69, 371 (1996); erratum APL 69, 2137 (1996)
  * Widely acknowledged as the gold standard for amorphous, polycrystalline semiconductors, and high-k dielectrics (a-Si, TiO2, Ta2O5, SiNx).
  *
  * Parameters:
@@ -12,8 +12,25 @@
  */
 import { ModelDefinition, OpticalConstants } from '../types/ellipsometry';
 import { wavelengthNmToEnergyEv, dielectricToRefractiveIndex } from './base';
-import { kkReal } from './kk';
-const kkCache = new Map<string, number>();
+/** Strict boundary validation for persisted/user parameters; model evaluation projects trial values. */
+export function validateTaucLorentzDomain(E0:number,C:number,Eg:number):void {
+  if(![E0,C,Eg].every(Number.isFinite)||E0<=0||C<=0||C>=2*E0||Eg<0||Eg>=E0)
+    throw new Error('Tauc-Lorentz requires E0 > Eg >= 0 and 0 < C < 2*E0');
+}
+export function safeTaucLorentzDomain(E0:number,C:number,Eg:number) {
+  if(![E0,C,Eg].every(Number.isFinite)||E0<=0)throw new Error('Nonfinite or invalid Tauc-Lorentz parameters');
+  return {E0,C:Math.max(1e-10,Math.min(C,2*E0*(1-1e-8))),Eg:Math.max(0,Math.min(Eg,E0*(1-1e-8)))};
+}
+export function validateTaucLorentzParameters(modelId:string,p:Record<string,number>):void {
+  if(modelId==='tauc_lorentz')for(let i=1;i<=3;i++) {
+    const suffix=i===1?'':String(i);
+    if((p['A'+suffix]??(i===1?120:0))>0)validateTaucLorentzDomain(p['E0'+suffix]??[0,3.65,4.8,5.8][i],p['C'+suffix]??1.5,p.Eg??3.1);
+  }
+  if(modelId==='expert_mixed')for(let i=0;i<(p._peakCount??0);i++)if(p[`p${i}_enabled`]&&p[`p${i}_type`]===2)
+    validateTaucLorentzDomain(p[`p${i}_E0`],p[`p${i}_w`],p[`p${i}_Eg`]);
+  if(modelId==='multi_oscillator')for(let i=1;i<=3;i++)if(p[`osc${i}_type_code`]===3&&(p[`A${i}`]??0)>0)
+    validateTaucLorentzDomain(p[`E0${i}`],p[`w${i}`],p[`Eg${i}`]??1);
+}
 
 export function computeTaucLorentzEps2(
   E: number,
@@ -22,6 +39,7 @@ export function computeTaucLorentzEps2(
   C: number,
   Eg: number
 ): number {
+  ({E0,C,Eg}=safeTaucLorentzDomain(E0,C,Eg));
   if (E <= Eg) return 0;
   const num = A * E0 * C * Math.pow(E - Eg, 2);
   const den = Math.pow(E * E - E0 * E0, 2) + C * C * E * E;
@@ -35,15 +53,32 @@ export function computeTaucLorentzEps1(
   C: number,
   Eg: number
 ): number {
-  if (A <= 0 || C <= 0) return 0;
-  const key=[E,E0,C,Eg].join('|');
-  let unit=kkCache.get(key);
-  if(unit===undefined) {
-    unit=kkReal(E, x=>computeTaucLorentzEps2(x,1,E0,C,Eg),[Eg,E0-C,E0,E0+C,E0+6*C]);
-    if(kkCache.size>=8192)kkCache.delete(kkCache.keys().next().value!);
-    kkCache.set(key,unit);
+  if(![E,A,E0,C,Eg].every(Number.isFinite)||E<0||A<0)throw new Error('Invalid Tauc-Lorentz energy/amplitude');
+  if(A===0)return 0;
+  ({E0,C,Eg}=safeTaucLorentzDomain(E0,C,Eg));
+  const energy=Math.abs(E-Eg)<1e-9?Eg+1e-9:E;
+  const g2=E0*E0-C*C/2,alpha=Math.sqrt(4*E0*E0-C*C),e2=energy*energy;
+  const z4=(e2-g2)**2+alpha*alpha*C*C/4;
+  const aln=(Eg*Eg-E0*E0)*e2+Eg*Eg*C*C-E0*E0*(E0*E0+3*Eg*Eg);
+  const atan=(e2-E0*E0)*(E0*E0+Eg*Eg)+Eg*Eg*C*C;
+  const logRatio=Math.log1p(2*alpha*Eg/(E0*E0+Eg*Eg-alpha*Eg));
+  const t1=A*C/(Math.PI*z4)*aln/(2*alpha*E0)*logRatio;
+  const t2=-A/(Math.PI*z4)*atan/E0*(Math.PI-Math.atan((2*Eg+alpha)/C)+Math.atan((-2*Eg+alpha)/C));
+  const t3=2*A*E0/(Math.PI*z4*alpha)*Eg*(e2-g2)*(Math.PI+2*Math.atan(2*(g2-Eg*Eg)/(alpha*C)));
+  const D=Math.hypot(E0*E0-Eg*Eg,Eg*C);
+  let logs:number;
+  if(Eg===0)logs=0;
+  else if(energy<Eg*1e-4) {
+    // Combined terms 4+5, with their removable zero-energy cancellation evaluated as a series.
+    const x=energy/Eg,x2=x*x;
+    logs=2*Eg*(1+Math.log(Eg*Eg/D)+x2/3+x2*x2/30);
+  } else {
+    const delta=Math.abs(energy-Eg),sum=energy+Eg;
+    logs=-((energy-Eg)**2)/energy*Math.log(delta)+sum*sum/energy*Math.log(sum)-2*Eg*Math.log(D);
   }
-  return A*unit;
+  const result=t1+t2+t3+A*E0*C/(Math.PI*z4)*logs;
+  if(!Number.isFinite(result))throw new Error('Nonfinite analytic Tauc-Lorentz epsilon1');
+  return result;
 }
 
 export const TaucLorentzModel: ModelDefinition = {
@@ -52,9 +87,9 @@ export const TaucLorentzModel: ModelDefinition = {
   type: 'oscillator',
   category: 'oscillator',
   description: 'Physical model combining Tauc joint density of states at band edge with Lorentz oscillator for interband transitions.',
-  reference: 'Jellison, G. E., & Sales, B. C. (1996). Optical functions of amorphous semiconductors using Tauc-Lorentz model. Appl. Phys. Lett., 69(3), 371-373.',
-  equation: 'ε₂(E) = [A·E₀·C·(E-Eg)² / ((E²-E₀²)² + C²E²)] · (1/E) for E > Eg; ε₁(E) via Kramers-Kronig',
-  equationDoc: 'ε₂(E) = [A·E₀·C·(E-Eg)² / ((E²-E₀²)² + C²E²)] · (1/E) for E > Eg; ε₁(E) via Kramers-Kronig',
+  reference: 'Jellison, G. E., & Modine, F. A. (1996). Optical functions of amorphous semiconductors using Tauc-Lorentz model. Appl. Phys. Lett., 69(3), 371-373.',
+  equation: 'ε₂(E) = [A·E₀·C·(E-Eg)² / ((E²-E₀²)² + C²E²)] · (1/E) for E > Eg; ε₁(E) via analytic Jellison–Modine expression (1996 erratum)',
+  equationDoc: 'ε₂(E) = [A·E₀·C·(E-Eg)² / ((E²-E₀²)² + C²E²)] · (1/E) for E > Eg; ε₁(E) via analytic Jellison–Modine expression (1996 erratum)',
   validRange: {
     minWavelengthNm: 190,
     maxWavelengthNm: 2500,

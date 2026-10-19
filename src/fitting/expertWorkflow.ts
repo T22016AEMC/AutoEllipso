@@ -8,6 +8,7 @@ import { optimizeBoundedLM, OptimizationVariable } from './optimizer';
 import { cubicBasis, cubicEvaluate } from '../models/cubicSpline';
 import { generateAdaptiveKnots, computeBsplineSmoothness } from '../models/bspline';
 import { peakTypes } from '../models/expertMixed';
+import {validateTaucLorentzParameters} from '../models/taucLorentz';
 
 export const stageNames = ['Data / AOI / Substrate Validation','Cauchy Initialization','B-spline / Peak Editor','Physical Oscillator Model Fitting','Global + Local Joint Optimization','Final Forward Verification'];
 export type Snapshot = Omit<EllipsometryProject,'expert'>;
@@ -45,6 +46,7 @@ export function validateExpert(project:EllipsometryProject):void {
   for(const p of points) if(![p.wavelength,p.aoi,p.psiExp,p.deltaExp].every(Number.isFinite)||p.wavelength<=0||p.aoi<0||p.aoi>=90||p.psiExp<0||p.psiExp>90) throw new Error('Invalid experimental data');
   if(![project.ambient.n,project.ambient.k].every(Number.isFinite)||project.ambient.n<=0||project.ambient.k<0) throw new Error('Invalid ambient');
   for(const l of project.layers) {
+    validateTaucLorentzParameters(l.modelId,values(l));
     if(!modelRegistry.has(l.modelId)) throw new Error('Unknown film model: '+l.modelId);
     if(![l.thickness,l.thicknessMin,l.thicknessMax].every(Number.isFinite)||l.thickness<0||l.thicknessMin<0||l.thicknessMax<l.thicknessMin || (l.thicknessFit&&(l.thickness<l.thicknessMin||l.thickness>l.thicknessMax))) throw new Error('Invalid film thickness or bounds');
     if(l.modelId==='bspline'||l.modelId==='expert_mixed') cubicBasis(splineGrid(l)[0],splineGrid(l));
