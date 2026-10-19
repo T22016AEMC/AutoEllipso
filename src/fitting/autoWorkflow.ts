@@ -1,3 +1,4 @@
+import { computeFitStatistics } from './statistics';
 /**
  * AutoEllipso — Automated Spectroscopic Ellipsometry Thin-Film Fitting and Optical Constant Extraction
  *
@@ -1822,6 +1823,21 @@ export async function runAutomatedEllipsometryFit(
     });
   }
 
+  // Only the selected final model gets a new final-point Jacobian (all measured fit points).
+  const statisticsLayers:Layer[]=JSON.parse(JSON.stringify(finalLayers));
+  const statisticalVariables=winningCandidate.parametersRecord.filter(p=>p.fitted).map(p=>{
+    const layer=statisticsLayers.find(l=>l.id===p.layerId)!;
+    return {id:`${p.layerId}.${p.paramId}`,name:p.paramName,min:p.min,max:p.max,
+      value:p.paramId==='thickness'?layer.thickness:layer.parameters[p.paramId].current,locked:p.max===p.min};
+  });
+  const statistics=computeFitStatistics(statisticalVariables,statisticalVariables.map(v=>v.value),vector=>{
+    statisticalVariables.forEach((v,i)=>{const record=winningCandidate.parametersRecord.filter(p=>p.fitted)[i];
+      const l=statisticsLayers.find(l=>l.id===record.layerId)!;
+      if(record.paramId==='thickness')l.thickness=vector[i];else l.parameters[record.paramId].current=vector[i];});
+    return finalFittingPoints.flatMap(pt=>{const c=calculatePoint(ambient,statisticsLayers,substrate,pt.wavelength,pt.aoi);
+      return [c.psiDeg-pt.psiExp,circularDifferenceDeg(c.deltaDeg,pt.deltaExp)];});
+  },{weights:residualWeights(finalFittingPoints,config).weights});
+
   const targetAchieved = finalMetrics.rawMse < TARGET_MSE;
   const finalStatus: FittingResult['status'] = targetAchieved ? 'target_achieved' : 'target_not_achieved';
 
@@ -1906,6 +1922,7 @@ export async function runAutomatedEllipsometryFit(
     updatedSubstrate: substrate,
     updatedPoints: finalAllPoints,
     fittingResult: {
+      statistics,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
       weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,convergenceStatus:winningCandidate.convergenceStatus,
       perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,psiWeight,deltaWeight,numActiveParams).perAoi).map(([a,m])=>[a,m.mseWoollam])),

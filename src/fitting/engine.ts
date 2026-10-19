@@ -1,3 +1,4 @@
+import { computeFitStatistics, isSplineCoefficient } from './statistics';
 /**
  * Unified Fitting Engine
  * Connects the Optical Model Stack, TMM Solver, Residual Metrics, and Bounded LM Optimizer.
@@ -283,6 +284,10 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
   const finalFittingPoints = calculateSpectrum(ambient, clonedLayers, clonedSubstrate, fittingPoints);
   const finalMetrics = computeResidualMetrics(finalFittingPoints, config.fitWeighting, config.psiWeight, config.deltaWeight, variables.length);
 
+  const statistics=optResult.stopped?undefined:computeFitStatistics(variables.map((v,i)=>({...v,
+    id:`${targets[i].layerId??'substrate'}.${targets[i].paramId??'thickness'}`,
+    locked:v.max===v.min,splineCoefficient:isSplineCoefficient(targets[i].paramId??'thickness')})),optResult.finalParams,residualFn,{weights});
+
   // Build structured parameter comparison report
   const fittedParamResults: FittedParameterResult[] = targets.map((t, idx) => {
     const finalVal = optResult.finalParams[idx];
@@ -331,6 +336,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
     updatedSubstrate: clonedSubstrate,
     updatedPoints: finalPoints,
     fittingResult: {
+      statistics,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
         weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,
       rawMse:finalMetrics.rawMse,rawRmse:finalMetrics.rawRmse,psiRmse:Math.sqrt(finalMetrics.psiMse),deltaRmse:Math.sqrt(finalMetrics.deltaMse),

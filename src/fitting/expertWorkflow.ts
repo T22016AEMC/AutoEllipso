@@ -1,3 +1,4 @@
+import { computeFitStatistics, isSplineCoefficient } from './statistics';
 import { EllipsometryProject, Layer, ParameterValue, EllipsometryDataPoint } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
 import { calculatePoint, calculateSpectrum } from '../solver/calculator';
@@ -223,6 +224,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   }
   const objective=(vector:number[])=>{apply(p,refs,vector);try{return weighted(residual(p,points))+reg(vector).reduce((s,x)=>s+x*x,0)/(2*points.length)*meanW2;}catch{return Infinity;}};
   let bestObjective=objective(best),validStarts=0,bestStartIndex=0;
+  const initialObjective=bestObjective;
   for(let s=0;s<starts.length&&!shouldStop();s++) {
     if(!vars.length)break;
     if(!Number.isFinite(objective(starts[s])))continue;
@@ -242,9 +244,11 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   const check=calculateSpectrum(final.ambient,final.layers,final.substrate,final.experimentData!.points);
   const verified=check.every((v,i)=>v.psiCalc===final.experimentData!.points[i].psiCalc&&v.deltaCalc===final.experimentData!.points[i].deltaCalc);
   if(!verified)throw new Error('Final forward verification failed');
-  final.fittingResult={mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
+  const statistics=shouldStop()?undefined:computeFitStatistics(vars.map((v,i)=>({...v,splineCoefficient:isSplineCoefficient(refs[i].key)})),best,
+    vector=>{apply(p,refs,vector);return residual(p,points);},{weights,regularizationResidualsFn:reg(best).length?reg:undefined});
+  final.fittingResult={statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
         weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
-    convergenceStatus:shouldStop()?'cancelled':bestStatus,improved:bestObjective<objective(vars.map(v=>v.value)),converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
+    convergenceStatus:shouldStop()?'cancelled':bestStatus,improved:bestObjective<initialObjective,converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
     initialMse:initial,finalMse:metrics.rawMse,initialRmse:Math.sqrt(initial),finalRmse:metrics.rawRmse,
     rawMse:metrics.rawMse,rawRmse:metrics.rawRmse,psiRmse:Math.sqrt(metrics.psiMse),deltaRmse:Math.sqrt(metrics.deltaMse),
     targetMse:10,targetAchieved:metrics.rawMse<10,freshCalculationVerified:verified,executionTimeMs:performance.now()-startTime,

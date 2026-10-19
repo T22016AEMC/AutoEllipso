@@ -1,3 +1,4 @@
+import type { FitStatistics } from '../fitting/statistics';
 import type { ConvergenceStatus } from '../fitting/numerics';
 /**
  * Core type definitions for Thin-Film Spectroscopic Ellipsometry
@@ -181,6 +182,7 @@ export interface FittedParameterResult {
 }
 
 export interface FittingResult {
+  statistics?: FitStatistics;
   convergenceStatus?: ConvergenceStatus;
   improved?: boolean;
   mseWoollam?: number;

@@ -3,7 +3,7 @@ import {FIT_NUMERICS} from './numerics';
 export interface SvdResult { u:number[][]; singularValues:number[]; v:number[][]; truncated:number }
 
 /** Thin, one-sided cyclic Jacobi SVD. Columns of v are right singular vectors. */
-export function svd(a:number[][],rcond=FIT_NUMERICS.rcond):SvdResult {
+export function svd(a:number[][],rcond:number=FIT_NUMERICS.rcond):SvdResult {
   const m=a.length,n=a[0]?.length??0;
   if(m<n||a.some(row=>row.length!==n||row.some(x=>!Number.isFinite(x)))||!Number.isFinite(rcond)||rcond<0)
     throw new Error('SVD requires a finite rectangular matrix with m >= n and rcond >= 0');
@@ -31,7 +31,7 @@ export function svd(a:number[][],rcond=FIT_NUMERICS.rcond):SvdResult {
     u:b.map(row=>order.map(j=>sigma[j]>0?row[j]/sigma[j]:0)),v:v.map(row=>order.map(j=>row[j]))};
 }
 
-export function solveLeastSquaresSvd(a:number[][],b:number[],rcond=FIT_NUMERICS.rcond) {
+export function solveLeastSquaresSvd(a:number[][],b:number[],rcond:number=FIT_NUMERICS.rcond) {
   if(b.length!==a.length||b.some(x=>!Number.isFinite(x)))throw new Error('Invalid SVD right hand side');
   const decomposition=svd(a,rcond),{u,v,singularValues}=decomposition,cutoff=(singularValues[0]??0)*rcond;
   const projections=singularValues.map((s,j)=>s>0&&s>=cutoff?u.reduce((sum,row,i)=>sum+row[j]*b[i],0)/s:0);
