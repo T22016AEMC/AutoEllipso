@@ -1,3 +1,4 @@
+import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics, isSplineCoefficient } from './statistics';
 import { EllipsometryProject, Layer, ParameterValue, EllipsometryDataPoint } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
@@ -14,6 +15,7 @@ export const stageNames = ['Data / AOI / Substrate Validation','Cauchy Initializ
 export type Snapshot = Omit<EllipsometryProject,'expert'>;
 export interface ExpertCandidate { id:string; name:string; stage:number; snapshot:Snapshot }
 export interface ExpertSession {
+  initialization?:PeakInitialization;
   stage:number; smoothing:number; candidates:ExpertCandidate[];
   records:{stage:number; rawMse:number; message:string; at:string}[];
   manualSource?:Snapshot;
@@ -248,7 +250,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   if(!verified)throw new Error('Final forward verification failed');
   const statistics=shouldStop()?undefined:computeFitStatistics(vars.map((v,i)=>({...v,splineCoefficient:isSplineCoefficient(refs[i].key)})),best,
     vector=>{apply(p,refs,vector);return residual(p,points);},{weights,regularizationResidualsFn:reg(best).length?reg:undefined});
-  final.fittingResult={statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
+  final.fittingResult={initialization:session(p).initialization??project.fittingResult?.initialization,statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
         weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
     convergenceStatus:shouldStop()?'cancelled':bestStatus,improved:bestObjective<initialObjective,converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
     initialMse:initial,finalMse:metrics.rawMse,initialRmse:Math.sqrt(initial),finalRmse:metrics.rawRmse,
@@ -268,8 +270,22 @@ export async function preparePhysical(project:EllipsometryProject,index:number):
     const c=calculatePoint(project.ambient,project.layers,project.substrate,pt.wavelength,pt.aoi);
     return {...pt,psiExp:c.psiDeg,deltaExp:c.deltaDeg};
   });
-  let p=initializeMixed(project,index,false);p.layers[index]=addPeak(p.layers[index],0);
-  const l=p.layers[index],keys=['eps_inf','p0_A','p0_E0','p0_w'];
+  const source=modelRegistry.get(project.layers[index].modelId)!;
+  const wavelengths=[...new Set(points.map(pt=>pt.wavelength))];
+  const spectrum=wavelengths.map(wavelength=>({wavelength,...source.calculate(wavelength,values(project.layers[index]))}));
+  let initialization:PeakInitialization|undefined;
+  const seed=modelRegistry.initializePhysicalModelFromBSpline('gaussian',spectrum,undefined,{maximum:project.fittingConfig.maxOscillators??4,onInitialization:v=>initialization=v});
+  let p=initializeMixed(project,index,false);
+  const keys=['eps_inf'];
+  for(let i=0;i<(initialization?.oscillatorsUsed??1);i++) {
+    p.layers[index]=addPeak(p.layers[index],0);const suffix=i===0?'':String(i+1);
+    for(const [key,sourceKey] of [['A','A'+suffix],['E0','E0'+suffix],['w','sigma'+suffix]]) {
+      p.layers[index].parameters[`p${i}_${key}`].current=seed[sourceKey].current;
+      keys.push(`p${i}_${key}`);
+    }
+  }
+  const l=p.layers[index];l.parameters.eps_inf.current=seed.eps_inf.current;
+  p.expert={...session(p),initialization};
   const out=await optimizeBoundedLM(keys.map(key=>{const v=l.parameters[key];return {id:key,name:key,value:v.current,min:v.min,max:v.max};}),vec=>{
     keys.forEach((key,i)=>l.parameters[key].current=vec[i]);return residual(p,points);
   },{maxIterations:60,residualWeights:residualWeights(points,p.fittingConfig).weights});

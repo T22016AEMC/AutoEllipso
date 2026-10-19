@@ -1,3 +1,4 @@
+import type {PeakInitialization} from '../models/peakInitialization';
 import type { FitStatistics } from '../fitting/statistics';
 import type { ConvergenceStatus } from '../fitting/numerics';
 /**
@@ -182,6 +183,7 @@ export interface FittedParameterResult {
 }
 
 export interface FittingResult {
+  initialization?: PeakInitialization;
   statistics?: FitStatistics;
   convergenceStatus?: ConvergenceStatus;
   improved?: boolean;

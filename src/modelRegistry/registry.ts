@@ -1,3 +1,4 @@
+import {initializeDetectedPeaks,PeakInitialization} from '../models/peakInitialization';
 /**
  * Model Registry / Optical Model Database
  * Central repository for all physics-based dispersion models.
@@ -180,7 +181,8 @@ class ModelRegistry {
   initializePhysicalModelFromBSpline(
     modelId: string,
     bsplineSpectrum: { wavelength: number; n: number; k: number }[],
-    existingParams?: Record<string, ParameterValue>
+    existingParams?: Record<string, ParameterValue>,
+    options?:{maximum?:number;onInitialization?:(v:PeakInitialization)=>void}
   ): Record<string, ParameterValue> {
     const params = existingParams
       ? JSON.parse(JSON.stringify(existingParams))
@@ -189,6 +191,10 @@ class ModelRegistry {
     if (!bsplineSpectrum || bsplineSpectrum.length === 0) {
       return params;
     }
+
+    const detected=initializeDetectedPeaks(modelId,bsplineSpectrum,params,this.get(modelId)!,options?.maximum??4);
+    options?.onInitialization?.(detected.initialization);
+    if(!detected.useLegacyFallback)return detected.parameters;
 
     // Sort by wavelength ascending
     const sorted = [...bsplineSpectrum].sort((a, b) => a.wavelength - b.wavelength);

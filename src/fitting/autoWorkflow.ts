@@ -1,3 +1,4 @@
+import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics } from './statistics';
 /**
  * AutoEllipso — Automated Spectroscopic Ellipsometry Thin-Film Fitting and Optical Constant Extraction
@@ -1244,6 +1245,7 @@ export async function runAutomatedEllipsometryFit(
   );
 
   interface CandidateEvaluation {
+    initialization?:PeakInitialization;
     modelId: string;
     modelName: string;
     layers: Layer[];
@@ -1281,13 +1283,15 @@ export async function runAutomatedEllipsometryFit(
       message: `[5/8] 自 B-spline 光譜萃取物理特徵並建立【${cModelDef.name}】初始參數...`,
     });
 
+    let initialization:PeakInitialization|undefined;
     const basePhysicalParams = modelRegistry.initializePhysicalModelFromBSpline(
       cModelId,
-      bsplineContinuousSpectrum
+      bsplineContinuousSpectrum,undefined,{maximum:config.oscillatorComplexity==='auto'||config.oscillatorComplexity===undefined?config.maxOscillators??4:config.oscillatorComplexity,
+        onInitialization:v=>initialization=v}
     );
 
     const requestedComplexity = config.oscillatorComplexity ?? 'auto';
-    const initialOscCount = requestedComplexity === 'auto' ? 1 : requestedComplexity;
+    const initialOscCount = requestedComplexity === 'auto' ? initialization?.oscillatorsUsed??1 : requestedComplexity;
 
     const testLayers: Layer[] = JSON.parse(JSON.stringify(workingLayers));
     testLayers[primaryLayerIndex].modelId = cModelId;
@@ -1489,7 +1493,7 @@ export async function runAutomatedEllipsometryFit(
         requestedComplexity !== 'auto'
           ? requestedComplexity
           : startIdx >= Math.floor(minIndependentStarts * 0.75)
-          ? 2
+          ? Math.max(2,initialOscCount)
           : initialOscCount;
 
       const startParams = buildPerturbedPhysicalStartParams(
@@ -1720,6 +1724,7 @@ export async function runAutomatedEllipsometryFit(
     }
 
     evaluatedCandidates.push({
+      initialization,
       modelId: cModelId,
       modelName: cModelDef.name,
       layers: bestStartState.layers,
@@ -1926,6 +1931,7 @@ export async function runAutomatedEllipsometryFit(
     updatedSubstrate: substrate,
     updatedPoints: finalAllPoints,
     fittingResult: {
+      initialization:winningCandidate.initialization,
       statistics,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
       weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,improved:winningCandidate.improved,convergenceStatus:winningCandidate.convergenceStatus,
