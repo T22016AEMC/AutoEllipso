@@ -6,7 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
-!.env.example.txt
+*.pem
 AutoEllipso_V2.zip
 expert-ui*.png
 .playwright/
