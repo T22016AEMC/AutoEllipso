@@ -2,6 +2,9 @@ import type {ModelDefinition,ParameterValue} from '../types/ellipsometry';
 export interface DetectedPeak {energy:number;height:number;prominence:number;width:number;edgePeak:boolean}
 export interface PeakInitialization {peaksDetected:number;peaks:DetectedPeak[];oscillatorsUsed:number;edgePeak:boolean;method:string}
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
+export function dielectricBackground(points:{target:number;contribution:number}[]):number {
+  return points.reduce((sum,p)=>sum+(p.target-p.contribution),0)/points.length;
+}
 /** Quadratic Savitzky–Golay on an equispaced energy grid, with translated end windows. */
 export function detectEpsilonPeaks(input:{energy:number;eps2:number}[],maximum=4):PeakInitialization {
   const data=[...input].sort((a,b)=>a.energy-b.energy);
@@ -45,34 +48,38 @@ export function detectEpsilonPeaks(input:{energy:number;eps2:number}[],maximum=4
 export function initializeDetectedPeaks(modelId:string,spectrum:{wavelength:number;n:number;k:number}[],
   params:Record<string,ParameterValue>,model:ModelDefinition,maximum=4):{parameters:Record<string,ParameterValue>;initialization:PeakInitialization;useLegacyFallback:boolean} {
   const data=spectrum.map(p=>({...p,energy:1239.841984/p.wavelength,eps2:2*p.n*p.k,eps1:p.n*p.n-p.k*p.k})).sort((a,b)=>a.energy-b.energy);
-  const capacity=['gaussian','lorentz','tauc_lorentz'].includes(modelId)?Math.min(maximum,1+Number(!!params.A2)+Number(!!params.A3)):1;
+  const supported=['gaussian','lorentz','tauc_lorentz','multi_oscillator'].includes(modelId);
+  const capacity=supported?Math.min(maximum,1+Number(!!params.A2)+Number(!!params.A3)):1;
   const info=detectEpsilonPeaks(data,capacity),result=structuredClone(params);
   const transparent=Math.max(...data.map(p=>p.k))<.035&&Math.max(...data.map(p=>p.eps2))<.18;
-  if(!['gaussian','lorentz','tauc_lorentz'].includes(modelId)||transparent||(!info.peaksDetected&&!info.edgePeak))
+  if(!supported||transparent||(!info.peaksDetected&&!info.edgePeak))
     return {parameters:result,initialization:{...info,oscillatorsUsed:1,method:transparent?'transparent-legacy-fallback':'single-legacy-fallback'},useLegacyFallback:true};
   const lo=data[0].energy,hi=data.at(-1)!.energy,range=hi-lo;
-  const peaks=info.peaksDetected?[...info.peaks]:[{energy:data[0].eps2>data.at(-1)!.eps2?Math.max(.01,lo-.15*range):hi+.15*range,
-    height:Math.max(...data.map(p=>p.eps2)),prominence:0,width:.15*range,edgePeak:true}];
+  const peaks=[...info.peaks];
+  if(info.edgePeak&&peaks.length<capacity)peaks.push({energy:data[0].eps2>data.at(-1)!.eps2?Math.max(.01,lo-.15*range):hi+.15*range,
+    height:Math.max(...data.map(p=>p.eps2)),prominence:0,width:.15*range,edgePeak:true});
   const set=(key:string,value:number,fit=true)=>{const p=result[key];if(p){p.current=clamp(value,p.min,p.max);p.initial=p.current;p.fit=fit;}};
-  for(let i=1;i<=3;i++){const suffix=i===1?'':String(i);set('A'+suffix,0,false);}
+  for(let i=1;i<=3;i++){const suffix=i===1&&modelId!=='multi_oscillator'?'':String(i);set('A'+suffix,0,false);}
   const first=Math.min(...peaks.map(p=>p.energy));
   const onset=data.find(p=>p.eps2>.02*Math.max(...peaks.map(p=>p.height)))?.energy??lo;
   const gap=clamp(onset,lo,first*.95);if(modelId==='tauc_lorentz')set('Eg',gap);
   peaks.forEach((peak,i)=>{
-    const suffix=i===0?'':String(i+1),widthKey=modelId==='gaussian'?'sigma':modelId==='lorentz'?'gamma':'C';
-    set('E0'+suffix,peak.energy);let width=modelId==='gaussian'?peak.width/(2*Math.sqrt(Math.log(2))):peak.width;
+    const mixed=modelId==='multi_oscillator',suffix=i===0&&!mixed?'':String(i+1);
+    const type=mixed?(result[`osc${i+1}_type_code`]?.current??(i===2?2:1)):modelId==='gaussian'?1:modelId==='lorentz'?2:3;
+    const widthKey=mixed?'w':modelId==='gaussian'?'sigma':modelId==='lorentz'?'gamma':'C';
+    set('E0'+suffix,peak.energy);let width=type===1?peak.width/(2*Math.sqrt(Math.log(2))):peak.width;
     if(modelId==='tauc_lorentz')width=Math.min(width,1.999*result['E0'+suffix].current);
     set(widthKey+suffix,width);
     const record=Object.fromEntries(Object.entries(result).map(([k,p])=>[k,p.current]));
     const single={...record,eps_inf:0,A:1,A1:1,A2:0,A3:0,E0:record['E0'+suffix],E01:record['E0'+suffix],
-      [widthKey]:record[widthKey+suffix],[widthKey+'1']:record[widthKey+suffix]};
+      [widthKey]:record[widthKey+suffix],[widthKey+'1']:record[widthKey+suffix],...(mixed?{osc1_type_code:type}:{})};
     const unit=model.calculateEpsilon(1239.841984/peak.energy,single).eps2;
     set('A'+suffix,peak.height/Math.max(1e-12,unit));
   });
   // One background estimate: long-wavelength n/k minus all initialized oscillator contributions.
   const long=data.slice(0,Math.max(1,Math.ceil(data.length*.15)));
   const record=Object.fromEntries(Object.entries(result).map(([k,p])=>[k,p.current]));
-  const offset=long.reduce((sum,p)=>sum+p.eps1-model.calculateEpsilon(p.wavelength,{...record,eps_inf:0}).eps1,0)/long.length;
+  const offset=dielectricBackground(long.map(p=>({target:p.eps1,contribution:model.calculateEpsilon(p.wavelength,{...record,eps_inf:0}).eps1})));
   set('eps_inf',offset);
   return {parameters:result,initialization:{...info,peaks,oscillatorsUsed:peaks.length},useLegacyFallback:false};
 }
