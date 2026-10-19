@@ -1,0 +1,134 @@
+{
+  "timesMs": [
+    6935.7288,
+    9964.7084,
+    7073.2503
+  ],
+  "medianMs": 7073.2503,
+  "thickness": 99.99715906148896,
+  "parameters": {
+    "eps_inf": {
+      "id": "eps_inf",
+      "name": "High-Frequency Dielectric (ε_∞)",
+      "symbol": "ε_∞",
+      "unit": "",
+      "current": 1.1816960877822302,
+      "initial": 1.1942,
+      "min": 1,
+      "max": 20,
+      "fit": true,
+      "fitSupported": true
+    },
+    "A": {
+      "id": "A",
+      "name": "Oscillator #1 Amplitude (A₁)",
+      "symbol": "A₁",
+      "unit": "",
+      "current": 13.477871856130012,
+      "initial": 11.0503,
+      "min": 0.01,
+      "max": 100,
+      "fit": true,
+      "fitSupported": true
+    },
+    "E0": {
+      "id": "E0",
+      "name": "Oscillator #1 Center Energy (E₀₁)",
+      "symbol": "E₀₁",
+      "unit": "eV",
+      "current": 10.830576001049312,
+      "initial": 10.8255,
+      "min": 0.5,
+      "max": 15,
+      "fit": true,
+      "fitSupported": true
+    },
+    "sigma": {
+      "id": "sigma",
+      "name": "Oscillator #1 Broadening (σ₁)",
+      "symbol": "σ₁",
+      "unit": "eV",
+      "current": 0.6637577606355206,
+      "initial": 0.8,
+      "min": 0.05,
+      "max": 3.5,
+      "fit": true,
+      "fitSupported": true
+    },
+    "A2": {
+      "id": "A2",
+      "name": "Oscillator #2 Amplitude (A₂)",
+      "symbol": "A₂",
+      "unit": "",
+      "current": 0,
+      "initial": 0,
+      "min": 0,
+      "max": 100,
+      "fit": false,
+      "fitSupported": true
+    },
+    "E02": {
+      "id": "E02",
+      "name": "Oscillator #2 Center Energy (E₀₂)",
+      "symbol": "E₀₂",
+      "unit": "eV",
+      "current": 12.3255,
+      "initial": 12.3255,
+      "min": 0.5,
+      "max": 15,
+      "fit": false,
+      "fitSupported": true
+    },
+    "sigma2": {
+      "id": "sigma2",
+      "name": "Oscillator #2 Broadening (σ₂)",
+      "symbol": "σ₂",
+      "unit": "eV",
+      "current": 0.6,
+      "initial": 0.6,
+      "min": 0.05,
+      "max": 3.5,
+      "fit": false,
+      "fitSupported": true
+    },
+    "A3": {
+      "id": "A3",
+      "name": "Oscillator #3 Amplitude (A₃)",
+      "symbol": "A₃",
+      "unit": "",
+      "current": 0,
+      "initial": 0,
+      "min": 0,
+      "max": 100,
+      "fit": false,
+      "fitSupported": true
+    },
+    "E03": {
+      "id": "E03",
+      "name": "Oscillator #3 Center Energy (E₀₃)",
+      "symbol": "E₀₃",
+      "unit": "eV",
+      "current": 13.3255,
+      "initial": 13.3255,
+      "min": 0.5,
+      "max": 15,
+      "fit": false,
+      "fitSupported": true
+    },
+    "sigma3": {
+      "id": "sigma3",
+      "name": "Oscillator #3 Broadening (σ₃)",
+      "symbol": "σ₃",
+      "unit": "eV",
+      "current": 0.7,
+      "initial": 0.7,
+      "min": 0.05,
+      "max": 3.5,
+      "fit": false,
+      "fitSupported": true
+    }
+  },
+  "rawMse": 0.009153355272130782,
+  "converged": true,
+  "status": "target_achieved"
+}

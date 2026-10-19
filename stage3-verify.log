@@ -1,0 +1,48 @@
+$ node scripts/check.mjs
+typecheck: 0
+
+worker-tests: 0
+{
+  "total": 8,
+  "passed": 8,
+  "failures": []
+}
+
+build: 0
+vite v8.3.4 building client environment for production...
+transforming...
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/data/defaultProjects.ts is dynamically imported by src/tests/unitTests.ts but also statically imported by src/tests/unitTests.ts, dynamic import will not move module into another chunk.
+
+✓ 1707 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/defaultProjects-DCB_6quP.js       0.06 kB
+dist/version.json                             0.15 kB │ gzip:   0.14 kB
+dist/index.html                               1.05 kB │ gzip:   0.49 kB
+dist/assets/transferMatrix-Bdb_DGJd.js        3.55 kB
+dist/assets/unitTests-BB1BKNqs.js            27.45 kB
+dist/assets/calculator-ZecOy0re.js           41.81 kB
+dist/assets/compute.worker-Bqv1xUAH.js       70.42 kB
+dist/assets/index-B1-qT0Qf.css               56.96 kB │ gzip:  10.26 kB
+dist/assets/ExpertFittingPanel-DCDQOuAo.js   25.20 kB │ gzip:   7.22 kB
+dist/assets/index-C636iT2t.js               445.41 kB │ gzip: 125.68 kB
+
+✓ built in 4.56s
+
+original-tests: 0
+{
+  "total": 29,
+  "passed": 29,
+  "failures": []
+}
+
+scientific-tests: 0
+STAGE3_MONTE_CARLO {"seed":"0x12345678","runs":100,"sampleSd":0.00047851632932011725,"meanStdError":0.0005003205241958783,"ratio":0.9564195474275116,"coverage":0.96,"converged":1}
+STAGE3_ULTRATHIN {"r":-0.9999993522743537,"conditionNumber":1757.1926617893112,"conditionLevel":"caution"}
+STAGE3_AUTOMATIC {"thickness":99.99715991446588,"rawMse":0.009153357823814337,"converged":true,"reason":"cost","statisticsMs":20.117300000001705}
+{
+  "total": 56,
+  "passed": 56,
+  "failures": []
+}
+

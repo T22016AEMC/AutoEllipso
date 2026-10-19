@@ -208,5 +208,75 @@
     "name": "Entering peak builder retains manual n/k exactly as a labeled noncausal baseline",
     "passed": true,
     "detail": "PASS"
+  },
+  {
+    "name": "SVD reconstruction and Moore-Penrose identities: random, Hilbert and rank deficient",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "SVD solution agrees with normal equations on a well-conditioned problem to 1e-9",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Student t 97.5 percent quantiles against tabulated values",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Relative convergence is invariant to uniform sigma scaling",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Fresh final Jacobian, physical scaling, covariance and unscaled standard errors",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Boundary parameters have no uncertainty; remaining errors are conditional",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Locked variables excluded and spline coefficients included in dof and covariance",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Rank deficiency flags non-identifiable parameters without nonfinite JSON values",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Nonpositive dof returns warning without uncertainty calculation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Monte Carlo: 100 seeded multi-AOI thickness fits and reported uncertainties",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Ultrathin film: thickness-index correlation and condition warning fields",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Automatic multi-AOI sigma fit converges and retains baseline fit within tolerance",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Fit statistics survive project JSON and validation report; legacy fields remain optional",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Statistics UI renders errors, confidence intervals, warnings and correlation matrix",
+    "passed": true,
+    "detail": "PASS"
   }
 ]

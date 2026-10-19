@@ -19,6 +19,7 @@ import {importProjectJson} from '../src/data/export';
 import {inspectCsv,convertRowsToPoints} from '../src/data/csvParser';
 import {normalizeDeltaDeg,psiDeltaFromRho} from '../src/solver/ellipsometricAngles';
 import {runAutoFit} from '../src/fitting/engine';
+import {stage3Tests} from './stage3-tests';
 const results:{name:string;passed:boolean;detail:string}[]=[];
 async function test(name:string,fn:()=>void|Promise<void>) {try{await fn();results.push({name,passed:true,detail:'PASS'});}catch(e){results.push({name,passed:false,detail:String(e)});}}
 function near(a:number,b:number,tol=1e-9){assert.ok(Number.isFinite(a)&&Math.abs(a-b)<tol,`${a} != ${b} (tol ${tol})`);}
@@ -354,6 +355,7 @@ await test('Entering peak builder retains manual n/k exactly as a labeled noncau
   mixed.layers[0]=addPeak(mixed.layers[0],1);const v=values(mixed.layers[0]),E=1239.841984/500,d=(9-E*E)**2+.25*E*E;
   near(mixedOptics(500,v).eps1!,before.calculate(500,source).eps1!+6*(9-E*E)/d,1e-8);
 });
+await stage3Tests(test);
 writeFileSync('scientific-tests.json',JSON.stringify(results,null,2));
 console.log(JSON.stringify({total:results.length,passed:results.filter(r=>r.passed).length,failures:results.filter(r=>!r.passed)},null,2));
 if(results.some(r=>!r.passed))process.exitCode=1;
