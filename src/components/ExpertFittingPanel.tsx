@@ -1,3 +1,4 @@
+import {FitStatisticsPanel,StatisticsWarning} from './FitStatisticsPanel';
 import React, { useRef, useState } from 'react';
 import { EllipsometryProject, Layer, ParameterValue } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
@@ -103,6 +104,8 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
         <button className={btn} disabled={locked} onClick={onRecalculate}>Fresh TMM Recalculate</button>
         <span className="text-cyan-300">{model?.name}</span>
       </div>
+      <StatisticsWarning statistics={project.fittingResult?.statistics}/>
+      <FitStatisticsPanel result={project.fittingResult}/>
       {progress&&<p role="status">Start {progress.start}/{progress.totalStarts} · Iteration {progress.iteration} · Current MSE (Woollam) {progress.currentMse.toPrecision(7)} · Best MSE (Woollam) {progress.bestMse.toPrecision(7)}</p>}
       {(error||forwardError)&&<p role="alert" className="p-2 bg-red-950 border border-red-600">{error||forwardError}</p>}
       <p role="status" className="expert-forward-status text-amber-300">{forwardPending?'完整 TMM 重算中；目前 Ψ/Δ 曲線與 MSE 為上一輪。':forwardError?'計算失敗；保留上一輪曲線，請修正參數。':project.experimentData?.points.length?'完整光譜 TMM 已更新。':'尚未匯入實驗資料。'}</p>

@@ -15,6 +15,7 @@ export function createValidationReport(project:EllipsometryProject) {
   const wavelengths=Array.from(new Set(input.map(p=>p.wavelength))).sort((a,b)=>a-b);
   return {
     application:'AutoEllipso',version:APP_VERSION,buildCommit:BUILD_COMMIT,buildTime:BUILD_TIME,generatedAt:new Date().toISOString(),
+    statistics:project.fittingResult?.statistics,convergenceStatus:project.fittingResult?.convergenceStatus,
     calculationLocation:'This browser; no uploaded measurement data',projectName:project.name,
     measurementAoi:Array.from(new Set(input.map(p=>p.aoi))).sort((a,b)=>a-b),selectedFitAoi:metrics.selectedAois,
     wavelengthRangeNm:[wavelengths[0],wavelengths[wavelengths.length-1]],substrate:project.substrate,ambient:project.ambient,

@@ -1,3 +1,4 @@
+import {FitStatisticsPanel,StatisticsWarning,ParameterEstimate} from './FitStatisticsPanel';
 /**
  * AutoEllipso — Final Fitting Results & Diagnostics Modal
  *
@@ -78,6 +79,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <StatisticsWarning statistics={fittingResult.statistics}/>
         {/* Top Status Banner */}
         <div
           className={`p-5 border-b flex items-start justify-between ${
@@ -263,6 +265,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
               最終擬合參數清單 ({fittingResult.parameters.length} 項參數)
             </span>
             <div className="max-h-48 overflow-y-auto border border-slate-800 rounded-lg">
+              <FitStatisticsPanel result={fittingResult}/>
               <table className="w-full text-left font-mono text-[11px]">
                 <thead className="bg-slate-800/90 text-slate-400 sticky top-0">
                   <tr>
@@ -285,7 +288,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                           {p.initialValue.toFixed(4)} {p.unit}
                         </td>
                         <td className="p-2 text-cyan-300 font-bold">
-                          {p.finalValue.toFixed(4)} {p.unit}
+                          <ParameterEstimate result={fittingResult} parameter={p}/>
                         </td>
                         <td className="p-2 text-slate-500">
                           [{p.min}, {p.max}]

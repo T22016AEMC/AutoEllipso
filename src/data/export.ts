@@ -111,6 +111,7 @@ export function exportFittedParametersJson(
   const deltaRmse = pts.length > 0 ? Math.sqrt(sumDeltaSq / pts.length) : 0;
 
   const exportData = {
+    statistics:project.fittingResult?.statistics,convergenceStatus:project.fittingResult?.convergenceStatus,
     expert: project.expert,
     layers: project.layers,
     parameterBoundsAndLocks: primaryLayer?.parameters,

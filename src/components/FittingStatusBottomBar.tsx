@@ -1,3 +1,4 @@
+import {FitStatisticsPanel,StatisticsWarning,ParameterEstimate} from './FitStatisticsPanel';
 /**
  * Fitting Status & Results Bottom Bar
  * Provides live MSE/RMSE metrics, optimizer status, iteration counters,
@@ -210,6 +211,8 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
             </button>
           </div>
 
+          <StatisticsWarning statistics={fittingResult.statistics}/>
+          <FitStatisticsPanel result={fittingResult}/>
           {/* Global Summary Stats */}
           <div className="p-3 bg-slate-950/60 border-b border-slate-800 grid grid-cols-6 gap-2 font-mono text-[11px] text-slate-300">
             <div>
@@ -311,7 +314,7 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
                         {p.initialValue.toFixed(4)} {p.unit}
                       </td>
                       <td className="p-2 text-cyan-300 font-bold">
-                        {p.finalValue.toFixed(4)} {p.unit}
+                        <ParameterEstimate result={fittingResult} parameter={p}/>
                       </td>
                       <td className="p-2 text-slate-500">
                         [{p.min}, {p.max}]
