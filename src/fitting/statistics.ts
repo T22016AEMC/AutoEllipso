@@ -103,6 +103,13 @@ export function computeFitStatistics(variables:StatisticalVariable[],params:numb
     }));
     const pairs:FitStatistics['correlation']['topPairs']=[];
     for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++)if(correlation[i][j]!==null)pairs.push({ids:[ids[i],ids[j]],correlation:correlation[i][j]!});
+    for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++) {
+      if(variables[free[i]].splineCoefficient||variables[free[j]].splineCoefficient)continue;
+      const r=correlation[i][j];if(r===null||Math.abs(r)<=.99)continue;
+      const level=Math.abs(r)>.9999?'severe':'caution';
+      if(level==='severe'||result.conditionLevel==='ok')result.conditionLevel=level;
+      warnings.push(`物理參數高度相關：${ids[i]} ↔ ${ids[j]}，r=${r.toPrecision(8)} (${level})。`);
+    }
     pairs.sort((a,b)=>Math.abs(b.correlation)-Math.abs(a.correlation));
     result.covariance={ids,matrix:covariance,unscaledMatrix:unscaled};
     result.correlation={ids,matrix:correlation,topPairs:pairs.slice(0,5)};
@@ -116,7 +123,7 @@ export function computeFitStatistics(variables:StatisticalVariable[],params:numb
       boundaryHit:boundary.has(i),nonIdentifiable:nonIdentifiable.has(i),locked:false,transform:'linear',derivative:variables[i].max-variables[i].min};
   });
   if(nonIdentifiable.size)warnings.push('存在不可識別參數；相關方向的標準誤與信賴區間不予輸出。');
-  if(result.conditionLevel!=='ok')warnings.push(`欄正規化 Jacobian 條件數等級：${result.conditionLevel}。`);
+  if(result.conditionLevel!=='ok')warnings.push(`統計警告等級：${result.conditionLevel}（綜合欄正規化條件數與物理參數相關性）。`);
   result.elapsedMs=performance.now()-start;
   return result;
 }
