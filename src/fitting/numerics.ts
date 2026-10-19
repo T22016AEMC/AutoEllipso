@@ -5,3 +5,9 @@ export const FIT_NUMERICS = Object.freeze({
   nonIdentifiableRatio: 1e-8, cautionCondition: 1e3, severeCondition: 1e5,
 });
 export type ConvergenceStatus = 'cost'|'step'|'gradient'|'no_better_step'|'stalled'|'max_iter'|'cancelled';
+
+/** Preserve an explicitly requested legacy tolerance as the relative cost tolerance. */
+export function convergenceSettings(tolerance?:number) {
+  if(tolerance!==undefined&&(!Number.isFinite(tolerance)||tolerance<=0))throw new Error('Convergence tolerance must be finite and positive');
+  return {...FIT_NUMERICS,ftol:tolerance??FIT_NUMERICS.ftol};
+}

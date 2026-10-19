@@ -6,7 +6,7 @@
  */
 import { circularDifferenceDeg } from './residual';
 import { solveLeastSquaresSvd } from './svd';
-import { FIT_NUMERICS, ConvergenceStatus } from './numerics';
+import { convergenceSettings, ConvergenceStatus } from './numerics';
 
 export interface OptimizationVariable {
   id: string;
@@ -94,7 +94,7 @@ export async function optimizeBoundedLM(
   options: OptimizerOptions = {}
 ): Promise<OptimizerResult> {
   const maxIterations = options.maxIterations ?? 40;
-  const {ftol,xtol,gtol,costEpsilon,lambdaMax}=FIT_NUMERICS;
+  const {ftol,xtol,gtol,costEpsilon,lambdaMax}=convergenceSettings(options.tolerance);
   let lambda = options.initialLambda ?? 1e-2;
   const nParams = variables.length;
 
@@ -219,13 +219,11 @@ export async function optimizeBoundedLM(
       break;
     }
 
-    // Form augmented matrix A = H + lambda * diag(H)
-    // and solve A * delta = -g
+    // Solve the augmented least-squares step, preserving the active set and damping scale.
     let stepAccepted = false;
-    let trialAttempts = 0;
 
     while (!stepAccepted) {
-      trialAttempts++;
+      if(options.shouldStop?.()){stopped=true;status='cancelled';break;}
       const free=variables.map((_,i)=>i).filter(i=>!((currentU[i]<=1e-8&&g[i]>0)||(currentU[i]>=1-1e-8&&g[i]<0)));
       // Identical Marquardt diagonal: max(1e-6, H_jj) + 1e-4; no normal equations.
       const augmented=J.map(row=>free.map(j=>row[j]/mScale));
@@ -276,6 +274,7 @@ export async function optimizeBoundedLM(
     }
 
     iter++;
+    if(stopped)break;
     if(!stepAccepted) {
       converged=gradNorm<100*gradientTolerance;
       status=converged?'no_better_step':'stalled';
