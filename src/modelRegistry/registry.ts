@@ -1,4 +1,5 @@
-import {initializeDetectedPeaks,PeakInitialization} from '../models/peakInitialization';
+import {createKkBsplineModel} from '../models/kkBspline';
+import {initializeDetectedPeaks,dielectricBackground,PeakInitialization} from '../models/peakInitialization';
 /**
  * Model Registry / Optical Model Database
  * Central repository for all physics-based dispersion models.
@@ -31,6 +32,7 @@ class ModelRegistry {
     this.register(ExpertMixedModel);
     this.register(DrudeModel);
     this.register(BSplineModel);
+    this.register(createKkBsplineModel());
     this.register(CustomModel);
     this.register(TabulatedSiModel);
     this.register(TabulatedGlassModel);
@@ -117,6 +119,7 @@ class ModelRegistry {
         m.id === 'multi_oscillator' ||
         m.id === 'drude' ||
         m.id === 'bspline' ||
+        m.id === 'kk_bspline' ||
         m.id === 'custom' ||
         m.id === 'constant_nk'
     );
@@ -359,8 +362,7 @@ class ModelRegistry {
       estA = Math.max(minA, Math.min(maxA, estA));
 
       // Re-solve optimal eps_inf given clamped estA
-      const meanResidualEps1 =
-        spectralData.reduce((acc, pt, i) => acc + (pt.eps1 - estA * basis1[i]), 0) / nPts;
+      const meanResidualEps1 = dielectricBackground(spectralData.map((pt,i)=>({target:pt.eps1,contribution:estA*basis1[i]})));
       const minEpsInf = params['eps_inf']?.min ?? 1.0;
       const maxEpsInf = params['eps_inf']?.max ?? 15.0;
       estEpsInf = Math.max(minEpsInf, Math.min(maxEpsInf, meanResidualEps1));

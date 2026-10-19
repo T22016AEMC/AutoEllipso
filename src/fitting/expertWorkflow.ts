@@ -1,3 +1,4 @@
+import {createKkBsplineModel,fitKkEpsilon2,kkSplineGrid} from '../models/kkBspline';
 import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics, isSplineCoefficient } from './statistics';
 import { EllipsometryProject, Layer, ParameterValue, EllipsometryDataPoint } from '../types/ellipsometry';
@@ -49,6 +50,10 @@ export function validateExpert(project:EllipsometryProject):void {
   if(![project.ambient.n,project.ambient.k].every(Number.isFinite)||project.ambient.n<=0||project.ambient.k<0) throw new Error('Invalid ambient');
   for(const l of project.layers) {
     validateTaucLorentzParameters(l.modelId,values(l));
+    if(l.modelId==='kk_bspline'){
+      const p=values(l),grid=kkSplineGrid(p);
+      if(p._uvE0<1.5*grid.at(-1)!||(p._irEnabled&&p._irE0>=grid[0]))throw new Error('KK poles must lie outside the spline range (UV ≥ 1.5 Emax)');
+    }
     if(!modelRegistry.has(l.modelId)) throw new Error('Unknown film model: '+l.modelId);
     if(![l.thickness,l.thicknessMin,l.thicknessMax].every(Number.isFinite)||l.thickness<0||l.thicknessMin<0||l.thicknessMax<l.thicknessMin || (l.thicknessFit&&(l.thickness<l.thicknessMin||l.thickness>l.thicknessMax))) throw new Error('Invalid film thickness or bounds');
     if(l.modelId==='bspline'||l.modelId==='expert_mixed') cubicBasis(splineGrid(l)[0],splineGrid(l));
@@ -105,6 +110,19 @@ export function initializeSpline(project:EllipsometryProject,index:number):Ellip
     l.parameters[`N${i}`]=parameter(`N${i}`,Math.max(0.001,n[i]),0.001,Math.max(10,n[i]*2));
     l.parameters[`K${i}`]=parameter(`K${i}`,Math.max(0,k[i]),0,Math.max(10,k[i]*2));});
   return p;
+}
+/** Initialize the optional KK epsilon2 model from the current optical curve, without changing stages. */
+export function initializeKkSpline(project:EllipsometryProject,index:number):EllipsometryProject {
+  const p=clone(project),layer=p.layers[index],source=modelRegistry.get(layer.modelId)!,old=values(layer);
+  const wavelengths=[...new Set(activePoints(p,true).map(pt=>pt.wavelength))];
+  const energies=wavelengths.map(w=>1239.841984/w),lo=Math.min(...energies),hi=Math.max(...energies);
+  const params=modelRegistry.createParameterSet('kk_bspline');
+  params._emin.current=lo;params._emax.current=hi;params._uvE0.current=1.5*hi;params._irE0.current=lo/2;
+  const model=createKkBsplineModel();
+  const record=Object.fromEntries(Object.entries(params).map(([k,v])=>[k,v.current]));
+  const fitted=fitKkEpsilon2(wavelengths.map(w=>{const o=source.calculate(w,old);return {energy:1239.841984/w,eps1:o.eps1??o.n*o.n-o.k*o.k,eps2:o.eps2??2*o.n*o.k};}),record,model);
+  for(const [key,value] of Object.entries(fitted))if(params[key]){params[key].current=Math.max(params[key].min,Math.min(params[key].max,value));params[key].initial=params[key].current;}
+  layer.modelId='kk_bspline';layer.parameters=params;return p;
 }
 export function changeSplineGrid(layer:Layer,grid:number[]):Layer {
   if(grid.length<4||grid.length>20)throw new Error('Control count must be 4–20');
@@ -172,6 +190,7 @@ function collect(p:EllipsometryProject):{vars:OptimizationVariable[];refs:Ref[]}
   p.layers.forEach((l,index)=>{
     if(l.thicknessFit)add(l.id+'.thickness',l.thickness,l.thicknessMin,l.thicknessMax,{kind:'thickness',index,key:''});
     for(const [key,v] of Object.entries(l.parameters)) if(v.fit&& !key.startsWith('_')) {
+      if(l.modelId==='kk_bspline'&&key==='ir_A'&&!l.parameters._irEnabled?.current)continue;
       if(key.startsWith('base_')&&!l.parameters._baseEnabled?.current)continue;
       const peak=key.match(/^p(\d+)_/);if(peak&&!l.parameters[`p${peak[1]}_enabled`]?.current)continue;
       add(l.id+'.'+key,v.current,v.min,v.max,{kind:'layer',index,key});
@@ -215,7 +234,9 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   const smoothing=session(p).smoothing;
   function reg(vector:number[]):number[] {
     apply(p,refs,vector);const r:number[]=[];
-    for(const l of p.layers)if(l.modelId==='bspline'||l.modelId==='expert_mixed') {
+    for(const l of p.layers)if(l.modelId==='bspline'||l.modelId==='expert_mixed'||l.modelId==='kk_bspline') {
+      if(l.modelId==='kk_bspline'){const c=kkSplineGrid(values(l)).map((_,i)=>l.parameters['c'+i].current);
+        const smooth=computeBsplineSmoothness(c,[],smoothing,0);r.push(...smooth.secondDiffN.map(v=>v*Math.sqrt(smoothing*2*points.length)));continue;}
       const grid=splineGrid(l);
       const pairs=l.modelId==='bspline'?[['N','K']]:[...Array.from({length:l.parameters._peakCount.current},(_,i)=>i)
         .filter(i=>l.parameters[`p${i}_enabled`].current&&l.parameters[`p${i}_type`].current===4).map(i=>[`p${i}_R`,`p${i}_I`]),...(l.parameters._baseEnabled?.current?[['base_N','base_K']]:[])];
@@ -248,7 +269,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   const check=calculateSpectrum(final.ambient,final.layers,final.substrate,final.experimentData!.points);
   const verified=check.every((v,i)=>v.psiCalc===final.experimentData!.points[i].psiCalc&&v.deltaCalc===final.experimentData!.points[i].deltaCalc);
   if(!verified)throw new Error('Final forward verification failed');
-  const statistics=shouldStop()?undefined:computeFitStatistics(vars.map((v,i)=>({...v,splineCoefficient:isSplineCoefficient(refs[i].key)})),best,
+  const statistics=shouldStop()?undefined:computeFitStatistics(vars.map((v,i)=>({...v,splineCoefficient:isSplineCoefficient(refs[i].key)||/^c\d+$/.test(refs[i].key)})),best,
     vector=>{apply(p,refs,vector);return residual(p,points);},{weights,regularizationResidualsFn:reg(best).length?reg:undefined});
   final.fittingResult={initialization:session(p).initialization??project.fittingResult?.initialization,statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
         weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
@@ -264,7 +285,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   return final;
 }
 export async function preparePhysical(project:EllipsometryProject,index:number):Promise<EllipsometryProject> {
-  if(project.layers[index].modelId==='expert_mixed')return clone(project);
+  if(['expert_mixed','kk_bspline'].includes(project.layers[index].modelId))return clone(project);
   // Project the manual source through TMM at measured wavelengths/AOIs, in degrees.
   const points=activePoints(project,true).map(pt=>{
     const c=calculatePoint(project.ambient,project.layers,project.substrate,pt.wavelength,pt.aoi);
@@ -296,7 +317,7 @@ export async function runExpertStage(project:EllipsometryProject,stage:number,in
   if(stage===1){const l=p.layers[index]; if(l.modelId!=='cauchy') {
     p.expert={...session(p),manualSource:snapshot(p)};l.modelId='cauchy';l.parameters=modelRegistry.createParameterSet('cauchy');
   } p=await fitExpert(p,true,onProgress,shouldStop);}
-  if(stage===2){if(p.layers[index].modelId!=='expert_mixed')p=initializeSpline(p,index);p=await fitExpert(p,false,onProgress,shouldStop);}
+  if(stage===2){if(!['expert_mixed','kk_bspline'].includes(p.layers[index].modelId))p=initializeSpline(p,index);p=await fitExpert(p,false,onProgress,shouldStop);}
   if(stage===3){p=await preparePhysical(p,index);p=await fitExpert(p,false,onProgress,shouldStop);}
   if(stage===4)p=await fitExpert(p,true,onProgress,shouldStop);
   if(stage===0||stage===5)p=freshForward(p);

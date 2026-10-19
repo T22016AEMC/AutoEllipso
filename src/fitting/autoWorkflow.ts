@@ -588,6 +588,7 @@ export async function runAutomatedEllipsometryFit(
 
   // Determine physical model (Cauchy and B-spline are fixed preprocessing stages, never the final physical model)
   const rawModelId = targetModelId || primaryLayer.modelId;
+  if(rawModelId==='kk_bspline')throw new Error('KK ε₂ B-spline is available in Expert Mode; Automatic model selection is unchanged.');
   const isAutoSelection = rawModelId === 'auto';
   const selectedPhysicalModelId =
     !isAutoSelection && rawModelId && rawModelId !== 'bspline' && rawModelId !== 'cauchy'

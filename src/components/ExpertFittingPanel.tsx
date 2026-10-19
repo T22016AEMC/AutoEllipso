@@ -1,3 +1,4 @@
+import {initializeKkSpline} from '../fitting/expertWorkflow';
 import {FitStatisticsPanel,StatisticsWarning} from './FitStatisticsPanel';
 import React, { useRef, useState } from 'react';
 import { EllipsometryProject, Layer, ParameterValue } from '../types/ellipsometry';
@@ -143,6 +144,7 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
       </div>
       {s.stage===2&&l&&<>
         <div className="flex flex-wrap gap-2 items-center">
+          <button className={btn} disabled={locked||l.modelId==='kk_bspline'} onClick={()=>{try{commit(initializeKkSpline(project,index));}catch(e){setError(String(e));}}}>Initialize KK ε₂ B-spline</button>
           <button className={btn} disabled={locked||l.modelId==='bspline'} onClick={()=>{try{commit(initializeSpline(project,index));}catch(e){setError(String(e));}}}>Initialize n/k B-spline from Current Model</button>
           <button className={btn} disabled={locked||l.modelId==='expert_mixed'} onClick={()=>{try{commit(initializeMixed(project,index));}catch(e){setError(String(e));}}}>Initialize Physical Peak Builder</button>
           <label>Smoothing λ <Numeric label="Spline smoothing" min={0} disabled={locked} value={s.smoothing} onChange={v=>{if(v>=0)onChange({...project,expert:{...s,smoothing:v}});}}/></label>
@@ -219,7 +221,12 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
           </div>)}</div>
         </div>)}
       </div>}
-      {l&&s.stage!==2&&l.modelId!=='expert_mixed'&&<div className="flex flex-wrap gap-3 border border-slate-700 p-2">{Object.entries(l.parameters).filter(([key])=>!key.startsWith('_')).map(([key,v])=><div key={key}>
+      {l?.modelId==='kk_bspline'&&<div className="flex flex-wrap gap-3 border border-slate-700 p-2">
+        <p>KK ε₂：端點係數固定為 0；能量範圍外的 spline ε₂=0，UV/IR Lorentz 極另計。</p>
+        {['_emin','_emax','_uvE0','_uvWidth','_irE0','_irWidth'].map(key=><label key={key}>{key} eV <Numeric label={`KK ${key}`} disabled={locked} value={params[key]} onChange={current=>{const next=clone(l);next.parameters[key].current=current;layerChange(next);}}/></label>)}
+        <label><input type="checkbox" disabled={locked} checked={!!params._irEnabled} onChange={e=>{const next=clone(l);next.parameters._irEnabled.current=+e.target.checked;next.parameters.ir_A.fit=e.target.checked;layerChange(next);}}/>Enable IR pole</label>
+      </div>}
+      {l&&(s.stage!==2||l.modelId==='kk_bspline')&&l.modelId!=='expert_mixed'&&<div className="flex flex-wrap gap-3 border border-slate-700 p-2">{Object.entries(l.parameters).filter(([key])=>!key.startsWith('_')).map(([key,v])=><div key={key}>
         <label>{key} <Numeric label={'Stage '+key} disabled={locked||!v.fit} value={v.current} onChange={x=>edit(key,{current:x})}/></label>
         <Numeric label={'Stage '+key+' min'} value={v.min} disabled={locked} onChange={x=>edit(key,{min:x})}/><Numeric label={'Stage '+key+' max'} value={v.max} disabled={locked} onChange={x=>edit(key,{max:x})}/>
         <label><input type="checkbox" aria-label={'Stage '+key+' unlocked'} disabled={locked} checked={v.fit} onChange={e=>edit(key,{fit:e.target.checked})}/> Unlock</label>
