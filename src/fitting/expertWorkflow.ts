@@ -2,6 +2,7 @@ import { EllipsometryProject, Layer, ParameterValue, EllipsometryDataPoint } fro
 import { modelRegistry } from '../modelRegistry/registry';
 import { calculatePoint, calculateSpectrum } from '../solver/calculator';
 import { circularDifferenceDeg, computeMultiAoiResidualMetrics, residualWeights } from './residual';
+import { ConvergenceStatus } from './numerics';
 import { optimizeBoundedLM, OptimizationVariable } from './optimizer';
 import { cubicBasis, cubicEvaluate } from '../models/cubicSpline';
 import { generateAdaptiveKnots, computeBsplineSmoothness, getActiveKnots } from '../models/bspline';
@@ -190,6 +191,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   const weighted=(r:number[])=>r.reduce((s,v,i)=>s+(weights[i]*v)**2,0)/(2*points.length);
   const woollam=(cost:number)=>Math.sqrt(cost*2*points.length/Math.max(1,2*points.length-vars.length));
   const initial=mse(residual(p,points));let best=vars.map(v=>v.value),bestMse=woollam(weighted(residual(p,points))),iterations=0,bestConverged=vars.length===0;
+  let bestStatus:ConvergenceStatus=vars.length?'max_iter':'gradient';
   let starts:number[][]=[best];
   if(global && p.fittingConfig.enableMultiStart!==false) {
     // Real TMM grid across complete user thickness bounds. Retain diverse basins.
@@ -232,7 +234,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
       onIteration:(i,_c,_prev,v)=>{apply(p,refs,v);const raw=woollam(weighted(residual(p,points)));bestMse=Math.min(bestMse,raw);
         onProgress?.({iteration:i,currentMse:raw,bestMse,start:s+1,totalStarts:starts.length});}});
     iterations+=out.iterations;const obj=objective(out.finalParams);
-    if(obj<bestObjective || (obj===bestObjective&&out.converged)){bestObjective=obj;best=[...out.finalParams];bestStartIndex=s;bestConverged=out.converged;}
+    if(obj<bestObjective || (obj===bestObjective&&out.converged)){bestObjective=obj;best=[...out.finalParams];bestStartIndex=s;bestConverged=out.converged;bestStatus=out.status;}
   }
   apply(p,refs,best);
   const final=freshForward(p),metrics=computeMultiAoiResidualMetrics(final.experimentData!.points,p.fittingConfig.activeFitAois,p.fittingConfig.fitWeighting,p.fittingConfig.psiWeight,p.fittingConfig.deltaWeight,vars.length);
@@ -242,7 +244,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   if(!verified)throw new Error('Final forward verification failed');
   final.fittingResult={mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
         weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
-    converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
+    convergenceStatus:shouldStop()?'cancelled':bestStatus,improved:bestObjective<objective(vars.map(v=>v.value)),converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
     initialMse:initial,finalMse:metrics.rawMse,initialRmse:Math.sqrt(initial),finalRmse:metrics.rawRmse,
     rawMse:metrics.rawMse,rawRmse:metrics.rawRmse,psiRmse:Math.sqrt(metrics.psiMse),deltaRmse:Math.sqrt(metrics.deltaMse),
     targetMse:10,targetAchieved:metrics.rawMse<10,freshCalculationVerified:verified,executionTimeMs:performance.now()-startTime,

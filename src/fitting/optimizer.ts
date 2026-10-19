@@ -5,6 +5,7 @@
  * and disparate physical scales (e.g. thickness in nm vs Cauchy B in μm²) must be strictly respected.
  */
 import { circularDifferenceDeg } from './residual';
+import { FIT_NUMERICS, ConvergenceStatus } from './numerics';
 
 export interface OptimizationVariable {
   id: string;
@@ -40,6 +41,7 @@ export interface OptimizerOptions {
 }
 
 export interface OptimizerResult {
+  status: ConvergenceStatus;
   converged: boolean;
   improved: boolean;
   stopped: boolean;
@@ -144,7 +146,7 @@ export async function optimizeBoundedLM(
   options: OptimizerOptions = {}
 ): Promise<OptimizerResult> {
   const maxIterations = options.maxIterations ?? 40;
-  const tol = options.tolerance ?? 1e-5;
+  const {ftol,xtol,gtol,costEpsilon,lambdaMax}=FIT_NUMERICS;
   let lambda = options.initialLambda ?? 1e-2;
   const nParams = variables.length;
 
@@ -210,7 +212,7 @@ export async function optimizeBoundedLM(
   let currentRegPenalty = currentState.regPenalty;
 
   const initialCost = currentCost;
-  if (nParams===0) return {converged:true,improved:false,stopped:false,iterations:0,initialCost,finalCost:currentCost,
+  if (nParams===0) return {status:'gradient',converged:true,improved:false,stopped:false,iterations:0,initialCost,finalCost:currentCost,
     finalRawMse:currentRawMse,finalWeightedCost:currentState.weightedCost,finalChiSquare:currentState.chiSquare,
     finalRegularizationPenalty:currentRegPenalty,finalParams:[],message:'Converged: no free parameters.'};
   let prevCost: number | null = null;
@@ -218,10 +220,12 @@ export async function optimizeBoundedLM(
   let iter = 0;
   let converged = false;
   let stopped = false;
+  let status:ConvergenceStatus='max_iter';
 
   while (iter < maxIterations) {
     if (options.shouldStop && options.shouldStop()) {
       stopped = true;
+      status = 'cancelled';
       break;
     }
 
@@ -275,9 +279,11 @@ export async function optimizeBoundedLM(
     });
 
     // Check projected gradient norm for convergence
-    const gradNorm = Math.hypot(...projG);
-    if (gradNorm < tol) {
+    const gradNorm = Math.max(0,...projG.map(Math.abs));
+    const gradientTolerance=gtol*Math.max(currentCost,costEpsilon);
+    if (gradNorm < gradientTolerance) {
       converged = true;
+      status = 'gradient';
       break;
     }
 
@@ -286,7 +292,7 @@ export async function optimizeBoundedLM(
     let stepAccepted = false;
     let trialAttempts = 0;
 
-    while (!stepAccepted && trialAttempts < 8) {
+    while (!stepAccepted) {
       trialAttempts++;
       const A: number[][] = H.map((row, i) =>
         row.map((val, j) => {
@@ -314,10 +320,12 @@ export async function optimizeBoundedLM(
         const trialState = evaluateFullState(trialParams);
         const trialCost = trialState.totalCost;
 
-        if (trialCost < currentCost - 1e-12) {
+        if (trialCost < currentCost) {
           // Successful step: accept update and decrease damping lambda
           prevCost = currentRawMse;
           const costImprovement = currentCost - trialCost;
+          const relativeImprovement=costImprovement/Math.max(currentCost,costEpsilon);
+          const stepNorm=Math.hypot(...trialU.map((u,i)=>u-currentU[i]));
           currentU = trialU;
           currentParams = trialParams;
           currentState = trialState;
@@ -328,24 +336,27 @@ export async function optimizeBoundedLM(
           lambda = Math.max(1e-7, lambda / 3.0);
           stepAccepted = true;
 
-          // Convergence criteria: cost improvement is below tolerance or gradient is flat
-          if (
-            (costImprovement < tol * Math.max(0.01, currentCost) || gradNorm < tol) &&
-            iter >= 2
-          ) {
+          if (relativeImprovement < ftol || stepNorm < xtol) {
             converged = true;
+            status=relativeImprovement<ftol?'cost':'step';
           }
         } else {
           // Unsuccessful step: increase lambda
-          lambda = Math.min(1e6, lambda * 4.0);
+          if(lambda===lambdaMax)break;
+          lambda = Math.min(lambdaMax, lambda * 4.0);
         }
       } else {
         // System singular: increase lambda
-        lambda = Math.min(1e6, lambda * 8.0);
+        if(lambda===lambdaMax)break;
+        lambda = Math.min(lambdaMax, lambda * 8.0);
       }
     }
 
     iter++;
+    if(!stepAccepted) {
+      converged=gradNorm<100*gradientTolerance;
+      status=converged?'no_better_step':'stalled';
+    }
     if (converged || !stepAccepted) break;
   }
 
@@ -353,12 +364,13 @@ export async function optimizeBoundedLM(
   const message = stopped
     ? 'Fitting stopped by user.'
     : converged
-    ? `Converged successfully in ${iter} iterations.`
+    ? `Converged (${status}) in ${iter} iterations.`
     : !improved
     ? 'Fitting failed to improve the objective function.'
-    : `Reached maximum iterations (${maxIterations}); not converged.`;
+    : `${status === 'stalled'?'Stalled':'Reached maximum iterations ('+maxIterations+')'}; not converged.`;
 
   return {
+    status,
     converged,
     improved,
     stopped,

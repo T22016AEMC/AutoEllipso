@@ -334,7 +334,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
         weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,
       rawMse:finalMetrics.rawMse,rawRmse:finalMetrics.rawRmse,psiRmse:Math.sqrt(finalMetrics.psiMse),deltaRmse:Math.sqrt(finalMetrics.deltaMse),
-      converged:optResult.converged,numParameters:variables.length,
+      convergenceStatus:optResult.status,improved:optResult.improved,converged:optResult.converged,numParameters:variables.length,
       perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,config.psiWeight,config.deltaWeight,variables.length).perAoi).map(([a,m])=>[a,m.mseWoollam])),
       status,
       iterations: optResult.iterations,
