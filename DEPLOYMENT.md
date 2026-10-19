@@ -42,11 +42,28 @@ git push -u origin main
 5. 發布後使用平台實際回傳的 production HTTPS 網址；用無痕視窗確認沒有 Access/登入保護。不要啟用實驗資料收集、額外 analytics 或服務端 functions。
 6. 後續 push 到 production branch，由 Pages 自動重建/發布；preview branches 與公開 production 網址請分別確認權限。
 
-`wrangler.jsonc` 宣告 Pages 名稱與 `pages_build_output_dir`；沒有 server Worker、storage binding 或帳號密鑰。若用 CLI，先由部署者登入，再執行 `pnpm dlx wrangler pages deploy dist --project-name <YOUR_PAGES_PROJECT_NAME>`，不是啟動 dev server。
+目前 `wrangler.jsonc` 用於下述 Workers Static Assets 部署；Pages 請使用上述 Dashboard 建置設定（輸出 `dist`），不要將 Workers 的 `assets` 設定當成 Pages 設定。
 
 此應用沒有 client-side 子頁路由。Pages 沒有頂層 `404.html` 時採 SPA fallback，未知路徑回到根 index，且不覆蓋正常 assets；因此沒有用會錯誤改寫 Worker/JS 的全站 `_redirects`。`public/_headers` 在 build 複製到 dist，供 Pages 套用安全政策。
 
 依據：[Cloudflare build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)、[build image/version overrides](https://developers.cloudflare.com/pages/configuration/build-image/)、[SPA serving behavior](https://developers.cloudflare.com/pages/configuration/serving-pages/)。
+
+## Cloudflare Workers Static Assets
+
+`wrangler.jsonc` 設定名稱 `autoellipso`、相容日期 `2026-10-01`，直接供應 `./dist`，未匹配路徑使用 SPA fallback。這是純靜態資產部署，不需要伺服器程式或 fitting API；科學計算仍在使用者瀏覽器的 Web Worker 中執行。
+
+在 Cloudflare Workers 連接 Git repository 時，選擇包含此設定的分支與專案根目錄，Build command 設為 `pnpm run build`，Deploy command 設為 `pnpm dlx wrangler deploy`。本機 CLI 發布則先安裝依賴、建置並完成 Cloudflare 登入：
+
+```sh
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm dlx wrangler login
+pnpm dlx wrangler deploy
+```
+
+部署後使用 Cloudflare 實際回傳的 HTTPS 網址，並依本文最後的清單驗證。修改設定檔本身不會建立公開部署。
+
+依據：[Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)。
 
 ## Vercel
 
