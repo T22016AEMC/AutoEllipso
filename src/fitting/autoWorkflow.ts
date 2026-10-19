@@ -25,6 +25,7 @@
  *   Export
  */
 
+import { normalizeDeltaDeg } from '../solver/ellipsometricAngles';
 import {
   Ambient,
   Layer,
@@ -229,8 +230,7 @@ export function validateExperimentalData(
     }
     seenWavelengthAoi.add(key);
 
-    let normDelta = pt.deltaExp % 360;
-    if (normDelta < 0) normDelta += 360;
+    const normDelta = normalizeDeltaDeg(pt.deltaExp);
 
     sanitized.push({
       ...pt,

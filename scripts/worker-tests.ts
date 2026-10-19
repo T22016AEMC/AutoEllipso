@@ -6,6 +6,7 @@ import {createSiO2OnSiProject,createMultiAoiSiO2OnSiProject} from '../src/data/d
 import {createValidationReport} from '../src/data/validationReport';
 import {computeMultiAoiResidualMetrics} from '../src/fitting/residual';
 import {inspectCsv} from '../src/data/csvParser';
+import {APP_VERSION} from '../src/version';
 const results:{name:string;passed:boolean;error?:string}[]=[];
 async function test(name:string,fn:()=>unknown){try{await fn();results.push({name,passed:true});}catch(e){results.push({name,passed:false,error:String(e)});}}
 class FakeWorker {
@@ -54,7 +55,7 @@ await test('Worker input omits candidate history but preserves manual parameter 
 await test('Validation Report independently forwards the complete spectrum at full precision',()=>{
   const p=createMultiAoiSiO2OnSiProject();p.layers[0].thickness=87.123456789;
   const r=createValidationReport(p),m=computeMultiAoiResidualMetrics(r.finalComparison,p.fittingConfig.activeFitAois);
-  assert.equal(r.version,'2.1.0');assert.equal(r.finalRawMse,m.rawMse);assert.equal(r.finalComparison.length,p.experimentData!.points.length);
+  assert.equal(r.version,APP_VERSION);assert.equal(r.finalRawMse,m.rawMse);assert.equal(r.finalComparison.length,p.experimentData!.points.length);
   assert.equal(r.filmStack[0].finalThicknessNm,87.123456789);assert.equal(r.filmStack[0].finalNk.length,new Set(p.experimentData!.points.map(p=>p.wavelength)).size);
   assert.equal(r.finalFreshForwardVerified,true);assert.deepEqual(r.substrate,p.substrate);assert.equal(Object.keys(r.individualAoiMse).length,3);
 });

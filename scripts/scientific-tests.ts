@@ -16,6 +16,8 @@ import {modelRegistry} from '../src/modelRegistry/registry';
 import {addPeak,changeSplineGrid,clone,deletePeak,fitExpert,freshForward,initializeMixed,initializeSpline,parameter,preparePhysical,runExpertStage,snapshot,splineGrid,validateExpert,values} from '../src/fitting/expertWorkflow';
 import {optimizeBoundedLM} from '../src/fitting/optimizer';
 import {importProjectJson} from '../src/data/export';
+import {inspectCsv,convertRowsToPoints} from '../src/data/csvParser';
+import {normalizeDeltaDeg,psiDeltaFromRho} from '../src/solver/ellipsometricAngles';
 const results:{name:string;passed:boolean;detail:string}[]=[];
 async function test(name:string,fn:()=>void|Promise<void>) {try{await fn();results.push({name,passed:true,detail:'PASS'});}catch(e){results.push({name,passed:false,detail:String(e)});}}
 function near(a:number,b:number,tol=1e-9){assert.ok(Number.isFinite(a)&&Math.abs(a-b)<tol,`${a} != ${b} (tol ${tol})`);}
@@ -35,6 +37,61 @@ function reference(layers:LayerOpticalState[],sub:Complex,w:number,aoi:number) {
   }
   return {rp:polarization(true),rs:polarization(false)};
 }
+await test('Delta convention matches Woollam/Horiba/Fujiwara',()=>{
+  const sub=new Complex(3.8814827782459407,0.01895389085237777);
+  for(const [d,psi,delta] of [[0,10.569,179.231],[2,10.614,173.519],[5,10.815,165.118],[10,11.475,152.027],[25,15.100,122.377]]) {
+    const t=solveEllipsometryTMM(Complex.ONE,[{thicknessNm:d,N:new Complex(1.457,0)}],sub,633,70);
+    near(t.psiDeg,psi,.001);near(t.deltaDeg,delta,.001);
+  }
+  const opaque=(d:number)=>solveEllipsometryTMM(Complex.ONE,[{thicknessNm:d,N:new Complex(2,5)}],sub,633,70);
+  const a=opaque(5000),b=opaque(2000);
+  near(a.deltaDeg,psiDeltaFromRho(a.rho).deltaDeg);near(a.psiDeg,psiDeltaFromRho(a.rho).psiDeg);
+  near(circularDifferenceDeg(a.deltaDeg,b.deltaDeg),0,.01);
+  near(solveEllipsometryTMM(Complex.ONE,[],sub,633,0).deltaDeg,180);
+});
+await test('CSV sigma columns and delta convention',()=>{
+  const csv=inspectCsv('Wavelength(nm),AOI,Psi,Delta,sig_psi,sig_delta\n500,70,25,-30,0.03,0.04\n600,70,30,100,0.05,0.06\n700,70,35,180,0,NaN');
+  const m=csv.suggestedMapping;
+  assert.deepEqual([m.wavelengthCol,m.aoiCol,m.psiCol,m.deltaCol,m.sigmaPsiCol,m.sigmaDeltaCol],[0,1,2,3,4,5]);
+  assert.equal(m.deltaConvention,'standard');assert.equal(csv.points[0].psiExp,25);assert.equal(csv.points[0].deltaExp,330);
+  assert.equal(csv.points[0].psiSigma,.03);assert.equal(csv.points[0].deltaSigma,.04);
+  assert.equal(csv.points[1].psiSigma,.05);assert.equal(csv.points[1].deltaSigma,.06);
+  assert.ok(!('psiSigma' in csv.points[2])&&!('deltaSigma' in csv.points[2]));
+  const reversed=convertRowsToPoints(csv.rawRows,{...m,deltaConvention:'reversed'});assert.equal(reversed.points[1].deltaExp,260);
+  const headers=inspectCsv('sig_psi,err_delta,Psi(deg),Delta(deg),AOI, Wavelength(µm),Psi,Delta,std_other\n.1,.2,30,100,65,.633,99,99,1').suggestedMapping;
+  assert.deepEqual([headers.psiCol,headers.deltaCol,headers.aoiCol,headers.sigmaPsiCol,headers.sigmaDeltaCol,headers.wavelengthCol],[2,3,4,0,1,5]);assert.equal(headers.wavelengthUnit,'um');
+  const noHeader=inspectCsv('500,30,100\n600,32,120').suggestedMapping;
+  assert.deepEqual([noHeader.wavelengthCol,noHeader.psiCol,noHeader.deltaCol,noHeader.aoiCol,noHeader.sigmaPsiCol,noHeader.sigmaDeltaCol],[0,1,2,-1,-1,-1]);
+  for(const mapping of [inspectCsv('').suggestedMapping,inspectCsv(' \n ').suggestedMapping])assert.equal(mapping.deltaConvention,'standard');
+});
+await test('Synthetic sigma describes reproducible Box-Muller noise without measurement rounding',()=>{
+  const p=createMultiAoiSiO2OnSiProject(),again=createMultiAoiSiO2OnSiProject();
+  assert.deepEqual(p.experimentData!.points,again.experimentData!.points);assert.equal(p.experimentData!.deltaConvention,'standard');
+  const truth={...p.layers[0],thickness:100,parameters:modelRegistry.createParameterSet('cauchy')};
+  for(const pt of p.experimentData!.points) {
+    const q1=Math.sin(pt.wavelength*12.9898+pt.aoi*78.233)*43758.5453,q2=Math.cos(pt.wavelength*43.123+pt.aoi*19.456)*23421.678;
+    const u1=Math.max(Number.EPSILON,Math.min(1-Number.EPSILON,q1-Math.floor(q1))),u2=Math.max(Number.EPSILON,Math.min(1-Number.EPSILON,q2-Math.floor(q2)));
+    const r=Math.sqrt(-2*Math.log(u1)),calc=calculatePoint(p.ambient,[truth],p.substrate,pt.wavelength,pt.aoi);
+    near(pt.psiExp,Math.max(0,Math.min(90,calc.psiDeg+r*Math.cos(2*Math.PI*u2)*.04)),1e-12);
+    near(pt.deltaExp,normalizeDeltaDeg(calc.deltaDeg+r*Math.sin(2*Math.PI*u2)*.04),1e-12);
+    assert.equal(pt.psiSigma,.04);assert.equal(pt.deltaSigma,.04);
+  }
+});
+await test('Legacy project clears calculated spectra and MSE in candidates without changing measurements',()=>{
+  const legacy=JSON.parse(JSON.stringify(createSiO2OnSiProject()));delete legacy.deltaConventionVersion;delete legacy.experimentData.deltaConvention;
+  legacy.fittingResult={rawMse:123,finalMse:123};
+  const saved=JSON.parse(JSON.stringify(legacy));legacy.expert={stage:2,smoothing:.1,records:[{rawMse:123}],manualSource:saved,candidates:[{id:'old',name:'old',stage:2,snapshot:saved}]};
+  const measured=legacy.experimentData.points.map((pt:any)=>[pt.psiExp,pt.deltaExp]);let notifications=0;
+  const imported=importProjectJson(JSON.stringify(legacy),()=>notifications++);
+  assert.equal(notifications,1);assert.equal(imported.deltaConventionVersion,2);assert.equal(imported.fittingResult,null);assert.deepEqual(imported.expert!.records,[]);
+  for(const s of [imported,imported.expert!.candidates[0].snapshot,imported.expert!.manualSource!]) {
+    assert.equal(s.deltaConventionVersion,2);assert.equal(s.fittingResult,null);assert.equal(s.experimentData!.deltaConvention,'standard');
+    assert.deepEqual(s.experimentData!.points.map(pt=>[pt.psiExp,pt.deltaExp]),measured);
+    for(const pt of s.experimentData!.points)for(const field of ['psiCalc','deltaCalc','psiResidual','deltaResidual'])assert.ok(!(field in pt));
+  }
+  const forwarded=freshForward(imported);assert.ok(forwarded.experimentData!.points.every(pt=>Number.isFinite(pt.deltaCalc)));
+  importProjectJson(JSON.stringify(imported),()=>notifications++);assert.equal(notifications,1);
+});
 await test('Bare interface TMM agrees with analytic Fresnel at several AOIs',()=>{
   for(const aoi of [0,35,65,75])for(const sub of [new Complex(1.5,0),new Complex(3.8,0.4)]) {
     const f=calculateFresnelInterface(Complex.ONE,sub,aoi*Math.PI/180),t=solveEllipsometryTMM(Complex.ONE,[],sub,550,aoi);

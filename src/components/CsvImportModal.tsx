@@ -39,6 +39,9 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
     wavelengthCol: 0,
     psiCol: 1,
     deltaCol: 2,
+    sigmaPsiCol: -1,
+    sigmaDeltaCol: -1,
+    deltaConvention: 'standard',
     aoiCol: -1,
     fixedAoi: 70.0,
     wavelengthUnit: 'nm',
@@ -168,6 +171,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
     const maxW = Math.max(...res.points.map((p) => p.wavelength));
 
     const dataset: ExperimentDataset = {
+      deltaConvention: effectiveMapping.deltaConvention,
       filename,
       importedAt: new Date().toISOString(),
       points: res.points,
@@ -399,6 +403,29 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(['sigmaPsiCol', 'sigmaDeltaCol'] as const).map((key, i) => (
+                  <label key={key} className="text-sky-300">
+                    {i === 0 ? 'σΨ 欄位' : 'σΔ 欄位'}
+                    <select aria-label={i === 0 ? 'σΨ 欄位' : 'σΔ 欄位'} value={mapping[key]}
+                      onChange={e => setMapping({ ...mapping, [key]: Number(e.target.value) })}
+                      className="block w-full mt-1 bg-slate-900 border border-slate-700 rounded px-2 py-1.5">
+                      <option value={-1}>無</option>
+                      {inspectResult.headers.map((h, i) => <option key={i} value={i}>第 {i + 1} 欄: {h}</option>)}
+                    </select>
+                  </label>
+                ))}
+              </div>
+              <fieldset className="space-y-2">
+                <legend className="font-medium mb-1">Δ 慣例</legend>
+                <label className="block"><input type="radio" name="delta-convention" className="mr-2"
+                  checked={mapping.deltaConvention === 'standard'} onChange={() => setMapping({ ...mapping, deltaConvention: 'standard' })}/>
+                  標準（Woollam / Horiba / Fujiwara）</label>
+                <label className="block"><input type="radio" name="delta-convention" className="mr-2"
+                  checked={mapping.deltaConvention === 'reversed'} onChange={() => setMapping({ ...mapping, deltaConvention: 'reversed' })}/>
+                  反向（Δ' = 360° − Δ）— 用於慣例相反的儀器或舊版軟體輸出</label>
+              </fieldset>
+
               {/* Data Preview Table */}
               <div className="pt-2">
                 <span className="text-[11px] text-slate-400 block mb-1 font-semibold">
@@ -416,6 +443,10 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                             badge = <span className="text-amber-400">(Ψ)</span>;
                           if (colIdx === mapping.deltaCol)
                             badge = <span className="text-emerald-400">(Δ)</span>;
+                          if (colIdx === mapping.sigmaPsiCol)
+                            badge = <span className="text-sky-300">(σΨ)</span>;
+                          if (colIdx === mapping.sigmaDeltaCol)
+                            badge = <span className="text-rose-300">(σΔ)</span>;
                           if (!useFixedAngle && colIdx === mapping.aoiCol)
                             badge = <span className="text-purple-400">(AOI)</span>;
 

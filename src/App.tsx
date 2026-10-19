@@ -296,15 +296,22 @@ export default function App() {
     const sequence=++importSequence.current, inputVersion=compute.revision.current;
     const reader = new FileReader();
     reader.onerror=()=>alert('無法讀取專案檔案');
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       if(sequence!==importSequence.current||inputVersion!==compute.revision.current)return;
       try {
         const content = event.target?.result as string;
-        const loadedProj = importProjectJson(content);
+        let legacyProject = false;
+        const loadedProj = importProjectJson(content, () => { legacyProject = true; });
         // Forward evaluation is performed in the dedicated browser worker.
         setProject(loadedProj);
         setSelectedTarget(loadedProj.layers[0]?.id || 'ambient');
+        setPipelineData(null);setWorkflowProgress(null);setFinalOpticalConstants([]);setLiveCost(0);setPrevCost(null);setParamHistory({});setResultModalOpen(false);
+        if (legacyProject) {
+          await compute.ensureForward();
+          if (sequence === importSequence.current) alert('此專案由舊版建立。舊版 Δ 計算慣例與量測儀器相反，模擬曲線已依新慣例重算；先前的擬合參數是在錯誤慣例下得到，請重新擬合。');
+        }
       } catch (err: any) {
+        if (err.name === 'AbortError') return;
         alert('專案載入失敗: ' + err.message);
       }
     };

@@ -1,5 +1,25 @@
 [
   {
+    "name": "Delta convention matches Woollam/Horiba/Fujiwara",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "CSV sigma columns and delta convention",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Synthetic sigma describes reproducible Box-Muller noise without measurement rounding",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Legacy project clears calculated spectra and MSE in candidates without changing measurements",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
     "name": "Bare interface TMM agrees with analytic Fresnel at several AOIs",
     "passed": true,
     "detail": "PASS"

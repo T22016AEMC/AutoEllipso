@@ -177,7 +177,14 @@ export function exportFullFitResultCsv(
  * Export complete Project as JSON
  */
 export function exportProjectJson(project: EllipsometryProject): void {
-  const jsonStr = JSON.stringify(project, null, 2);
+  const jsonStr = JSON.stringify({
+    ...project,
+    deltaConventionVersion: 2,
+    experimentData: project.experimentData ? {
+      ...project.experimentData,
+      deltaConvention: project.experimentData.deltaConvention ?? 'standard',
+    } : null,
+  }, null, 2);
   const safeName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
   downloadFile(`${safeName}_AutoEllipso_project.json`, jsonStr, 'application/json');
 }
@@ -192,13 +199,34 @@ export function exportResultsCsv(project: EllipsometryProject): void {
 /**
  * Parse and validate uploaded project JSON
  */
-export function importProjectJson(jsonContent: string): EllipsometryProject {
+export function importProjectJson(jsonContent: string, onLegacyProject?: () => void): EllipsometryProject {
   const parsed = JSON.parse(jsonContent);
   if (!parsed.layers || !Array.isArray(parsed.layers)) {
     throw new Error('Invalid AutoEllipso project: missing layers definition.');
   }
   if (!parsed.substrate || !parsed.ambient) {
     throw new Error('Invalid AutoEllipso project: missing substrate or ambient configuration.');
+  }
+  if (parsed.experimentData) parsed.experimentData.deltaConvention ??= 'standard';
+  if (parsed.deltaConventionVersion === undefined) {
+    const invalidate = (saved: Omit<EllipsometryProject, 'expert'>) => {
+      saved.deltaConventionVersion = 2;
+      saved.fittingResult = null;
+      if (saved.experimentData) {
+        saved.experimentData.deltaConvention ??= 'standard';
+        for (const point of saved.experimentData.points) {
+          delete point.psiCalc;
+          delete point.deltaCalc;
+          delete point.psiResidual;
+          delete point.deltaResidual;
+        }
+      }
+    };
+    invalidate(parsed);
+    for (const candidate of parsed.expert?.candidates ?? []) invalidate(candidate.snapshot);
+    if (parsed.expert?.manualSource) invalidate(parsed.expert.manualSource);
+    if (parsed.expert) parsed.expert.records = [];
+    onLegacyProject?.();
   }
   // Old JSON files did not serialize their global B-spline grid. Persist the
   // compatible active grid on import so each V2 layer now evaluates independently.

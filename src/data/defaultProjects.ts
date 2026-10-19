@@ -5,6 +5,7 @@
 import { EllipsometryProject, Layer } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
 import { calculateSpectrum } from '../solver/calculator';
+import { normalizeDeltaDeg } from '../solver/ellipsometricAngles';
 
 /**
  * Generate synthetic realistic experimental data from a ground-truth optical stack
@@ -15,7 +16,8 @@ function generateBenchmarkData(
   substrate: { name: string; materialType: 'tabulated'; modelId: string; parameters: any },
   wavelengths: number[],
   angles: number[],
-  noiseSigmaDeg: number = 0.03
+  noisePsiDeg: number = 0.03,
+  noiseDeltaDeg: number = 0.03
 ) {
   const points = [];
   let idCounter = 1;
@@ -39,22 +41,24 @@ function generateBenchmarkData(
   return groundTruth.map((pt) => {
     // Pseudo-random deterministic noise based on wavelength and angle
     const pseudoRand1 = Math.sin(pt.wavelength * 12.9898 + pt.aoi * 78.233) * 43758.5453;
-    const noise1 = (pseudoRand1 - Math.floor(pseudoRand1) - 0.5) * 2 * noiseSigmaDeg;
-
     const pseudoRand2 = Math.cos(pt.wavelength * 43.123 + pt.aoi * 19.456) * 23421.678;
-    const noise2 = (pseudoRand2 - Math.floor(pseudoRand2) - 0.5) * 2 * noiseSigmaDeg;
+    const u1 = Math.max(Number.EPSILON, Math.min(1 - Number.EPSILON, pseudoRand1 - Math.floor(pseudoRand1)));
+    const u2 = Math.max(Number.EPSILON, Math.min(1 - Number.EPSILON, pseudoRand2 - Math.floor(pseudoRand2)));
+    const radius = Math.sqrt(-2 * Math.log(u1));
+    const noise1 = radius * Math.cos(2 * Math.PI * u2) * noisePsiDeg;
+    const noise2 = radius * Math.sin(2 * Math.PI * u2) * noiseDeltaDeg;
 
     const psiNoisy = Math.max(0, Math.min(90, (pt.psiCalc ?? 30) + noise1));
-    let deltaNoisy = (pt.deltaCalc ?? 120) + noise2;
-    while (deltaNoisy < 0) deltaNoisy += 360;
-    while (deltaNoisy >= 360) deltaNoisy -= 360;
+    const deltaNoisy = normalizeDeltaDeg((pt.deltaCalc ?? 120) + noise2);
 
     return {
       id: pt.id,
       wavelength: pt.wavelength,
       aoi: pt.aoi,
-      psiExp: Number(psiNoisy.toFixed(3)),
-      deltaExp: Number(deltaNoisy.toFixed(3)),
+      psiExp: psiNoisy,
+      deltaExp: deltaNoisy,
+      psiSigma: noisePsiDeg,
+      deltaSigma: noiseDeltaDeg,
       psiCalc: pt.psiCalc,
       deltaCalc: pt.deltaCalc,
       psiResidual: Number((pt.psiCalc! - psiNoisy).toFixed(3)),
@@ -97,7 +101,7 @@ export function createSiO2OnSiProject(): EllipsometryProject {
     wavelengths.push(w);
   }
 
-  const expPoints = generateBenchmarkData(ambient, [trueLayer], substrate, wavelengths, [70.0], 0.04);
+  const expPoints = generateBenchmarkData(ambient, [trueLayer], substrate, wavelengths, [70.0], 0.04, 0.04);
 
   // Now create the user's initial model state with a deliberate perturbation
   // Initial thickness = 90.0 nm (off by 10 nm) to allow immediate Manual & Auto Fit demonstration
@@ -133,6 +137,7 @@ export function createSiO2OnSiProject(): EllipsometryProject {
 
   return {
     id: 'proj_sio2_si_100nm',
+    deltaConventionVersion: 2,
     name: '100 nm SiO2 / Si 晶圓 (70° 入射角)',
     version: '1.0.0',
     createdAt: new Date().toISOString(),
@@ -143,6 +148,7 @@ export function createSiO2OnSiProject(): EllipsometryProject {
     substrate,
     experimentData: {
       filename: 'sio2_on_si_70deg_190_900nm.csv',
+      deltaConvention: 'standard',
       importedAt: new Date().toISOString(),
       points: calculatedPoints,
       angles: [70.0],
@@ -206,6 +212,7 @@ export function createMultiAoiSiO2OnSiProject(): EllipsometryProject {
     substrate,
     wavelengths,
     [65.0, 70.0, 75.0],
+    0.04,
     0.04
   );
 
@@ -228,6 +235,7 @@ export function createMultiAoiSiO2OnSiProject(): EllipsometryProject {
 
   return {
     id: 'proj_sio2_multi_aoi',
+    deltaConventionVersion: 2,
     name: '100 nm SiO2 / Si 晶圓 (多角度 65°/70°/75° 全域擬合)',
     version: '1.0.0',
     createdAt: new Date().toISOString(),
@@ -238,6 +246,7 @@ export function createMultiAoiSiO2OnSiProject(): EllipsometryProject {
     substrate,
     experimentData: {
       filename: 'sio2_on_si_multi_aoi_65_70_75deg.csv',
+      deltaConvention: 'standard',
       importedAt: new Date().toISOString(),
       points: calculatedPoints,
       angles: [65.0, 70.0, 75.0],
@@ -296,7 +305,7 @@ export function createTiO2OnSiProject(): EllipsometryProject {
     wavelengths.push(w);
   }
 
-  const expPoints = generateBenchmarkData(ambient, [trueLayer], substrate, wavelengths, [65.0, 75.0], 0.05);
+  const expPoints = generateBenchmarkData(ambient, [trueLayer], substrate, wavelengths, [65.0, 75.0], 0.05, 0.05);
 
   const initialLayer: Layer = {
     ...trueLayer,
@@ -308,6 +317,7 @@ export function createTiO2OnSiProject(): EllipsometryProject {
 
   return {
     id: 'proj_tio2_si',
+    deltaConventionVersion: 2,
     name: '35 nm TiO2 / Si 晶圓 (Tauc-Lorentz, 雙角度 65°/75°)',
     version: '1.0.0',
     createdAt: new Date().toISOString(),
@@ -318,6 +328,7 @@ export function createTiO2OnSiProject(): EllipsometryProject {
     substrate,
     experimentData: {
       filename: 'tio2_on_si_dual_angle_190_900nm.csv',
+      deltaConvention: 'standard',
       importedAt: new Date().toISOString(),
       points: calculatedPoints,
       angles: [65.0, 75.0],
@@ -370,6 +381,7 @@ export function createBlankProject(): EllipsometryProject {
 
   return {
     id: `proj_${Date.now()}`,
+    deltaConventionVersion: 2,
     name: '新增橢偏擬合專案',
     version: '1.0.0',
     createdAt: new Date().toISOString(),

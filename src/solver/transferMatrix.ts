@@ -1,6 +1,7 @@
 /**
  * Multilayer Thin-Film Optical Solver
  * Implements the Characteristic Matrix Method / Transfer Matrix Method (TMM)
+ * Internal N=n+ik, exp(-iωt); rho=tan(Psi)*exp(-i*Delta), Delta=-arg(rho).
  *
  * References:
  * - Azzam, R. M., & Bashara, N. M. (1977). Ellipsometry and Polarized Light.
@@ -8,6 +9,7 @@
  * - Born, M., & Wolf, E. (2013). Principles of Optics.
  */
 import { Complex } from '../optics/complex';
+import { psiDeltaFromRho } from './ellipsometricAngles';
 
 export interface Matrix2x2 {
   m11: Complex;
@@ -82,7 +84,7 @@ export function solveEllipsometryTMM(
       return p?r.neg():r;
     };
     const rp=reflect(true),rs=reflect(false),rho=rp.div(rs);
-    return {rp,rs,rho,psiDeg:Math.atan(rho.abs())*180/Math.PI,deltaDeg:(rho.arg()*180/Math.PI+360)%360};
+    return {rp,rs,rho,...psiDeltaFromRho(rho)};
   }
 
   // Compute cosTheta for substrate
@@ -187,20 +189,10 @@ export function solveEllipsometryTMM(
   const denP = Cp.add(etaP_0.mul(Bp));
   const rp = numP.div(denP);
 
-  // Ellipsometric ratio rho = rp / rs = tan(Psi) * exp(i * Delta)
+  // Ellipsometric ratio rho = rp / rs = tan(Psi) * exp(-i * Delta)
   const rho = rp.div(rs);
 
-  // Psi in degrees: [0, 90]
-  const tanPsi = rho.abs();
-  const psiRad = Math.atan(tanPsi);
-  const psiDeg = (psiRad * 180.0) / Math.PI;
-
-  // Delta in degrees: [0, 360]
-  let deltaRad = rho.arg();
-  let deltaDeg = (deltaRad * 180.0) / Math.PI;
-  if (deltaDeg < 0) {
-    deltaDeg += 360.0;
-  }
+  const { psiDeg, deltaDeg } = psiDeltaFromRho(rho);
 
   return {
     rp,

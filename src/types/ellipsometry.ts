@@ -119,6 +119,8 @@ export interface EllipsometryDataPoint {
   aoi: number; // Angle of Incidence in degrees (e.g. 70°)
   psiExp: number; // in degrees [0, 90]
   deltaExp: number; // in degrees [0, 360]
+  psiSigma?: number; // degrees, >0
+  deltaSigma?: number; // degrees, >0
   psiCalc?: number;
   deltaCalc?: number;
   psiResidual?: number;
@@ -127,6 +129,7 @@ export interface EllipsometryDataPoint {
 }
 
 export interface ExperimentDataset {
+  deltaConvention: 'standard' | 'reversed';
   filename: string;
   importedAt: string;
   points: EllipsometryDataPoint[];
@@ -254,6 +257,7 @@ export interface VisualizationSettings {
 }
 
 export interface EllipsometryProject {
+  deltaConventionVersion?: number; // 2: standard measured/instrument Delta convention
   expert?: import('../fitting/expertWorkflow').ExpertSession;
   id: string;
   name: string;

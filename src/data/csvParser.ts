@@ -4,11 +4,15 @@
  * custom column mapping, and fixed angle of incidence fallback.
  */
 import { EllipsometryDataPoint } from '../types/ellipsometry';
+import { normalizeDeltaDeg } from '../solver/ellipsometricAngles';
 
 export interface CsvColumnMapping {
   wavelengthCol: number;
   psiCol: number;
   deltaCol: number;
+  sigmaPsiCol: number; // -1 = absent
+  sigmaDeltaCol: number; // -1 = absent
+  deltaConvention: 'standard' | 'reversed';
   aoiCol: number; // -1 if using fixed angle
   fixedAoi: number;
   wavelengthUnit: 'nm' | 'um';
@@ -65,32 +69,40 @@ function splitCsvLine(line: string, delimiter: string): string[] {
  * Heuristically deduce column mapping from header names
  */
 function deduceColumnMapping(headers: string[]): CsvColumnMapping {
-  let wavelengthCol = 0;
-  let psiCol = 1;
-  let deltaCol = 2;
+  let wavelengthCol = -1;
+  let psiCol = -1;
+  let deltaCol = -1;
   let aoiCol = -1;
+  let sigmaPsiCol = -1;
+  let sigmaDeltaCol = -1;
   let wavelengthUnit: 'nm' | 'um' = 'nm';
 
   headers.forEach((h, idx) => {
-    const lower = h.toLowerCase();
-    if (lower.includes('wave') || lower.includes('lambda') || lower.includes('wl') || lower.includes('nm') || lower.includes('um')) {
-      wavelengthCol = idx;
-      if (lower.includes('um') || lower.includes('µm') || lower.includes('mic')) {
-        wavelengthUnit = 'um';
+    const lower = h.toLowerCase().replace(/\s/g, '');
+    if (/sig|σ|err|std|unc/.test(lower)) {
+      if (/psi|ψ/.test(lower) && sigmaPsiCol < 0) sigmaPsiCol = idx;
+      else if (/del|δ/.test(lower) && sigmaDeltaCol < 0) sigmaDeltaCol = idx;
+    } else if (/wave|lambda|λ|wl/.test(lower) || /^(nm|um|µm)$/.test(lower) || /\((nm|um|µm)\)$/.test(lower)) {
+      if (wavelengthCol < 0) {
+        wavelengthCol = idx;
+        if (/um|µm|mic/.test(lower)) wavelengthUnit = 'um';
       }
-    } else if (lower.includes('psi') || lower === 'p' || lower.includes('ψ') || lower.includes('tanpsi')) {
-      psiCol = idx;
-    } else if (lower.includes('delta') || lower === 'd' || lower.includes('δ') || lower.includes('del')) {
-      deltaCol = idx;
-    } else if (lower.includes('aoi') || lower.includes('angle') || lower.includes('theta') || lower.includes('deg')) {
-      aoiCol = idx;
+    } else if (/psi|ψ|tanpsi/.test(lower) || lower === 'p') {
+      if (psiCol < 0) psiCol = idx;
+    } else if (/delta|del|δ/.test(lower) || lower === 'd') {
+      if (deltaCol < 0) deltaCol = idx;
+    } else if (/aoi|angle|theta|phi/.test(lower) || lower === 'deg') {
+      if (aoiCol < 0) aoiCol = idx;
     }
   });
 
   return {
-    wavelengthCol,
-    psiCol,
-    deltaCol,
+    wavelengthCol: wavelengthCol < 0 ? 0 : wavelengthCol,
+    psiCol: psiCol < 0 ? 1 : psiCol,
+    deltaCol: deltaCol < 0 ? 2 : deltaCol,
+    sigmaPsiCol,
+    sigmaDeltaCol,
+    deltaConvention: 'standard',
     aoiCol,
     fixedAoi: 70.0,
     wavelengthUnit,
@@ -111,6 +123,9 @@ export function inspectCsv(csvContent: string): ParseCsvResult {
         wavelengthCol: 0,
         psiCol: 1,
         deltaCol: 2,
+        sigmaPsiCol: -1,
+        sigmaDeltaCol: -1,
+        deltaConvention: 'standard',
         aoiCol: -1,
         fixedAoi: 70.0,
         wavelengthUnit: 'nm',
@@ -133,6 +148,9 @@ export function inspectCsv(csvContent: string): ParseCsvResult {
         wavelengthCol: 0,
         psiCol: 1,
         deltaCol: 2,
+        sigmaPsiCol: -1,
+        sigmaDeltaCol: -1,
+        deltaConvention: 'standard',
         aoiCol: -1,
         fixedAoi: 70.0,
         wavelengthUnit: 'nm',
@@ -204,8 +222,10 @@ export function convertRowsToPoints(
     if (wavelength <= 0) continue;
 
     // Standardize Delta to [0, 360] range
-    let stdDelta = rawDelta % 360;
-    if (stdDelta < 0) stdDelta += 360;
+    let stdDelta = normalizeDeltaDeg(rawDelta);
+    if (mapping.deltaConvention === 'reversed') stdDelta = normalizeDeltaDeg(360 - stdDelta);
+    const psiSigma = mapping.sigmaPsiCol >= 0 ? Number(row[mapping.sigmaPsiCol]) : NaN;
+    const deltaSigma = mapping.sigmaDeltaCol >= 0 ? Number(row[mapping.sigmaDeltaCol]) : NaN;
 
     // Standardize Psi to [0, 90] range
     const stdPsi = Math.max(0, Math.min(90, rawPsi));
@@ -217,6 +237,8 @@ export function convertRowsToPoints(
       aoi,
       psiExp: stdPsi,
       deltaExp: stdDelta,
+      ...(Number.isFinite(psiSigma) && psiSigma > 0 ? { psiSigma } : {}),
+      ...(Number.isFinite(deltaSigma) && deltaSigma > 0 ? { deltaSigma } : {}),
     });
   }
 
