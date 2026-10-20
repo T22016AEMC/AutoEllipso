@@ -4,7 +4,7 @@ import {OpticalModelComparisonPanel} from './OpticalModelComparisonPanel';
 import React, { useRef, useState } from 'react';
 import { EllipsometryProject, Layer, ParameterValue } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
-import { APP_VERSION } from '../version';
+import { APP_VERSION,BUILD_COMMIT } from '../version';
 import { peakTypes } from '../models/expertMixed';
 import { computeMultiAoiResidualMetrics } from '../fitting/residual';
 import { addPeak, changeSplineGrid, clone, deletePeak, ExpertProgress, freshForward, initializeMixed,
@@ -94,7 +94,7 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
   const aois=Array.from(new Set(allPoints.map(p=>p.aoi))).sort((a,b)=>a-b);
   return <div className="expert-panel fixed inset-0 z-50 bg-slate-950/95 text-slate-100 overflow-auto p-4" role="dialog" aria-label="Expert Fitting Mode">
     <div className="max-w-[1500px] mx-auto space-y-3 text-sm">
-      <div className="flex flex-wrap justify-between gap-2"><h2 className="text-xl font-bold">AutoEllipso V{APP_VERSION} · Expert Fitting</h2>
+      <div className="flex flex-wrap justify-between gap-2"><h2 className="text-xl font-bold">AutoEllipso V{APP_VERSION} <small className="text-slate-400 font-mono">{BUILD_COMMIT.slice(0,7)}</small> · Expert Fitting</h2>
         <button className={btn} disabled={busy} onClick={onClose}>Close Expert</button></div>
       <p className="text-slate-400">Each stage runs on the current saved parameters. Stage 1 explicitly initializes Cauchy; Stage 3 projects a numerical spline to a physical seed. Mixed peaks retain their types, bounds and locks.</p>
       <div className="flex flex-wrap gap-2">{stageNames.map((name,i)=><button key={name} className={btn+(s.stage===i?' border-cyan-400 text-cyan-300':'')} disabled={locked} onClick={()=>onChange({...project,expert:{...s,stage:i}})}>Stage {i}: {name}</button>)}</div>

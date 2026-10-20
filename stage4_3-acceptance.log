@@ -1,0 +1,92 @@
+{
+  "total": 17,
+  "passed": 16,
+  "results": [
+    {
+      "name": "absorbing: MSE_W <= 1.3",
+      "passed": true
+    },
+    {
+      "name": "absorbing: thickness error <= 0.2 nm",
+      "passed": true
+    },
+    {
+      "name": "absorbing: max k error 600–900 nm <= 0.002",
+      "passed": true
+    },
+    {
+      "name": "absorbing: max n error 300–900 nm <= 0.003",
+      "passed": true
+    },
+    {
+      "name": "absorbing: BIC stage admission/selection/stop",
+      "passed": true
+    },
+    {
+      "name": "transparent: MSE_W <= 1.3",
+      "passed": true
+    },
+    {
+      "name": "transparent: thickness error <= 0.2 nm",
+      "passed": true
+    },
+    {
+      "name": "transparent: max k error 600–900 nm <= 0.002",
+      "passed": true
+    },
+    {
+      "name": "transparent: max n error 300–900 nm <= 0.003",
+      "passed": true
+    },
+    {
+      "name": "transparent: BIC stage admission/selection/stop",
+      "passed": true
+    },
+    {
+      "name": "weak: MSE_W <= 1.3",
+      "passed": true
+    },
+    {
+      "name": "weak: thickness error <= 0.2 nm",
+      "passed": true
+    },
+    {
+      "name": "weak: max k error 600–900 nm <= 0.002",
+      "passed": true
+    },
+    {
+      "name": "weak: max n error 300–900 nm <= 0.003",
+      "passed": true
+    },
+    {
+      "name": "weak: BIC stage admission/selection/stop",
+      "passed": true
+    },
+    {
+      "name": "original transparent high-wavelength detection assertion",
+      "passed": true
+    },
+    {
+      "name": "existing 73 tests: no failure except the already known transparent assertion",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(regressions.every((r:any)=>r.name==='Stage4.1: Automatic transparent k and propagated uncertainty'))\n"
+    }
+  ],
+  "old73": {
+    "total": 73,
+    "present": 73,
+    "passed": 71,
+    "failures": [
+      {
+        "name": "Automatic multi-AOI sigma fit converges and retains baseline fit within tolerance",
+        "passed": false,
+        "detail": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+      },
+      {
+        "name": "Stage4.1: SiO2 regression and timing against Stage3/4 baseline",
+        "passed": false,
+        "detail": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+      }
+    ]
+  }
+}

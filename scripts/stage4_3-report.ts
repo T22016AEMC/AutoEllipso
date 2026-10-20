@@ -1,0 +1,71 @@
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const read=(file:string)=>JSON.parse(readFileSync(file,'utf8'));
+const before=read('stage4_3-before.json'),after=read('stage4_3-runs.json'),acceptance=read('stage4_3-acceptance.json');
+assert.equal(before.runs.length,12);assert.equal(after.runs.length,38);
+const git=(...args:string[])=>execFileSync('git',args,{encoding:'utf8'}).trim();
+const base='46f114bc48f0a751290a8cd4bef93d8aa79c5ba7';
+const protectedPaths=['src/solver','src/optics','src/compute','src/workers','src/worker','src/hooks/useBrowserCompute.ts','src/fitting/optimizer.ts','src/fitting/residual.ts','src/fitting/numerics.ts','src/fitting/statistics.ts','src/models/taucLorentz.ts','src/models/kkBspline.ts','src/models/gaussian.ts','src/models/lorentz.ts','src/models/peakInitialization.ts','wrangler.jsonc','.node-version','deployment','.github','package.json','pnpm-lock.yaml'];
+assert.equal(git('diff',base,'--',...protectedPaths),'');
+const oldAuto=execFileSync('git',['show',base+':src/fitting/autoWorkflow.ts'],{encoding:'utf8'}),newAuto=readFileSync('src/fitting/autoWorkflow.ts','utf8');
+const physicalBlock=(s:string)=>s.slice(s.indexOf('  const candidateModelIds:'),s.indexOf('  // STEP 8:')).replace(/\r\n/g,'\n');
+assert.equal(physicalBlock(oldAuto),physicalBlock(newAuto));
+const n=(v:any)=>typeof v==='number'?(Number.isInteger(v)?String(v):Math.abs(v)<1e-5?v.toExponential(8):v.toFixed(8)):v==null?'—':String(v);
+const cell=(v:any)=>n(v).replace(/\|/g,'\\|').replace(/\r?\n/g,' ');
+const table=(head:string[],rows:any[][])=>'| '+head.map(cell).join(' | ')+' |\n| '+head.map(()=>'---').join(' | ')+' |\n'+rows.map(r=>'| '+r.map(cell).join(' | ')+' |').join('\n')+'\n';
+const mean=(a:number[])=>a.reduce((s,x)=>s+x,0)/a.length;
+const median=(a:number[])=>[...a].sort((a,b)=>a-b)[Math.floor(a.length/2)];
+const primary=after.runs.filter((r:any)=>r.kind==='timing'&&r.repeat===0&&!r.error);
+const mc=after.runs.filter((r:any)=>r.kind==='MC');assert.equal(mc.length,20);
+const summary=[300,500,700,800,900].map(w=>{
+  const rows=mc.filter((r:any)=>!r.error).map((r:any)=>r.curve.find((q:any)=>q.wavelength===w)).filter(Boolean),ks=rows.map((q:any)=>q.k),sigma=rows.filter((q:any)=>Number.isFinite(q.kSigma)).map((q:any)=>q.kSigma),avg=mean(ks);
+  const std=Math.sqrt(ks.reduce((s:number,k:number)=>s+(k-avg)**2,0)/(ks.length-1));
+  return {wavelength:w,samples:rows.length,sigmaAvailable:sigma.length,meanK:avg,sampleStd:std,meanSigma:mean(sigma),ratio:std/mean(sigma),coverage:rows.filter((q:any)=>Number.isFinite(q.kSigma)&&Math.abs(q.k)<=2*q.kSigma).length/20};
+});
+const timings=['SiO2','absorbing','transparent','weak'].map(scenario=>{
+  const previous=before.runs.filter((r:any)=>r.scenario===scenario),current=after.runs.filter((r:any)=>r.kind==='timing'&&r.scenario===scenario);
+  const old=previous.map((r:any)=>r.elapsedMs),now=current.map((r:any)=>r.elapsedMs);
+  return {scenario,before:old,after:now,beforeMedian:median(old),afterMedian:median(now),ratio:median(now)/median(old),over3:median(now)>3*median(old)};
+});
+const evidence={base,protectedPathsUnchanged:true,physicalOptimizationBlockTextIdenticalIgnoringEol:true,acceptance,monteCarlo:{runs:mc.length,freeConverged:mc.filter((r:any)=>r.free?.converged).length,physicalConverged:mc.filter((r:any)=>r.physical?.converged).length,
+  freeAdequacy:Object.fromEntries(['good','marginal','poor','unknown'].map(k=>[k,mc.filter((r:any)=>r.free?.fitAdequacy===k).length])),physicalAdequacy:Object.fromEntries(['good','marginal','poor','unknown'].map(k=>[k,mc.filter((r:any)=>r.physical?.fitAdequacy===k).length])),summary},timings,errors:after.runs.filter((r:any)=>r.error)};
+writeFileSync('stage4_3-summary.json',JSON.stringify(evidence,null,2));
+const sections:string[]=[];
+sections.push('# Stage 4.3 工程實作與重測紀錄\n\n基準 `'+base+'`，分支 `v2.2-integration`。本報告陳述實作與測試輸出；科學驗證由使用者另行執行。既有測試期望值變更：**無**。\n');
+sections.push('## 結果與尚未通過項目\n\n三個固定合成案例的數值門檻與階梯檢查結果如下。原本透明高波長偵測旗標測試 '+(primary.find((r:any)=>r.scenario==='transparent')?.transparentLegacyAssertion?'通過':'未通過')+'。既有 73 項中 '+acceptance.old73.passed+'/73 通過；新增單元測試另列。不得將本次 verify 寫成全部通過。\n');
+sections.push(table(['案例','MSE_W ≤1.3','|d−100|≤.2','max|Δk|≤.002 (600–900)','max|Δn|≤.003 (300–900)','採用節點','四門檻'],primary.filter((r:any)=>r.scenario!=='SiO2').map((r:any)=>[r.scenario,r.metrics.mseWoollam,Math.abs(r.metrics.thickness-100),r.metrics.maxKError,r.metrics.maxNError,r.free.stages.find((s:any)=>s.selected)?.knots,JSON.stringify(r.checks)])));
+sections.push('### 回歸失敗（保留原斷言）\n\n'+JSON.stringify(acceptance.old73.failures,null,2)+'\n\nSiO₂ 物理候選的膜厚與 Raw MSE 如下，converged=false；未修改 optimizer、容差、物理模型初始化或階段邏輯使其轉為通過。原始 original-tests 的 10 資料點案例也被 8 節點所需的 17 個候選參數門檻擋下，命令在未捕捉例外處結束，因此未產生本次完整的 29 項結果，不能引用舊 JSON 當作本次通過數。\n');
+sections.push(table(['案例','物理 d nm','Raw MSE','converged','status'],primary.map((r:any)=>[r.scenario,r.physical.thickness,r.physical.rawMse,r.physical.converged,r.physical.status])));
+sections.push('## A：階梯、BIC、自由參數與暖啟動\n\n- 階梯 8→12→16→20→24→32→40，正式 n/k 模型與 Expert 控制點上限 40。Expert mixed 的共用控制格亦支援保留 40 節點的 n/k 基線；未改峰公式。KK ε₂ 模型程式未改。\n- 未設定使用者上限時採 40；明示的較低 config 上限保留，選單顯示／儲存相同上限。超過上限的階段記錄 skipped 與原因。\n- 前置 admission 使用保守上限 M_candidate=2×knots+1，要求 ≤ 資料點總數 (=總資料殘差數/2)。理由是不能在執行前預知哪些參數最後會貼界，避免先執行過度參數化階段。這可能比最後的 M_eff 更保守，亦導致上述 10 點舊測試拒絕執行。所有已執行階段再以實際終點未貼界參數數計算 BIC/dof；這項保守 admission 限制明確保留供檢視。\n- M_eff 只計入 max>min 且 u>1e-6、u<1−1e-6 的本次自由變數，使用現行線性 u 及 FIT_NUMERICS 邊界常數。Automatic 此處建立的 n/k/膜厚變數均未鎖定；最終統計仍用 computeFitStatistics。\n- σ 模式 BIC=χ²+M_eff ln(2N)；其他權重 BIC=(2N)ln(RSS/(2N))+M_eff ln(2N)。RSS 為未加權度數殘差平方和，χ² 為既有加權資料平方和，兩者皆不含平滑成本。零 RSS 僅以 Number.MIN_VALUE 保護 log。\n- 第一個可執行階段後繼續嘗試下一階段；後續 ΔBIC>10 才繼續。採用已執行階段中最小 BIC，並列取較少節點。弱證據階段仍保存，不因停止而丟掉。\n- 每次加密以已接受前階段 spline 在新控制位置的值暖啟動，厚度沿用；k=0 時沿用 max(1e-12,k)，邊界仍為 0。沒有冷啟動到預擬合。\n- λN=.25、λK=.6、原 k 上界、每階段 22 次、ftol=1e-5、xtol/gtol=1e-9 皆保留。沒有更動停止準則所在的 optimizer。\n');
+sections.push('### 舊規則與新規則對照\n\n```ts\n// 刪除（基準 autoWorkflow.ts 約 1149–1157）：\nconst improvement = prevRawMse - stageRawMse;\nif (stageRawMse < 0.025 || (stageIdx > 0 && improvement < knotImprovementTolerance)) break;\n// 同時移除以加權正則化總成本作為最終節點採用依據。\n// 現在：\nconst keepRefining = continueSplineRefinement(previousBic, bic); // previousBic - bic > 10\nconst selectedStage = bestSplineStage(knotRefinementHistory); // minimum data BIC\n```\n');
+sections.push('階段選擇所用的 BIC 保存在 bsplineDiagnostic.knotRefinementHistory[].bic；既有 opticalModelComparison 的 AIC/BIC 顯示定義沿用舊版，未用於本次節點選擇。\n');
+for(const r of primary){sections.push('### '+r.scenario+' 節點階段（gaussian 最終模型）\n');sections.push(table(['節點','迭代','status','MSE_W','χ²ᵣ','M_eff','BIC','ΔBIC','秒','採用','跳過原因'],r.free.stages.map((s:any)=>[s.knots,s.iterations,s.status,s.mseWoollam,s.reducedChiSquare,s.effectiveParameters,s.bic,s.deltaBic,s.elapsedMs/1000,s.selected,s.skipReason])));}
+sections.push('## B：擬合充分性與輸出\n\n使用同一 computeFitStatistics 的 reducedChiSquare：σ 模式 ≤1.5 good、≤2 marginal、>2 poor；沒有 σ 時 unknown 並顯示「沒有 σ，無法評估擬合是否充分」。無可用 reduced χ² 時亦為 unknown，附原因。欄位為 fittingResult.fitAdequacy/fitAdequacyWarning、freeFormFitAdequacy/freeFormFitAdequacyWarning，以及各光學常數點的 fitAdequacy。\n\npoor/marginal 保留原 k、σ_k、CI、belowDetection，CSV flag 以分號追加 unreliable。Wavelength,n,k 前三欄不變。UI 在 ± 或 σ_k 旁顯示「⚠ 不確定度不可信」，並有常駐文字警告；不只用顏色。Validation Report 與 JSON 保留這些欄位及每個節點階段。statistics.ts 完全未修改。\n');
+sections.push('## C：固定門檻、原偵測斷言與重測\n\n固定驗收原始輸出見後方 acceptance log。透明案例 800–900 nm 每 10 nm 的輸出如下（即使斷言通過亦保留）。\n');
+const transparent=primary.find((r:any)=>r.scenario==='transparent');
+sections.push(table(['λ nm','k','σ_k','95% CI 下限','below_detection','fitAdequacy'],transparent.curve.filter((q:any)=>q.wavelength>=800&&q.wavelength%10===0).map((q:any)=>[q.wavelength,q.k,q.kSigma,q.kCi95?.[0],q.belowDetection,q.fitAdequacy])));
+sections.push('### 物理模型 3×3 重測\n\n完整 Automatic，三個相同 fixture/seed，僅 targetModelId 依指定選 gaussian、tauc_lorentz、lorentz。Gaussian 取第一次計時的同一完整執行，未另以不同參數搜尋。\n');
+const physical=after.runs.filter((r:any)=>!r.error&&r.scenario!=='SiO2'&&(r.kind==='physical'||r.kind==='timing'&&r.repeat===0));
+sections.push(table(['案例','模型','MSE_W','converged','status','膜厚 nm','fitAdequacy','統計 χ²ᵣ'],physical.map((r:any)=>[r.scenario,r.model,r.physical.mseWoollam,r.physical.converged,r.physical.status,r.physical.thickness,r.physical.fitAdequacy,r.physical.reducedChiSquare])));
+sections.push('### Monte-Carlo：透明 k=0，20 種子\n\n種子 41001–41020；第一個種子直接採用該案例第一次完整 Automatic 計時輸出（數據、參數及 seed 相同），其他 19 次重新執行。沒有降為 10 次。自由形式 converged='+evidence.monteCarlo.freeConverged+'/20；物理模型 converged='+evidence.monteCarlo.physicalConverged+'/20。fitAdequacy 分布：自由形式 '+JSON.stringify(evidence.monteCarlo.freeAdequacy)+'；物理 '+JSON.stringify(evidence.monteCarlo.physicalAdequacy)+'。只記錄，沒有新增通過門檻。\n');
+sections.push(table(['λ nm','n','平均 k','std(k)','平均 σ_k','std/平均σ','±2σ 覆蓋率'],summary.map(s=>[s.wavelength,s.samples,s.meanK,s.sampleStd,s.meanSigma,s.ratio,s.coverage])));
+sections.push('good 僅代表指定的 reduced χ² 分類；本次 500 nm 的覆蓋率仍為 65%，不能把 good 當作誤差區間覆蓋率的保證。這裡只記錄，不設定新門檻或改變旗標。\n');
+sections.push(table(['seed','自由 d nm','自由 converged/status','自由 χ²ᵣ','自由 adequacy','物理 converged/status','物理 χ²ᵣ','物理 adequacy'],mc.map((r:any)=>[r.seed,r.metrics?.thickness,r.free?.converged+'/'+r.free?.status,r.free?.reducedChiSquare,r.free?.fitAdequacy,r.physical?.converged+'/'+r.physical?.status,r.physical?.reducedChiSquare,r.physical?.fitAdequacy])));
+sections.push(table(['seed','λ nm','k','σ_k','|k|≤2σ','below_detection'],mc.flatMap((r:any)=>(r.curve??[]).map((q:any)=>[r.seed,q.wavelength,q.k,q.kSigma,Number.isFinite(q.kSigma)?Math.abs(q.k)<=2*q.kSigma:'不可計算',q.belowDetection]))));
+sections.push('### 耗時（毫秒）\n\n前測由基準 commit 的 src 隔離副本實際各執行三次，未使用 mock 或用歷史單次拼成三次。後測同樣四案例各三次。耗時包含完整 Automatic、最終 forward 與統計；本機曾與其他工程驗證並行，因此包含當時負載，不作精密微基準解讀。Stage 4.1 歷史 SiO₂ 中位數另列。\n');
+sections.push(table(['案例','前測 3 次 ms','前中位 ms','後測 3 次 ms','後中位 ms','倍數','>3×'],timings.map(t=>[t.scenario,t.before.map(n).join(', '),t.beforeMedian,t.after.map(n).join(', '),t.afterMedian,t.ratio,t.over3])));
+sections.push(timings.some(t=>t.over3)?'有案例超過 3 倍：**Jacobian 稀疏化**為建議的下一步；本次未自行優化。\n':'本次前測對照沒有超過 3 倍的案例；未進行額外優化。\n');
+const historical=read('stage4_1-after.json'),silica=primary.find((r:any)=>r.scenario==='SiO2');
+sections.push(table(['基準','膜厚 nm','Raw MSE','converged','中位 ms'],[['Stage4.1 歷史',historical.thickness,historical.rawMse,historical.converged,historical.medianMs],['Stage4.3',silica.physical.thickness,silica.physical.rawMse,silica.physical.converged,timings[0].afterMedian]]));
+sections.push('## D：版本資訊\n\nscripts/build-version.mjs 依序取 WORKERS_CI_COMMIT_SHA、git rev-parse HEAD、local，皆忽略空字串。Vite 只改版本 manifest/define 的來源，version 字串取 package.json；base、worker、target、安全標頭、環境前綴與部署檔未變。UI 的版本字串顯示 commit 前七碼。build/version 測試檢查實際 dist/version.json、CI 優先序、Git fallback 與 local fallback。建置記錄的 hash 是該次建置時 HEAD，部署時會由 CI 環境或 Git 產生當時值。\n');
+sections.push('## 重現指令\n\n```powershell\npnpm exec tsx scripts/stage4_3-unit.ts\npnpm exec tsx scripts/stage4_3-runs.ts before\npnpm exec tsx scripts/stage4_3-runs.ts after\npnpm run verify\npnpm run build\npnpm exec tsx scripts/stage4_3-version-test.ts\npnpm exec tsx scripts/stage4_3-acceptance.ts\npnpm exec tsx scripts/stage4_3-report.ts\n```\n\n執行腳本以固定 key 保存逐次結果，已存在的結果會接續而非重跑；若要重測所有次數，請先另外保存舊的 stage4_3-before.json/runs.json，再移開它們。原始 fixture、種子與雜訊算法未改。\n');
+sections.push('## 受保護程式與修改行號\n\n受保護路徑相對基準 diff 為空：'+protectedPaths.join('、')+'。Automatic 從候選模型清單至 Stage 8 前的整段物理模型最佳化原碼在 CRLF/LF 換行正規化後逐字一致。Expert/engine 只新增結果充分性欄位，沒有改其最佳化流程。\n\n下面是相對基準的實際檔案／行號 hunk（+ 代表本版行號）：\n```diff\n'+git('diff','--unified=0',base,'--','src','vite.config.ts','scripts/scientific-tests.ts').split('\n').filter(line=>line.startsWith('diff --git')||line.startsWith('@@')).join('\n')+'\n```\n');
+sections.push(table(['新增工程腳本','起始行','總行數'],['scripts/build-version.mjs','scripts/stage4_3-tests.ts','scripts/stage4_3-unit.ts','scripts/stage4_3-runs.ts','scripts/stage4_3-acceptance.ts','scripts/stage4_3-version-test.ts','scripts/stage4_3-report.ts'].map(file=>[file,1,readFileSync(file,'utf8').trimEnd().split('\n').length])));
+sections.push('## 未完成／疑慮\n\n- 既有 73 項中的兩項 SiO₂ 收斂回歸尚未通過；未修改其期望值、容差或超出範圍的算法。\n- original-tests 的 10 點案例被參數數量 guard 拒絕，故完整原始測試命令未通過；沒有用前次產物填補。\n- admission 採候選自由參數上限，較最後 M_eff 保守；這是前置避免超量擬合的限制。\n- 本地 node_modules 曾有空／損壞的套件別名，第一次 build 失敗。pnpm frozen force 重裝未修復別名後，僅從現有相同鎖定版本恢復依賴副本並備份到 .qa；鎖定檔與套件版本未改。初次失敗與恢復紀錄均保留。\n- 未新增跨裝置瀏覽器測試、未產生壓縮檔；未對使用者的科學驗證作結論。\n- 執行錯誤：'+JSON.stringify(evidence.errors)+'。\n');
+sections.push('## 原始輸出\n\n以下保留 verify、build、型別、unit、version、acceptance 與完整 Automatic 的原始輸出，包含失敗。詳細每波長曲線另保留 stage4_3-runs.json 與三份 free_form CSV；統計摘要在 stage4_3-summary.json。\n');
+for(const file of ['stage4_3-install.log','stage4_3-verify-initial.log','stage4_3-verify.log','stage4_3-verify-typecheck.log','stage4_3-verify-build.log','stage4_3-verify-original-tests.log','stage4_3-verify-scientific-tests.log','stage4_3-verify-worker-tests.log','stage4_3-build.log','stage4_3-version.log','stage4_3-unit.log','stage4_3-acceptance.log','stage4_3-before.log','stage4_3-runs.log']){
+  if(existsSync(file))sections.push('### '+file+'\n\n```text\n'+readFileSync(file,'utf8')+'\n```\n');
+}
+writeFileSync('STAGE4_3_REPORT.md',sections.join('\n'));
+console.log('STAGE4_3_REPORT '+JSON.stringify({runs:after.runs.length,before:before.runs.length,mc:mc.length,old73:acceptance.old73.passed,acceptance:acceptance.passed+'/'+acceptance.total,protectedPathsUnchanged:true}));

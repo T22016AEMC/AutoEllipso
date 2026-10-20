@@ -1,0 +1,145 @@
+STAGE4_3_START timing/SiO2/gaussian/0/41001
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 validating_data/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/0/41001 completed/
+STAGE4_3_RESULT {"key":"timing/SiO2/gaussian/0/41001","scenario":"SiO2","model":"gaussian","repeat":0,"seed":41001,"kind":"timing","elapsedMs":15387.902000000002,"metrics":{"mseWoollam":3.180374108507073,"thickness":99.99320760006427,"maxNError":0,"maxKError":0},"free":{"reducedChiSquare":10.114779470062155,"stages":[{"knots":8,"rawMse":0.11674115120006619,"regularizationPenalty":0.004874098657593882,"totalObjective":0.12161524985766006,"weightedRegularizationPenalty":3.046311660996177,"weightedTotalObjective":76.00953116103756,"thicknessNm":100.02245116306136},{"knots":12,"rawMse":0.015546790666947396,"regularizationPenalty":0.0017369569974928377,"totalObjective":0.017283747664440234,"weightedRegularizationPenalty":1.0855981234330236,"weightedTotalObjective":10.802342290275146,"thicknessNm":99.99320760006427}]},"physical":{"model":"gaussian","mseWoollam":2.4057926326034185,"rawMse":0.009153358917018344,"thickness":99.99715991449385,"converged":true,"status":"cost","reducedChiSquare":5.787838191088887}}
+STAGE4_3_START timing/SiO2/gaussian/1/41001
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 validating_data/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/1/41001 completed/
+STAGE4_3_RESULT {"key":"timing/SiO2/gaussian/1/41001","scenario":"SiO2","model":"gaussian","repeat":1,"seed":41001,"kind":"timing","elapsedMs":12118.501900000003,"metrics":{"mseWoollam":3.180374108507073,"thickness":99.99320760006427,"maxNError":0,"maxKError":0},"free":{"reducedChiSquare":10.114779470062155,"stages":[{"knots":8,"rawMse":0.11674115120006619,"regularizationPenalty":0.004874098657593882,"totalObjective":0.12161524985766006,"weightedRegularizationPenalty":3.046311660996177,"weightedTotalObjective":76.00953116103756,"thicknessNm":100.02245116306136},{"knots":12,"rawMse":0.015546790666947396,"regularizationPenalty":0.0017369569974928377,"totalObjective":0.017283747664440234,"weightedRegularizationPenalty":1.0855981234330236,"weightedTotalObjective":10.802342290275146,"thicknessNm":99.99320760006427}]},"physical":{"model":"gaussian","mseWoollam":2.4057926326034185,"rawMse":0.009153358917018344,"thickness":99.99715991449385,"converged":true,"status":"cost","reducedChiSquare":5.787838191088887}}
+STAGE4_3_START timing/SiO2/gaussian/2/41001
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 validating_data/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/SiO2/gaussian/2/41001 completed/
+STAGE4_3_RESULT {"key":"timing/SiO2/gaussian/2/41001","scenario":"SiO2","model":"gaussian","repeat":2,"seed":41001,"kind":"timing","elapsedMs":10954.174400000004,"metrics":{"mseWoollam":3.180374108507073,"thickness":99.99320760006427,"maxNError":0,"maxKError":0},"free":{"reducedChiSquare":10.114779470062155,"stages":[{"knots":8,"rawMse":0.11674115120006619,"regularizationPenalty":0.004874098657593882,"totalObjective":0.12161524985766006,"weightedRegularizationPenalty":3.046311660996177,"weightedTotalObjective":76.00953116103756,"thicknessNm":100.02245116306136},{"knots":12,"rawMse":0.015546790666947396,"regularizationPenalty":0.0017369569974928377,"totalObjective":0.017283747664440234,"weightedRegularizationPenalty":1.0855981234330236,"weightedTotalObjective":10.802342290275146,"thicknessNm":99.99320760006427}]},"physical":{"model":"gaussian","mseWoollam":2.4057926326034185,"rawMse":0.009153358917018344,"thickness":99.99715991449385,"converged":true,"status":"cost","reducedChiSquare":5.787838191088887}}
+STAGE4_3_START timing/absorbing/gaussian/0/41001
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 validating_data/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/0/41001 completed/
+STAGE4_3_RESULT {"key":"timing/absorbing/gaussian/0/41001","scenario":"absorbing","model":"gaussian","repeat":0,"seed":41001,"kind":"timing","elapsedMs":12652.683699999994,"metrics":{"mseWoollam":5.343663943059108,"thickness":102.65933704202604,"maxNError":0.030147392174375343,"maxKError":0.01658036607538041},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":28.554744336349994,"stages":[{"knots":8,"rawMse":0.27195663695953226,"regularizationPenalty":0.09251613173383151,"totalObjective":0.36447276869336376,"weightedRegularizationPenalty":102.79570192648026,"weightedTotalObjective":404.9697429926276,"thicknessNm":102.90741143000909},{"knots":12,"rawMse":0.024212043635196762,"regularizationPenalty":0.024816357300087973,"totalObjective":0.04902840093528474,"weightedRegularizationPenalty":27.573730333431318,"weightedTotalObjective":54.47600103920553,"thicknessNm":102.65933704202604}]},"physical":{"model":"gaussian","mseWoollam":24.801367381375456,"rawMse":0.5433452445209256,"thickness":100.07111116343209,"converged":true,"status":"cost","reducedChiSquare":615.107823985954}}
+STAGE4_3_START timing/absorbing/gaussian/1/41001
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 validating_data/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/1/41001 completed/
+STAGE4_3_RESULT {"key":"timing/absorbing/gaussian/1/41001","scenario":"absorbing","model":"gaussian","repeat":1,"seed":41001,"kind":"timing","elapsedMs":10780.143899999995,"metrics":{"mseWoollam":5.343663943059108,"thickness":102.65933704202604,"maxNError":0.030147392174375343,"maxKError":0.01658036607538041},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":28.554744336349994,"stages":[{"knots":8,"rawMse":0.27195663695953226,"regularizationPenalty":0.09251613173383151,"totalObjective":0.36447276869336376,"weightedRegularizationPenalty":102.79570192648026,"weightedTotalObjective":404.9697429926276,"thicknessNm":102.90741143000909},{"knots":12,"rawMse":0.024212043635196762,"regularizationPenalty":0.024816357300087973,"totalObjective":0.04902840093528474,"weightedRegularizationPenalty":27.573730333431318,"weightedTotalObjective":54.47600103920553,"thicknessNm":102.65933704202604}]},"physical":{"model":"gaussian","mseWoollam":24.801367381375456,"rawMse":0.5433452445209256,"thickness":100.07111116343209,"converged":true,"status":"cost","reducedChiSquare":615.107823985954}}
+STAGE4_3_START timing/absorbing/gaussian/2/41001
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 validating_data/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/absorbing/gaussian/2/41001 completed/
+STAGE4_3_RESULT {"key":"timing/absorbing/gaussian/2/41001","scenario":"absorbing","model":"gaussian","repeat":2,"seed":41001,"kind":"timing","elapsedMs":11030.248800000001,"metrics":{"mseWoollam":5.343663943059108,"thickness":102.65933704202604,"maxNError":0.030147392174375343,"maxKError":0.01658036607538041},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":28.554744336349994,"stages":[{"knots":8,"rawMse":0.27195663695953226,"regularizationPenalty":0.09251613173383151,"totalObjective":0.36447276869336376,"weightedRegularizationPenalty":102.79570192648026,"weightedTotalObjective":404.9697429926276,"thicknessNm":102.90741143000909},{"knots":12,"rawMse":0.024212043635196762,"regularizationPenalty":0.024816357300087973,"totalObjective":0.04902840093528474,"weightedRegularizationPenalty":27.573730333431318,"weightedTotalObjective":54.47600103920553,"thicknessNm":102.65933704202604}]},"physical":{"model":"gaussian","mseWoollam":24.801367381375456,"rawMse":0.5433452445209256,"thickness":100.07111116343209,"converged":true,"status":"cost","reducedChiSquare":615.107823985954}}
+STAGE4_3_START timing/transparent/gaussian/0/41001
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 validating_data/
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/transparent/gaussian/0/41001 completed/
+STAGE4_3_RESULT {"key":"timing/transparent/gaussian/0/41001","scenario":"transparent","model":"gaussian","repeat":0,"seed":41001,"kind":"timing","elapsedMs":12655.672299999991,"metrics":{"mseWoollam":2.195070804640947,"thickness":100.54216376672133,"maxNError":0.006611098020511852,"maxKError":0.0035835827478123126},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":4.81833583738705,"stages":[{"knots":8,"rawMse":0.06067581347490393,"regularizationPenalty":0.006858561567227631,"totalObjective":0.06753437504213156,"weightedRegularizationPenalty":7.62062396358632,"weightedTotalObjective":75.03819449125736,"thicknessNm":101.35807749340712},{"knots":12,"rawMse":0.004105623661440216,"regularizationPenalty":0.00134555101023668,"totalObjective":0.005451174671676896,"weightedRegularizationPenalty":1.4950566780407681,"weightedTotalObjective":6.056860746307679,"thicknessNm":100.54216376672133}]},"physical":{"model":"gaussian","mseWoollam":58.00242933735499,"rawMse":2.9928090259539295,"thickness":100.13311262628386,"converged":false,"status":"max_iter","reducedChiSquare":3356.421337518425},"transparentLegacyAssertion":false}
+STAGE4_3_START timing/transparent/gaussian/1/41001
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 validating_data/
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/transparent/gaussian/1/41001 completed/
+STAGE4_3_RESULT {"key":"timing/transparent/gaussian/1/41001","scenario":"transparent","model":"gaussian","repeat":1,"seed":41001,"kind":"timing","elapsedMs":21312.3159,"metrics":{"mseWoollam":2.195070804640947,"thickness":100.54216376672133,"maxNError":0.006611098020511852,"maxKError":0.0035835827478123126},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":4.81833583738705,"stages":[{"knots":8,"rawMse":0.06067581347490393,"regularizationPenalty":0.006858561567227631,"totalObjective":0.06753437504213156,"weightedRegularizationPenalty":7.62062396358632,"weightedTotalObjective":75.03819449125736,"thicknessNm":101.35807749340712},{"knots":12,"rawMse":0.004105623661440216,"regularizationPenalty":0.00134555101023668,"totalObjective":0.005451174671676896,"weightedRegularizationPenalty":1.4950566780407681,"weightedTotalObjective":6.056860746307679,"thicknessNm":100.54216376672133}]},"physical":{"model":"gaussian","mseWoollam":58.00242933735499,"rawMse":2.9928090259539295,"thickness":100.13311262628386,"converged":false,"status":"max_iter","reducedChiSquare":3356.421337518425},"transparentLegacyAssertion":false}
+STAGE4_3_START timing/transparent/gaussian/2/41001
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 validating_data/
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/transparent/gaussian/2/41001 completed/
+STAGE4_3_RESULT {"key":"timing/transparent/gaussian/2/41001","scenario":"transparent","model":"gaussian","repeat":2,"seed":41001,"kind":"timing","elapsedMs":15680.732499999984,"metrics":{"mseWoollam":2.195070804640947,"thickness":100.54216376672133,"maxNError":0.006611098020511852,"maxKError":0.0035835827478123126},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":4.81833583738705,"stages":[{"knots":8,"rawMse":0.06067581347490393,"regularizationPenalty":0.006858561567227631,"totalObjective":0.06753437504213156,"weightedRegularizationPenalty":7.62062396358632,"weightedTotalObjective":75.03819449125736,"thicknessNm":101.35807749340712},{"knots":12,"rawMse":0.004105623661440216,"regularizationPenalty":0.00134555101023668,"totalObjective":0.005451174671676896,"weightedRegularizationPenalty":1.4950566780407681,"weightedTotalObjective":6.056860746307679,"thicknessNm":100.54216376672133}]},"physical":{"model":"gaussian","mseWoollam":58.00242933735499,"rawMse":2.9928090259539295,"thickness":100.13311262628386,"converged":false,"status":"max_iter","reducedChiSquare":3356.421337518425},"transparentLegacyAssertion":false}
+STAGE4_3_START timing/weak/gaussian/0/41001
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 validating_data/
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/weak/gaussian/0/41001 completed/
+STAGE4_3_RESULT {"key":"timing/weak/gaussian/0/41001","scenario":"weak","model":"gaussian","repeat":0,"seed":41001,"kind":"timing","elapsedMs":12650.267099999997,"metrics":{"mseWoollam":2.1886039701069513,"thickness":100.55710794599162,"maxNError":0.006734573489671547,"maxKError":0.003656855651803656},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":4.789987337967914,"stages":[{"knots":8,"rawMse":0.0600418792943361,"regularizationPenalty":0.006872778000684643,"totalObjective":0.06691465729502075,"weightedRegularizationPenalty":7.63642000076078,"weightedTotalObjective":74.34961921668972,"thicknessNm":101.21965129512863},{"knots":12,"rawMse":0.004061510096985291,"regularizationPenalty":0.0013396992063539719,"totalObjective":0.005401209303339263,"weightedRegularizationPenalty":1.488554673726648,"weightedTotalObjective":6.00134367037697,"thicknessNm":100.55710794599162}]},"physical":{"model":"gaussian","mseWoollam":63.92781058387906,"rawMse":3.6355180010471484,"thickness":99.38293800226785,"converged":false,"status":"max_iter","reducedChiSquare":4077.2164497725016}}
+STAGE4_3_START timing/weak/gaussian/1/41001
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 validating_data/
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/weak/gaussian/1/41001 completed/
+STAGE4_3_RESULT {"key":"timing/weak/gaussian/1/41001","scenario":"weak","model":"gaussian","repeat":1,"seed":41001,"kind":"timing","elapsedMs":16471.120000000024,"metrics":{"mseWoollam":2.1886039701069513,"thickness":100.55710794599162,"maxNError":0.006734573489671547,"maxKError":0.003656855651803656},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":4.789987337967914,"stages":[{"knots":8,"rawMse":0.0600418792943361,"regularizationPenalty":0.006872778000684643,"totalObjective":0.06691465729502075,"weightedRegularizationPenalty":7.63642000076078,"weightedTotalObjective":74.34961921668972,"thicknessNm":101.21965129512863},{"knots":12,"rawMse":0.004061510096985291,"regularizationPenalty":0.0013396992063539719,"totalObjective":0.005401209303339263,"weightedRegularizationPenalty":1.488554673726648,"weightedTotalObjective":6.00134367037697,"thicknessNm":100.55710794599162}]},"physical":{"model":"gaussian","mseWoollam":63.92781058387906,"rawMse":3.6355180010471484,"thickness":99.38293800226785,"converged":false,"status":"max_iter","reducedChiSquare":4077.2164497725016}}
+STAGE4_3_START timing/weak/gaussian/2/41001
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 validating_data/
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage1_cauchy/
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage2_bspline/8
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage2_bspline/12
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage_bspline_diagnostic/12
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage3_physicalizing/
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage_thickness_search/
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage_multistart/
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 stage5_final_rebuild/
+STAGE4_3_PROGRESS timing/weak/gaussian/2/41001 completed/
+STAGE4_3_RESULT {"key":"timing/weak/gaussian/2/41001","scenario":"weak","model":"gaussian","repeat":2,"seed":41001,"kind":"timing","elapsedMs":17196.95510000002,"metrics":{"mseWoollam":2.1886039701069513,"thickness":100.55710794599162,"maxNError":0.006734573489671547,"maxKError":0.003656855651803656},"checks":{"mse":false,"thickness":false,"n":false,"k":false},"free":{"reducedChiSquare":4.789987337967914,"stages":[{"knots":8,"rawMse":0.0600418792943361,"regularizationPenalty":0.006872778000684643,"totalObjective":0.06691465729502075,"weightedRegularizationPenalty":7.63642000076078,"weightedTotalObjective":74.34961921668972,"thicknessNm":101.21965129512863},{"knots":12,"rawMse":0.004061510096985291,"regularizationPenalty":0.0013396992063539719,"totalObjective":0.005401209303339263,"weightedRegularizationPenalty":1.488554673726648,"weightedTotalObjective":6.00134367037697,"thicknessNm":100.55710794599162}]},"physical":{"model":"gaussian","mseWoollam":63.92781058387906,"rawMse":3.6355180010471484,"thickness":99.38293800226785,"converged":false,"status":"max_iter","reducedChiSquare":4077.2164497725016}}
+STAGE4_3_COMPLETE {"mode":"before","runs":12,"errors":0}

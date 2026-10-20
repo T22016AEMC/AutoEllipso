@@ -1,3 +1,5 @@
+import {resolveBuildCommit} from './scripts/build-version.mjs';
+import {readFileSync} from 'node:fs';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -6,7 +8,8 @@ import {securityHeaders} from './deployment/security.mjs';
 
 export default defineConfig(() => {
   if(Object.keys(process.env).some(key=>/^VITE_PUBLIC_.*(KEY|TOKEN|SECRET|PASSWORD)/i.test(key)))throw new Error('Public environment variables must not contain credentials');
-  const commit=process.env.CF_PAGES_COMMIT_SHA??process.env.VERCEL_GIT_COMMIT_SHA??'local';
+  const commit=resolveBuildCommit();
+  const appVersion=JSON.parse(readFileSync(new URL('./package.json',import.meta.url),'utf8')).version;
   const buildTime=new Date().toISOString();
   return {
     base:'/',
@@ -15,7 +18,7 @@ export default defineConfig(() => {
     build:{target:['es2022','safari16.4'],sourcemap:false},
     worker:{format:'es' as const},
     preview:{host:'127.0.0.1',headers:securityHeaders},
-    plugins: [react(), tailwindcss(),{name:'version-manifest',generateBundle(){this.emitFile({type:'asset',fileName:'version.json',source:JSON.stringify({application:'AutoEllipso',version:'2.1.0',commit,buildTime,calculation:'browser-only'},null,2)});}}],
+    plugins: [react(), tailwindcss(),{name:'version-manifest',generateBundle(){this.emitFile({type:'asset',fileName:'version.json',source:JSON.stringify({application:'AutoEllipso',version:appVersion,commit,buildTime,calculation:'browser-only'},null,2)});}}],
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),

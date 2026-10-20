@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { APP_VERSION } from '../version';
+import { APP_VERSION,BUILD_COMMIT } from '../version';
 import {
   FolderOpen,
   Save,
@@ -74,7 +74,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
           </div>
           <div>
             <h1 className="text-sm font-bold text-slate-100 leading-tight tracking-wide flex items-center space-x-1.5">
-              <span className="text-cyan-400">AutoEllipso V{APP_VERSION}</span>
+              <span className="text-cyan-400">AutoEllipso V{APP_VERSION} <small className="text-slate-400 font-mono">{BUILD_COMMIT.slice(0,7)}</small></span>
               <span className="text-slate-500 text-[11px] font-normal hidden sm:inline">|</span>
               <span className="text-slate-400 text-[11px] font-normal hidden sm:inline">
                 薄膜光學常數與膜厚自動反演

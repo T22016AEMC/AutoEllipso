@@ -1,0 +1,1010 @@
+{
+  "absorbing": {
+    "elapsedMs": 87466.88579999999,
+    "thickness": 100.07153249234608,
+    "converged": true,
+    "comparison": {
+      "freeForm": {
+        "mseWoollam": 1.075213931623235,
+        "rawMse": 0.0008839233219660565,
+        "effectiveParameters": 65,
+        "aic": -2907.4525832247373,
+        "bic": -2643.00491998887
+      },
+      "physical": {
+        "mseWoollam": 24.801369352729214,
+        "rawMse": 0.5433453308972716,
+        "effectiveParameters": 8,
+        "aic": -247.52440324087394,
+        "bic": -214.97699853492105
+      },
+      "significantFreeFormMaxK": 0.391123886421007,
+      "physicalMaxK": 0.4316538535738091
+    },
+    "table": [
+      {
+        "wavelength": 200,
+        "trueK": 0.32,
+        "fittedK": 0.31993595218252024,
+        "sigmaK": 0.00017872274510983535,
+        "flag": ""
+      },
+      {
+        "wavelength": 250,
+        "trueK": 0.13107200000000002,
+        "fittedK": 0.13130710757364286,
+        "sigmaK": 0.00009010590302755702,
+        "flag": ""
+      },
+      {
+        "wavelength": 300,
+        "trueK": 0.06320987654320986,
+        "fittedK": 0.06317406327545676,
+        "sigmaK": 0.00008658579917069476,
+        "flag": ""
+      },
+      {
+        "wavelength": 350,
+        "trueK": 0.03411911703456892,
+        "fittedK": 0.034057697332681505,
+        "sigmaK": 0.00009856025702007304,
+        "flag": ""
+      },
+      {
+        "wavelength": 400,
+        "trueK": 0.02,
+        "fittedK": 0.020028062858338535,
+        "sigmaK": 0.00013033839319153372,
+        "flag": ""
+      },
+      {
+        "wavelength": 450,
+        "trueK": 0.01248590153939948,
+        "fittedK": 0.012649253162523393,
+        "sigmaK": 0.00013145451330332707,
+        "flag": ""
+      },
+      {
+        "wavelength": 500,
+        "trueK": 0.008192000000000001,
+        "fittedK": 0.008315404453742656,
+        "sigmaK": 0.00015706290794671417,
+        "flag": ""
+      },
+      {
+        "wavelength": 550,
+        "trueK": 0.0055952462263506595,
+        "fittedK": 0.0057500333354759585,
+        "sigmaK": 0.0002061940069906924,
+        "flag": ""
+      },
+      {
+        "wavelength": 600,
+        "trueK": 0.0039506172839506165,
+        "fittedK": 0.0041845320411728094,
+        "sigmaK": 0.0002462744821909189,
+        "flag": ""
+      },
+      {
+        "wavelength": 650,
+        "trueK": 0.002868246910122195,
+        "fittedK": 0.003010416296771551,
+        "sigmaK": 0.00028524012314854385,
+        "flag": ""
+      },
+      {
+        "wavelength": 700,
+        "trueK": 0.0021324448146605576,
+        "fittedK": 0.0024319851625067357,
+        "sigmaK": 0.00031557795936530095,
+        "flag": ""
+      },
+      {
+        "wavelength": 750,
+        "trueK": 0.0016181728395061729,
+        "fittedK": 0.002103596799009202,
+        "sigmaK": 0.00034071623541854866,
+        "flag": ""
+      },
+      {
+        "wavelength": 800,
+        "trueK": 0.00125,
+        "fittedK": 0.0013350913693563962,
+        "sigmaK": 0.000367441897641865,
+        "flag": ""
+      },
+      {
+        "wavelength": 850,
+        "trueK": 0.0009808311682091928,
+        "fittedK": 0.0010934574595141949,
+        "sigmaK": 0.00038151133205946045,
+        "flag": ""
+      },
+      {
+        "wavelength": 900,
+        "trueK": 0.0007803688462124675,
+        "fittedK": 0.001254360378763959,
+        "sigmaK": 0.0005679125062657699,
+        "flag": ""
+      }
+    ],
+    "warnings": [
+      "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+    ],
+    "coefficientBounds": [
+      {
+        "id": "K0",
+        "value": 0.391123886421007,
+        "min": 0,
+        "max": 1.5878104094470666,
+        "boundaryHit": false
+      },
+      {
+        "id": "K1",
+        "value": 0.27019925288560565,
+        "min": 0,
+        "max": 1.4491951296143708,
+        "boundaryHit": false
+      },
+      {
+        "id": "K2",
+        "value": 0.17712959860381222,
+        "min": 0,
+        "max": 1.3652356761808304,
+        "boundaryHit": false
+      },
+      {
+        "id": "K3",
+        "value": 0.1117189169441757,
+        "min": 0,
+        "max": 1.314505321036504,
+        "boundaryHit": false
+      },
+      {
+        "id": "K4",
+        "value": 0.07938494048826218,
+        "min": 0,
+        "max": 1.2812369581174226,
+        "boundaryHit": false
+      },
+      {
+        "id": "K5",
+        "value": 0.05851133468159326,
+        "min": 0,
+        "max": 1.2593128992582423,
+        "boundaryHit": false
+      },
+      {
+        "id": "K6",
+        "value": 0.04380859239724442,
+        "min": 0,
+        "max": 1.2443924097293428,
+        "boundaryHit": false
+      },
+      {
+        "id": "K7",
+        "value": 0.0334037867284643,
+        "min": 0,
+        "max": 1.233911119959388,
+        "boundaryHit": false
+      },
+      {
+        "id": "K8",
+        "value": 0.02617549050400305,
+        "min": 0,
+        "max": 1.2265396620404516,
+        "boundaryHit": false
+      },
+      {
+        "id": "K9",
+        "value": 0.020476241715819223,
+        "min": 0,
+        "max": 1.221175756378503,
+        "boundaryHit": false
+      },
+      {
+        "id": "K10",
+        "value": 0.016721925741599888,
+        "min": 0,
+        "max": 1.2171534652774145,
+        "boundaryHit": false
+      },
+      {
+        "id": "K11",
+        "value": 0.013395431941584008,
+        "min": 0,
+        "max": 1.2140538105100138,
+        "boundaryHit": false
+      },
+      {
+        "id": "K12",
+        "value": 0.011135841177733292,
+        "min": 0,
+        "max": 1.2116159791464491,
+        "boundaryHit": false
+      },
+      {
+        "id": "K13",
+        "value": 0.009026517562898228,
+        "min": 0,
+        "max": 1.2097212232112584,
+        "boundaryHit": false
+      },
+      {
+        "id": "K14",
+        "value": 0.00766921227970851,
+        "min": 0,
+        "max": 1.208284578368407,
+        "boundaryHit": false
+      },
+      {
+        "id": "K15",
+        "value": 0.006419422774571847,
+        "min": 0,
+        "max": 1.2071815458119657,
+        "boundaryHit": false
+      },
+      {
+        "id": "K16",
+        "value": 0.005478983532817879,
+        "min": 0,
+        "max": 1.2062715101518517,
+        "boundaryHit": false
+      },
+      {
+        "id": "K17",
+        "value": 0.004619244227634816,
+        "min": 0,
+        "max": 1.2055050511582286,
+        "boundaryHit": false
+      },
+      {
+        "id": "K18",
+        "value": 0.00411740121574723,
+        "min": 0,
+        "max": 1.2050064496347774,
+        "boundaryHit": false
+      },
+      {
+        "id": "K19",
+        "value": 0.003759704934518759,
+        "min": 0,
+        "max": 1.2046101119788386,
+        "boundaryHit": false
+      },
+      {
+        "id": "K20",
+        "value": 0.002932519357013012,
+        "min": 0,
+        "max": 1.2040584256271196,
+        "boundaryHit": false
+      },
+      {
+        "id": "K21",
+        "value": 0.0028012840840096155,
+        "min": 0,
+        "max": 1.2037756158902626,
+        "boundaryHit": false
+      },
+      {
+        "id": "K22",
+        "value": 0.002539167630991316,
+        "min": 0,
+        "max": 1.2035684086711889,
+        "boundaryHit": false
+      },
+      {
+        "id": "K23",
+        "value": 0.0021621129934551136,
+        "min": 0,
+        "max": 1.203319659075045,
+        "boundaryHit": false
+      },
+      {
+        "id": "K24",
+        "value": 0.002174913750796416,
+        "min": 0,
+        "max": 1.2032254899716095,
+        "boundaryHit": false
+      },
+      {
+        "id": "K25",
+        "value": 0.0020452767318657242,
+        "min": 0,
+        "max": 1.2029548190202144,
+        "boundaryHit": false
+      },
+      {
+        "id": "K26",
+        "value": 0.0013288043262920726,
+        "min": 0,
+        "max": 1.2026531353521537,
+        "boundaryHit": false
+      },
+      {
+        "id": "K27",
+        "value": 0.001303325979341058,
+        "min": 0,
+        "max": 1.202511453663147,
+        "boundaryHit": false
+      },
+      {
+        "id": "K28",
+        "value": 0.0016732837183317366,
+        "min": 0,
+        "max": 1.2023814840974436,
+        "boundaryHit": false
+      },
+      {
+        "id": "K29",
+        "value": 0.0006170821565923193,
+        "min": 0,
+        "max": 1.2021882759685159,
+        "boundaryHit": false
+      },
+      {
+        "id": "K30",
+        "value": 0.0009553696118727159,
+        "min": 0,
+        "max": 1.202074543266546,
+        "boundaryHit": false
+      },
+      {
+        "id": "K31",
+        "value": 0.001254360378763959,
+        "min": 0,
+        "max": 1.20230251706291,
+        "boundaryHit": false
+      }
+    ]
+  },
+  "transparent": {
+    "elapsedMs": 72499.66520000002,
+    "thickness": 100.41518545845928,
+    "converged": false,
+    "comparison": {
+      "freeForm": {
+        "mseWoollam": 1.0502373426607794,
+        "rawMse": 0.0009053779156503233,
+        "effectiveParameters": 38,
+        "aic": -2951.0923057125365,
+        "bic": -2796.49213335926
+      },
+      "physical": {
+        "mseWoollam": 37.52348566269862,
+        "rawMse": 1.2466772706634746,
+        "effectiveParameters": 7,
+        "aic": 109.24814995604176,
+        "bic": 137.72712907375052
+      },
+      "significantFreeFormMaxK": 0.00011882902322731006,
+      "physicalMaxK": 0.05197632208836931
+    },
+    "table": [
+      {
+        "wavelength": 200,
+        "trueK": 0,
+        "fittedK": 0.000003840214192873319,
+        "sigmaK": 0.000002524626436380312,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 250,
+        "trueK": 0,
+        "fittedK": 0.00005694856514589241,
+        "sigmaK": 0.00003482061223101157,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 300,
+        "trueK": 0,
+        "fittedK": 0.00002270923529614498,
+        "sigmaK": 0.000052386262013731684,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 350,
+        "trueK": 0,
+        "fittedK": 0.0000010751533133743433,
+        "sigmaK": 0.000009754369836491293,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 400,
+        "trueK": 0,
+        "fittedK": 0.00001363985604102636,
+        "sigmaK": 0.000008222543290996355,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 450,
+        "trueK": 0,
+        "fittedK": 0.00011216836308967883,
+        "sigmaK": 0.000052254346149267186,
+        "flag": ""
+      },
+      {
+        "wavelength": 500,
+        "trueK": 0,
+        "fittedK": 0.0000214415092161987,
+        "sigmaK": 0.00004661113006398233,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 550,
+        "trueK": 0,
+        "fittedK": 0.00002474015741595526,
+        "sigmaK": 0.000063052524710912,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 600,
+        "trueK": 0,
+        "fittedK": 0.00006426537472597815,
+        "sigmaK": 0.00005638292448164182,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 650,
+        "trueK": 0,
+        "fittedK": 0.00005330198070462359,
+        "sigmaK": 0.000050846609187583605,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 700,
+        "trueK": 0,
+        "fittedK": 0.00008395517302437627,
+        "sigmaK": 0.00013606650098216513,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 750,
+        "trueK": 0,
+        "fittedK": 0.00022725921095865137,
+        "sigmaK": 0.00017821265444495658,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 800,
+        "trueK": 0,
+        "fittedK": 7.790425517209693e-7,
+        "sigmaK": 6.496281384706733e-7,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 850,
+        "trueK": 0,
+        "fittedK": 0.000001060221040543594,
+        "sigmaK": 0.000003053931753123639,
+        "flag": "below_detection"
+      },
+      {
+        "wavelength": 900,
+        "trueK": 0,
+        "fittedK": 0.0001542304619588466,
+        "sigmaK": 0.0004442557608869508,
+        "flag": "below_detection"
+      }
+    ],
+    "warnings": [
+      "其餘參數的不確定度為條件於該參數固定在邊界。",
+      "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+    ],
+    "coefficientBounds": [
+      {
+        "id": "K0",
+        "value": 0,
+        "min": 0,
+        "max": 1.200000000001,
+        "boundaryHit": true
+      },
+      {
+        "id": "K1",
+        "value": 0,
+        "min": 0,
+        "max": 1.200000000001,
+        "boundaryHit": true
+      },
+      {
+        "id": "K2",
+        "value": 0.00008179715497363637,
+        "min": 0,
+        "max": 1.200000000001,
+        "boundaryHit": false
+      },
+      {
+        "id": "K3",
+        "value": 0.00003558243255572963,
+        "min": 0,
+        "max": 1.2000002815783282,
+        "boundaryHit": false
+      },
+      {
+        "id": "K4",
+        "value": 0.000011833486332254045,
+        "min": 0,
+        "max": 1.2000054217050307,
+        "boundaryHit": false
+      },
+      {
+        "id": "K5",
+        "value": 0,
+        "min": 0,
+        "max": 1.2000100616335965,
+        "boundaryHit": true
+      },
+      {
+        "id": "K6",
+        "value": 0,
+        "min": 0,
+        "max": 1.2000073955803798,
+        "boundaryHit": true
+      },
+      {
+        "id": "K7",
+        "value": 0,
+        "min": 0,
+        "max": 1.2000358835631306,
+        "boundaryHit": true
+      },
+      {
+        "id": "K8",
+        "value": 0.00015816541172181855,
+        "min": 0,
+        "max": 1.2001269728768342,
+        "boundaryHit": false
+      },
+      {
+        "id": "K9",
+        "value": 0.00006731336789641968,
+        "min": 0,
+        "max": 1.2001195653342838,
+        "boundaryHit": false
+      },
+      {
+        "id": "K10",
+        "value": 0.0000069339737818977775,
+        "min": 0,
+        "max": 1.2000576704840444,
+        "boundaryHit": false
+      },
+      {
+        "id": "K11",
+        "value": 0.0000369720333233074,
+        "min": 0,
+        "max": 1.2000767954374307,
+        "boundaryHit": false
+      },
+      {
+        "id": "K12",
+        "value": 0.000019041735315234306,
+        "min": 0,
+        "max": 1.2000681886229019,
+        "boundaryHit": false
+      },
+      {
+        "id": "K13",
+        "value": 0,
+        "min": 0,
+        "max": 1.2001028006566334,
+        "boundaryHit": true
+      },
+      {
+        "id": "K14",
+        "value": 0.0001877594886296649,
+        "min": 0,
+        "max": 1.2001533989925712,
+        "boundaryHit": false
+      },
+      {
+        "id": "K15",
+        "value": 0,
+        "min": 0,
+        "max": 1.200122553330553,
+        "boundaryHit": true
+      },
+      {
+        "id": "K16",
+        "value": 0.0000977331408159276,
+        "min": 0,
+        "max": 1.2001021518074981,
+        "boundaryHit": false
+      },
+      {
+        "id": "K17",
+        "value": 0.00006174390532931891,
+        "min": 0,
+        "max": 1.2002252650146892,
+        "boundaryHit": false
+      },
+      {
+        "id": "K18",
+        "value": 0.00034051850038143734,
+        "min": 0,
+        "max": 1.2002909611652395,
+        "boundaryHit": false
+      },
+      {
+        "id": "K19",
+        "value": 0,
+        "min": 0,
+        "max": 1.200134798546137,
+        "boundaryHit": true
+      },
+      {
+        "id": "K20",
+        "value": 0,
+        "min": 0,
+        "max": 1.200057277636129,
+        "boundaryHit": true
+      },
+      {
+        "id": "K21",
+        "value": 0,
+        "min": 0,
+        "max": 1.2000740710172277,
+        "boundaryHit": true
+      },
+      {
+        "id": "K22",
+        "value": 0,
+        "min": 0,
+        "max": 1.2000730899754704,
+        "boundaryHit": true
+      },
+      {
+        "id": "K23",
+        "value": 0.0001542304619588466,
+        "min": 0,
+        "max": 1.200204862575724,
+        "boundaryHit": false
+      }
+    ]
+  },
+  "weak": {
+    "elapsedMs": 51799.68909999999,
+    "thickness": 99.3787005409195,
+    "converged": false,
+    "comparison": {
+      "freeForm": {
+        "mseWoollam": 1.0524182142221932,
+        "rawMse": 0.0008837598112312473,
+        "effectiveParameters": 49,
+        "aic": -2939.532503246955,
+        "bic": -2740.1796494229934
+      },
+      "physical": {
+        "mseWoollam": 63.859223592353146,
+        "rawMse": 3.6362170570545196,
+        "effectiveParameters": 4,
+        "aic": 565.6877523554264,
+        "bic": 581.9614547084028
+      },
+      "significantFreeFormMaxK": 0.0030417879175543643,
+      "physicalMaxK": 0,
+      "warning": "物理模型在資料範圍內 k 偏低，與自由形式曲線差異如下：顯著自由形式 max k=0.0030417879，物理 max k=0.0000000（差異 > 2σ_k）。"
+    },
+    "table": [
+      {
+        "wavelength": 200,
+        "trueK": 0.003,
+        "fittedK": 0.0029410162700184393,
+        "sigmaK": 0.00004059714187646576,
+        "flag": ""
+      },
+      {
+        "wavelength": 250,
+        "trueK": 0.003,
+        "fittedK": 0.0030364731787128423,
+        "sigmaK": 0.000058832185830980976,
+        "flag": ""
+      },
+      {
+        "wavelength": 300,
+        "trueK": 0.003,
+        "fittedK": 0.0030318103270410616,
+        "sigmaK": 0.00005666674764704597,
+        "flag": ""
+      },
+      {
+        "wavelength": 350,
+        "trueK": 0.003,
+        "fittedK": 0.002939035441616272,
+        "sigmaK": 0.00008357938086692428,
+        "flag": ""
+      },
+      {
+        "wavelength": 400,
+        "trueK": 0.003,
+        "fittedK": 0.0028382922968647603,
+        "sigmaK": 0.00010613076471120552,
+        "flag": ""
+      },
+      {
+        "wavelength": 450,
+        "trueK": 0.003,
+        "fittedK": 0.002916277605386038,
+        "sigmaK": 0.00009939610607112463,
+        "flag": ""
+      },
+      {
+        "wavelength": 500,
+        "trueK": 0.003,
+        "fittedK": 0.0027822715305490238,
+        "sigmaK": 0.00011392087802613024,
+        "flag": ""
+      },
+      {
+        "wavelength": 550,
+        "trueK": 0.003,
+        "fittedK": 0.002711834179304259,
+        "sigmaK": 0.00014910485346355043,
+        "flag": ""
+      },
+      {
+        "wavelength": 600,
+        "trueK": 0.003,
+        "fittedK": 0.002705319798770277,
+        "sigmaK": 0.0001741193339165153,
+        "flag": ""
+      },
+      {
+        "wavelength": 650,
+        "trueK": 0.003,
+        "fittedK": 0.002575414811882542,
+        "sigmaK": 0.000210239406590261,
+        "flag": ""
+      },
+      {
+        "wavelength": 700,
+        "trueK": 0.003,
+        "fittedK": 0.002669898597898388,
+        "sigmaK": 0.00023293667032144946,
+        "flag": ""
+      },
+      {
+        "wavelength": 750,
+        "trueK": 0.003,
+        "fittedK": 0.0027823401730692047,
+        "sigmaK": 0.0002644565143403846,
+        "flag": ""
+      },
+      {
+        "wavelength": 800,
+        "trueK": 0.003,
+        "fittedK": 0.002554532765619619,
+        "sigmaK": 0.0002818778559712126,
+        "flag": ""
+      },
+      {
+        "wavelength": 850,
+        "trueK": 0.003,
+        "fittedK": 0.002481587337627602,
+        "sigmaK": 0.00030036253232776,
+        "flag": ""
+      },
+      {
+        "wavelength": 900,
+        "trueK": 0.003,
+        "fittedK": 0.002762323874271146,
+        "sigmaK": 0.0004957126283164232,
+        "flag": ""
+      }
+    ],
+    "warnings": [
+      "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+    ],
+    "coefficientBounds": [
+      {
+        "id": "K0",
+        "value": 0.0029653676564507024,
+        "min": 0,
+        "max": 1.2029643286283505,
+        "boundaryHit": false
+      },
+      {
+        "id": "K1",
+        "value": 0.0028803098857524845,
+        "min": 0,
+        "max": 1.2029786445030755,
+        "boundaryHit": false
+      },
+      {
+        "id": "K2",
+        "value": 0.0031072642041957673,
+        "min": 0,
+        "max": 1.2029885535277471,
+        "boundaryHit": false
+      },
+      {
+        "id": "K3",
+        "value": 0.002972996514946606,
+        "min": 0,
+        "max": 1.2029831507081399,
+        "boundaryHit": false
+      },
+      {
+        "id": "K4",
+        "value": 0.0030867297280957853,
+        "min": 0,
+        "max": 1.2030082644947075,
+        "boundaryHit": false
+      },
+      {
+        "id": "K5",
+        "value": 0.002924110886652557,
+        "min": 0,
+        "max": 1.2030131742168675,
+        "boundaryHit": false
+      },
+      {
+        "id": "K6",
+        "value": 0.0029252035948992465,
+        "min": 0,
+        "max": 1.2029156977979085,
+        "boundaryHit": false
+      },
+      {
+        "id": "K7",
+        "value": 0.0027798401217296346,
+        "min": 0,
+        "max": 1.202963317647798,
+        "boundaryHit": false
+      },
+      {
+        "id": "K8",
+        "value": 0.0029820742573125197,
+        "min": 0,
+        "max": 1.203058036114525,
+        "boundaryHit": false
+      },
+      {
+        "id": "K9",
+        "value": 0.0028499545958735393,
+        "min": 0,
+        "max": 1.2030335603455498,
+        "boundaryHit": false
+      },
+      {
+        "id": "K10",
+        "value": 0.0027782298794379557,
+        "min": 0,
+        "max": 1.2029668328513266,
+        "boundaryHit": false
+      },
+      {
+        "id": "K11",
+        "value": 0.0027439900832369256,
+        "min": 0,
+        "max": 1.2029656151977692,
+        "boundaryHit": false
+      },
+      {
+        "id": "K12",
+        "value": 0.0026986589306740843,
+        "min": 0,
+        "max": 1.2029380422870226,
+        "boundaryHit": false
+      },
+      {
+        "id": "K13",
+        "value": 0.0026103764129533887,
+        "min": 0,
+        "max": 1.2029694108183877,
+        "boundaryHit": false
+      },
+      {
+        "id": "K14",
+        "value": 0.0028786028370603057,
+        "min": 0,
+        "max": 1.2030069863020914,
+        "boundaryHit": false
+      },
+      {
+        "id": "K15",
+        "value": 0.002439441367856969,
+        "min": 0,
+        "max": 1.2029626257788788,
+        "boundaryHit": false
+      },
+      {
+        "id": "K16",
+        "value": 0.002760399670277467,
+        "min": 0,
+        "max": 1.2029386704994245,
+        "boundaryHit": false
+      },
+      {
+        "id": "K17",
+        "value": 0.002581050013415578,
+        "min": 0,
+        "max": 1.203056335092773,
+        "boundaryHit": false
+      },
+      {
+        "id": "K18",
+        "value": 0.0029155235817817926,
+        "min": 0,
+        "max": 1.2031183440878035,
+        "boundaryHit": false
+      },
+      {
+        "id": "K19",
+        "value": 0.0025178631503231055,
+        "min": 0,
+        "max": 1.2029633030497482,
+        "boundaryHit": false
+      },
+      {
+        "id": "K20",
+        "value": 0.0025702422577286448,
+        "min": 0,
+        "max": 1.2029000254310083,
+        "boundaryHit": false
+      },
+      {
+        "id": "K21",
+        "value": 0.0025637525080009567,
+        "min": 0,
+        "max": 1.2028740835557046,
+        "boundaryHit": false
+      },
+      {
+        "id": "K22",
+        "value": 0.0022519320006623464,
+        "min": 0,
+        "max": 1.2028059792977788,
+        "boundaryHit": false
+      },
+      {
+        "id": "K23",
+        "value": 0.002762323874271146,
+        "min": 0,
+        "max": 1.203080629338384,
+        "boundaryHit": false
+      }
+    ]
+  },
+  "regression": [
+    {
+      "file": "stage3-before.json",
+      "oldThickness": 99.99715906148896,
+      "newThickness": 99.99715434809612,
+      "deltaThickness": -0.000004713392840471897,
+      "oldRawMse": 0.009153355272130782,
+      "newRawMse": 0.008944546457770831,
+      "deltaRawMse": -0.00020880881435995056,
+      "oldConverged": true,
+      "newConverged": false,
+      "oldMedianMs": 7073.2503,
+      "newElapsedMs": 34832.68160000001
+    },
+    {
+      "file": "stage4-after.json",
+      "oldThickness": 99.99715991446588,
+      "newThickness": 99.99715434809612,
+      "deltaThickness": -0.000005566369765119816,
+      "oldRawMse": 0.009153357823814337,
+      "newRawMse": 0.008944546457770831,
+      "deltaRawMse": -0.000208811366043506,
+      "oldConverged": true,
+      "newConverged": false,
+      "oldMedianMs": 6627.6074,
+      "newElapsedMs": 34832.68160000001
+    },
+    {
+      "file": "stage4_1-before.json",
+      "oldThickness": 99.99715991446588,
+      "newThickness": 99.99715434809612,
+      "deltaThickness": -0.000005566369765119816,
+      "oldRawMse": 0.009153357823814337,
+      "newRawMse": 0.008944546457770831,
+      "deltaRawMse": -0.000208811366043506,
+      "oldConverged": true,
+      "newConverged": false,
+      "oldMedianMs": 6770.475600000002,
+      "newElapsedMs": 34832.68160000001
+    }
+  ]
+}

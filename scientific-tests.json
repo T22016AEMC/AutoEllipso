@@ -266,8 +266,8 @@
   },
   {
     "name": "Automatic multi-AOI sigma fit converges and retains baseline fit within tolerance",
-    "passed": true,
-    "detail": "PASS"
+    "passed": false,
+    "detail": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
   },
   {
     "name": "Fit statistics survive project JSON and validation report; legacy fields remain optional",
@@ -336,8 +336,8 @@
   },
   {
     "name": "Stage4.1: Automatic transparent k and propagated uncertainty",
-    "passed": false,
-    "detail": "AssertionError [ERR_ASSERTION]: high wavelength detection flags"
+    "passed": true,
+    "detail": "PASS"
   },
   {
     "name": "Stage4.1: Automatic weak k and propagated uncertainty",
@@ -356,11 +356,26 @@
   },
   {
     "name": "Stage4.1: SiO2 regression and timing against Stage3/4 baseline",
+    "passed": false,
+    "detail": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+  },
+  {
+    "name": "Stage4.1: no absorption threshold branching or optical four-decimal rounding",
     "passed": true,
     "detail": "PASS"
   },
   {
-    "name": "Stage4.1: no absorption threshold branching or optical four-decimal rounding",
+    "name": "Stage4.3: deterministic 24/32/40 grids and JSON/Expert round-trip",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.3: BIC evidence, selection, ties and effective parameter count",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.3: adequacy flags preserve k, sigma and detection with non-color UI warning",
     "passed": true,
     "detail": "PASS"
   }

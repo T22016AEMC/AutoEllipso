@@ -1,0 +1,19 @@
+vite v8.3.4 building client environment for production...
+transforming...
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/data/defaultProjects.ts is dynamically imported by src/tests/unitTests.ts but also statically imported by src/tests/unitTests.ts, dynamic import will not move module into another chunk.
+
+✓ 1711 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/defaultProjects-C9iqo7KU.js       0.06 kB
+dist/version.json                             0.19 kB │ gzip:   0.16 kB
+dist/index.html                               1.05 kB │ gzip:   0.49 kB
+dist/assets/transferMatrix-Bdb_DGJd.js        3.55 kB
+dist/assets/unitTests-C9BqCMzp.js            27.41 kB
+dist/assets/calculator-DfXQiS0N.js           46.09 kB
+dist/assets/compute.worker-3gcKKCHM.js       76.88 kB
+dist/assets/index-Bjr97GM_.css               57.05 kB │ gzip:  10.28 kB
+dist/assets/ExpertFittingPanel-BpzpMAk4.js   26.26 kB │ gzip:   7.52 kB
+dist/assets/index-B-___JQX.js               457.28 kB │ gzip: 130.33 kB
+
+✓ built in 13.24s

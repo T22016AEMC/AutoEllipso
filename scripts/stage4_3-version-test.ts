@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {resolveBuildCommit} from './build-version.mjs';
+assert.equal(resolveBuildCommit({WORKERS_CI_COMMIT_SHA:' ci-commit '},()=>{throw new Error('git must not run');}),'ci-commit');
+assert.equal(resolveBuildCommit({},()=> 'git-commit'),'git-commit');
+assert.equal(resolveBuildCommit({},()=>{throw new Error('git unavailable');}),'local');
+assert.equal(resolveBuildCommit({},()=>''),'local');
+const manifest=JSON.parse(readFileSync('dist/version.json','utf8'));
+assert.equal(typeof manifest.commit,'string');assert.ok(manifest.commit.trim().length>0);
+assert.equal(manifest.commit,resolveBuildCommit());
+console.log('STAGE4_3_VERSION '+JSON.stringify({passed:true,manifest}));

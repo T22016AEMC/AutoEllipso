@@ -1,0 +1,685 @@
+ATTEMPT 0
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\vite\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 1
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\enhanced-resolve\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 2
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\jiti\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 3
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\tailwindcss\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+Did you mean to import "tailwindcss/dist/lib.js"?
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 4
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\remapping\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 5
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\trace-mapping\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\remapping\dist\remapping.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 6
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\sourcemap-codec\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\trace-mapping\dist\trace-mapping.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 7
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\resolve-uri\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\trace-mapping\dist\trace-mapping.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 8
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\gen-mapping\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@jridgewell\remapping\dist\remapping.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 9
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\lightningcss\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 9
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\lightningcss\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 10
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\magic-string\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 11
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\source-map-js\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\node\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 12
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\oxide\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\vite\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 13
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\vite\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\vite\dist\index.mjs
+Did you mean to import "vite/dist/node/index.js"?
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 14
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\parseAst' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\vite\dist\node\chunks\node.js
+    at finalizeResolution (node:internal/modules/esm/resolve:271:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/parseAst'
+}
+
+ATTEMPT 14
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\parseAst' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\vite\dist\node\chunks\node.js
+    at finalizeResolution (node:internal/modules/esm/resolve:271:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/parseAst'
+}
+
+ATTEMPT 15
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\picomatch\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\vite\dist\node\chunks\node.js
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 16
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\@rolldown\pluginutils\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\dist\shared\bindingify-input-options-C0gEvtnB.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 17
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\tinyglobby\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\vite\dist\node\chunks\node.js
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 18
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\fdir\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\tinyglobby\dist\index.mjs
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 19
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find package 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c\node_modules\@rolldown\pluginutils\index.js' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c\node_modules\@vitejs\plugin-react\dist\index.js
+Did you mean to import "@rolldown/pluginutils/dist/index.mjs"?
+    at legacyMainResolve (node:internal/modules/esm/resolve:201:26)
+    at packageResolve (node:internal/modules/esm/resolve:778:12)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+ATTEMPT 20
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c\node_modules\vite\internal' imported from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c\node_modules\@vitejs\plugin-react\dist\index.js
+Did you mean to import "vite/dist/node/internal.js"?
+    at finalizeResolution (node:internal/modules/esm/resolve:271:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c/node_modules/vite/internal'
+}
+
+ATTEMPT 21
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find module '../lightningcss.win32-x64-msvc.node'
+Require stack:
+- C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\lightningcss\node\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1617:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\lightningcss\node\index.js:20:12)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\t22016\\Desktop\\程式\\autoellipso\\AutoEllipso_V2.1\\node_modules\\.pnpm\\node_modules\\lightningcss\\node\\index.js'
+  ]
+}
+
+ATTEMPT 21
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find module '../lightningcss.win32-x64-msvc.node'
+Require stack:
+- C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\lightningcss\node\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1617:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\lightningcss\node\index.js:20:12)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\t22016\\Desktop\\程式\\autoellipso\\AutoEllipso_V2.1\\node_modules\\.pnpm\\node_modules\\lightningcss\\node\\index.js'
+  ]
+}
+
+ATTEMPT 22
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find module 'tapable'
+Require stack:
+- C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\enhanced-resolve\lib\Resolver.js
+- C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\enhanced-resolve\lib\ResolverFactory.js
+- C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\enhanced-resolve\lib\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1617:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\enhanced-resolve\lib\Resolver.js:8:60)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\t22016\\Desktop\\程式\\autoellipso\\AutoEllipso_V2.1\\node_modules\\.pnpm\\node_modules\\enhanced-resolve\\lib\\Resolver.js',
+    'C:\\Users\\t22016\\Desktop\\程式\\autoellipso\\AutoEllipso_V2.1\\node_modules\\.pnpm\\node_modules\\enhanced-resolve\\lib\\ResolverFactory.js',
+    'C:\\Users\\t22016\\Desktop\\程式\\autoellipso\\AutoEllipso_V2.1\\node_modules\\.pnpm\\node_modules\\enhanced-resolve\\lib\\index.js'
+  ]
+}
+
+ATTEMPT 23
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+    at Object.<anonymous> (C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\oxide\index.js:573:11)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14)
+    at Object..js (node:internal/modules/cjs/loader:2003:10)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:372:15)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:244:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26 {
+  [cause]: Error: Cannot find module '@tailwindcss/oxide-win32-x64-msvc'
+  Require stack:
+  - C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\oxide\index.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+      ... 8 lines matching cause stack trace ...
+      at Module._load (node:internal/modules/cjs/loader:1294:5) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [
+      'C:\\Users\\t22016\\Desktop\\程式\\autoellipso\\AutoEllipso_V2.1\\node_modules\\.pnpm\\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\\node_modules\\@tailwindcss\\oxide\\index.js'
+    ],
+    cause: Error: Cannot find module './tailwindcss-oxide.win32-x64-msvc.node'
+    Require stack:
+    - C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc\node_modules\@tailwindcss\oxide\index.js
+        at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+        at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+        at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+        at defaultResolve (node:internal/modules/cjs/loader:1152:20)
+        at nextStep (node:internal/modules/customization_hooks:189:26)
+        at Ie (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/@tailwindcss+vite@4.3.3_vit_95b109af0777b27abda966d6382698bc/node_modules/@tailwindcss/node/dist/index.mjs:1:539)
+        at nextStep (node:internal/modules/customization_hooks:189:26)
+        at resolveWithHooks (node:internal/modules/customization_hooks:417:10)
+        at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1165:25)
+        at Module._load (node:internal/modules/cjs/loader:1294:5) {
+      code: 'MODULE_NOT_FOUND',
+      requireStack: [Array]
+    }
+  }
+}
+
+ATTEMPT 24
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:603:34
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:9:49
+    ... 4 lines matching cause stack trace ...
+    at async bundleAndLoadConfigFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37978:21)
+    at async loadConfigFromFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37938:42)
+    at async resolveConfig (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37540:22)
+    at async createBuilder (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:35112:17) {
+  cause: Error: Cannot find module '@rolldown/binding-wasm32-wasi'
+  Require stack:
+  - C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\dist\shared\binding-DlR5d34p.mjs
+      at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:497:18
+      ... 8 lines matching cause stack trace ...
+      at async bundleAndLoadConfigFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37978:21) {
+    cause: Error: Cannot find module './rolldown-binding.wasi.cjs'
+    Require stack:
+    - C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\dist\shared\binding-DlR5d34p.mjs
+        at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:497:18
+        ... 8 lines matching cause stack trace ...
+        at async bundleAndLoadConfigFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37978:21) {
+      cause: [Error]
+    }
+  }
+}
+
+ATTEMPT 24
+failed to load config from C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\vite.config.ts
+error during build:
+Error: Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:603:34
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:9:49
+    ... 4 lines matching cause stack trace ...
+    at async bundleAndLoadConfigFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37978:21)
+    at async loadConfigFromFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37938:42)
+    at async resolveConfig (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37540:22)
+    at async createBuilder (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:35112:17) {
+  cause: Error: Cannot find module '@rolldown/binding-wasm32-wasi'
+  Require stack:
+  - C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\dist\shared\binding-DlR5d34p.mjs
+      at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:497:18
+      ... 8 lines matching cause stack trace ...
+      at async bundleAndLoadConfigFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37978:21) {
+    cause: Error: Cannot find module './rolldown-binding.wasi.cjs'
+    Require stack:
+    - C:\Users\t22016\Desktop\程式\autoellipso\AutoEllipso_V2.1\node_modules\.pnpm\node_modules\rolldown\dist\shared\binding-DlR5d34p.mjs
+        at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/node_modules/rolldown/dist/shared/binding-DlR5d34p.mjs:497:18
+        ... 8 lines matching cause stack trace ...
+        at async bundleAndLoadConfigFile (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:37978:21) {
+      cause: [Error]
+    }
+  }
+}
+
+ATTEMPT 25
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 1709 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/defaultProjects-4J8PG1Bi.js       0.06 kB
+dist/version.json                             0.19 kB │ gzip:   0.16 kB
+dist/index.html                               1.05 kB │ gzip:   0.49 kB
+dist/assets/transferMatrix-Bdb_DGJd.js        3.55 kB
+dist/assets/unitTests-DhT7NOPe.js            27.41 kB
+dist/assets/calculator-DfXQiS0N.js           46.09 kB
+dist/assets/compute.worker-BikieHQR.js       76.88 kB
+dist/assets/index-Bjr97GM_.css               57.05 kB │ gzip:  10.28 kB
+dist/assets/ExpertFittingPanel-Csmi_P6H.js   26.26 kB │ gzip:   7.52 kB
+dist/assets/index-DfyXv3ND.js               454.08 kB │ gzip: 129.23 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/data/defaultProjects.ts is dynamically imported by src/tests/unitTests.ts but also statically imported by src/tests/unitTests.ts, dynamic import will not move module into another chunk.
+
+✗ Build failed in 16.81s
+error during build:
+Build failed with 1 error:
+
+Error: [vite]: Rolldown failed to resolve import "scheduler" from "C:/Users/t22016/Desktop/程式/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.production.js".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rolldownOptions.external`
+    at viteLog (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34809:57)
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34846:71
+    at onwarn (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c/node_modules/@vitejs/plugin-react/dist/index.js:40:7)
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34846:28
+    at onRollupLog (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34841:65)
+    at onLog (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34601:4)
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/create-bundler-option-2b9QJDoZ.mjs:48:26
+    at logger (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/create-bundler-option-2b9QJDoZ.mjs:39:3)
+    at aggregateBindingErrorsIntoJsError (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/error-Dsqzw0Oa.mjs:49:18)
+    at unwrapBindingResult (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/error-Dsqzw0Oa.mjs:19:128)
+    at #build (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/rolldown-D_vNlorD.mjs:133:34)
+    at async buildEnvironment (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34716:66)
+    at async Object.build (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:35137:19)
+    at async Object.buildApp (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:35134:153)
+    at async CAC.<anonymous> (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/cli.js:780:3) {
+  errors: [Getter/Setter]
+}
+
+ATTEMPT 25
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 1709 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/defaultProjects-CIs2Id3T.js       0.06 kB
+dist/version.json                             0.19 kB │ gzip:   0.16 kB
+dist/index.html                               1.05 kB │ gzip:   0.49 kB
+dist/assets/transferMatrix-Bdb_DGJd.js        3.55 kB
+dist/assets/unitTests-C8DQFrWW.js            27.41 kB
+dist/assets/calculator-DfXQiS0N.js           46.09 kB
+dist/assets/compute.worker-BUCNbppj.js       76.88 kB
+dist/assets/index-Bjr97GM_.css               57.05 kB │ gzip:  10.28 kB
+dist/assets/ExpertFittingPanel-CWmp8ko_.js   26.26 kB │ gzip:   7.52 kB
+dist/assets/index-DZ7c0tRt.js               454.15 kB │ gzip: 129.27 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/data/defaultProjects.ts is dynamically imported by src/tests/unitTests.ts but also statically imported by src/tests/unitTests.ts, dynamic import will not move module into another chunk.
+
+✗ Build failed in 7.47s
+[33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 6.8s of this 7.4s build (91%).
+The slowest callbacks, timed inside each callback (the wait before a callback starts is excluded, the time it awaits is included):
+  - plugin vite:worker-import-meta-url transform (65%, 4.8s, 1 call)
+  - plugin @tailwindcss/vite:generate:build transform (19%, 1.4s, 1 call)
+Additional callback time came from callbacks under 1s.
+See https://rolldown.rs/reference/InputOptions.checks#bundlertimings for more details.
+
+error during build:
+Build failed with 1 error:
+
+Error: [vite]: Rolldown failed to resolve import "scheduler" from "C:/Users/t22016/Desktop/程式/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.production.js".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rolldownOptions.external`
+    at viteLog (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34809:57)
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34846:71
+    at onwarn (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/@vitejs+plugin-react@6.1.2__973c26d4052aec380c5717e7efdd8a0c/node_modules/@vitejs/plugin-react/dist/index.js:40:7)
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34846:28
+    at onRollupLog (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34841:65)
+    at onLog (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34601:4)
+    at file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/create-bundler-option-2b9QJDoZ.mjs:48:26
+    at logger (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/create-bundler-option-2b9QJDoZ.mjs:39:3)
+    at aggregateBindingErrorsIntoJsError (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/error-Dsqzw0Oa.mjs:49:18)
+    at unwrapBindingResult (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/error-Dsqzw0Oa.mjs:19:128)
+    at #build (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/rolldown@1.2.13/node_modules/rolldown/dist/shared/rolldown-D_vNlorD.mjs:133:34)
+    at async buildEnvironment (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:34716:66)
+    at async Object.build (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:35137:19)
+    at async Object.buildApp (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/chunks/node.js:35134:153)
+    at async CAC.<anonymous> (file:///C:/Users/t22016/Desktop/%E7%A8%8B%E5%BC%8F/autoellipso/AutoEllipso_V2.1/node_modules/.pnpm/vite@8.3.4_@types+node@22.2_5aaadac706b66c70f5b5ff96c5740653/node_modules/vite/dist/node/cli.js:780:3) {
+  errors: [Getter/Setter]
+}
+
+ATTEMPT 26
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 1711 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/defaultProjects-Dx_8s_Pf.js       0.06 kB
+dist/version.json                             0.19 kB │ gzip:   0.16 kB
+dist/index.html                               1.05 kB │ gzip:   0.49 kB
+dist/assets/transferMatrix-Bdb_DGJd.js        3.55 kB
+dist/assets/unitTests-CKO_fTZg.js            27.41 kB
+dist/assets/calculator-DfXQiS0N.js           46.09 kB
+dist/assets/compute.worker-BWpDG2BK.js       76.88 kB
+dist/assets/index-Bjr97GM_.css               57.05 kB │ gzip:  10.28 kB
+dist/assets/ExpertFittingPanel-CXKgEzVL.js   26.26 kB │ gzip:   7.52 kB
+dist/assets/index-DL8ufiqC.js               457.28 kB │ gzip: 130.33 kB
+
+✓ built in 4.08s
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/data/defaultProjects.ts is dynamically imported by src/tests/unitTests.ts but also statically imported by src/tests/unitTests.ts, dynamic import will not move module into another chunk.
+
+
