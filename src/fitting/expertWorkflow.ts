@@ -1,3 +1,4 @@
+import {assessFitAdequacy} from './freeFormOptics';
 import {createKkBsplineModel,fitKkEpsilon2,kkSplineGrid} from '../models/kkBspline';
 import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics, isSplineCoefficient } from './statistics';
@@ -271,7 +272,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   if(!verified)throw new Error('Final forward verification failed');
   const statistics=shouldStop()?undefined:computeFitStatistics(vars.map((v,i)=>({...v,splineCoefficient:isSplineCoefficient(refs[i].key)||/^c\d+$/.test(refs[i].key)})),best,
     vector=>{apply(p,refs,vector);return residual(p,points);},{weights,regularizationResidualsFn:reg(best).length?reg:undefined});
-  final.fittingResult={initialization:session(p).initialization??project.fittingResult?.initialization,statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
+  final.fittingResult={fitAdequacy:assessFitAdequacy(statistics,metrics.weightingMode).fitAdequacy,fitAdequacyWarning:assessFitAdequacy(statistics,metrics.weightingMode).warning,initialization:session(p).initialization??project.fittingResult?.initialization,statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
         weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
     convergenceStatus:shouldStop()?'cancelled':bestStatus,improved:bestObjective<initialObjective,converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
     initialMse:initial,finalMse:metrics.rawMse,initialRmse:Math.sqrt(initial),finalRmse:metrics.rawRmse,

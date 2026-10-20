@@ -1,3 +1,4 @@
+import {assessFitAdequacy} from './freeFormOptics';
 import { computeFitStatistics, isSplineCoefficient } from './statistics';
 /**
  * Unified Fitting Engine
@@ -336,7 +337,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
     updatedSubstrate: clonedSubstrate,
     updatedPoints: finalPoints,
     fittingResult: {
-      statistics,
+      statistics,fitAdequacy:assessFitAdequacy(statistics,finalMetrics.weightingMode).fitAdequacy,fitAdequacyWarning:assessFitAdequacy(statistics,finalMetrics.weightingMode).warning,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
         weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,
       rawMse:finalMetrics.rawMse,rawRmse:finalMetrics.rawRmse,psiRmse:Math.sqrt(finalMetrics.psiMse),deltaRmse:Math.sqrt(finalMetrics.deltaMse),

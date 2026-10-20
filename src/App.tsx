@@ -152,7 +152,7 @@ export default function App() {
   const handleExportNk = () => {
     try {
       if (!project.expert && project.fittingResult && finalOpticalConstants && finalOpticalConstants.length > 0) {
-        exportOpticalConstantsCsv(finalOpticalConstants, `${project.name}_fitted_nk`);
+        exportOpticalConstantsCsv(finalOpticalConstants.map(q=>({...q,fitAdequacy:project.fittingResult?.fitAdequacy})), `${project.name}_fitted_nk`);
         return;
       }
 
@@ -177,7 +177,7 @@ export default function App() {
         const opt = modelDef.calculate(wl, paramRecord);
         return { wavelength: wl, n: opt.n, k: opt.k };
       });
-      exportOpticalConstantsCsv(pointsNk, `${project.name}_${targetLayer.name}_nk`);
+      exportOpticalConstantsCsv(pointsNk.map(q=>({...q,fitAdequacy:project.fittingResult?.fitAdequacy})), `${project.name}_${targetLayer.name}_nk`);
     } catch (err: any) {
       alert('匯出 n/k 失敗: ' + err.message);
     }

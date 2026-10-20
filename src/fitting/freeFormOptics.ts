@@ -4,15 +4,25 @@ import {cubicBasis} from '../models/cubicSpline';
 import type {ResidualMetrics} from './residual';
 
 export interface OpticalConstantPoint {
-  wavelength:number;n:number;k:number;kSigma?:number|null;kCi95?:[number,number]|null;belowDetection?:boolean;
+  wavelength:number;n:number;k:number;kSigma?:number|null;kCi95?:[number,number]|null;belowDetection?:boolean;fitAdequacy?:FitAdequacy;
 }
+export type FitAdequacy='good'|'marginal'|'poor'|'unknown';
+/** Read existing final-point statistics; no new covariance or sigma estimate. */
+export function assessFitAdequacy(statistics:Pick<FitStatistics,'reducedChiSquare'>|undefined,mode?:string):{fitAdequacy:FitAdequacy;warning?:string} {
+  if(mode!=='sigma')return {fitAdequacy:'unknown',warning:'沒有 σ，無法評估擬合是否充分'};
+  const reduced=statistics?.reducedChiSquare;
+  if(reduced==null||!Number.isFinite(reduced))return {fitAdequacy:'unknown',warning:'無可用的 reduced χ²，無法評估擬合是否充分'};
+  const fitAdequacy:FitAdequacy=reduced<=1.5?'good':reduced<=2?'marginal':'poor';
+  return {fitAdequacy,...(fitAdequacy==='good'?{}:{warning:'擬合不足（reduced χ² = '+reduced.toPrecision(6)+'），不確定度與偵測旗標不可信'})};
+}
+export const unreliableUncertainty=(adequacy?:FitAdequacy)=>adequacy==='poor'||adequacy==='marginal';
 export interface OpticalModelComparison {
   freeForm:{mseWoollam:number;rawMse:number;effectiveParameters:number;aic:number;bic:number};
   physical:OpticalModelComparison['freeForm'];
   significantFreeFormMaxK:number;physicalMaxK:number;warning?:string;
 }
 /** Propagate the existing final-point physical covariance; do not estimate another covariance. */
-export function freeFormCurve(wavelengths:number[],knots:number[],n:number[],k:number[],statistics:FitStatistics):OpticalConstantPoint[] {
+export function freeFormCurve(wavelengths:number[],knots:number[],n:number[],k:number[],statistics:FitStatistics,weightingMode?:string):OpticalConstantPoint[] {
   const {ids,matrix}=statistics.covariance,t=statistics.available?studentT975(statistics.dof):0;
   return wavelengths.map(wavelength=>{
     const b=cubicBasis(wavelength,knots),nv=b.reduce((s,x,i)=>s+x*n[i],0),kv=b.reduce((s,x,i)=>s+x*k[i],0);
@@ -23,7 +33,7 @@ export function freeFormCurve(wavelengths:number[],knots:number[],n:number[],k:n
     indices.forEach((i,a)=>{if(i>=0)indices.forEach((j,c)=>{if(j>=0)variance+=b[a]*matrix[i][j]*b[c];});});
     const kSigma=unknown?null:Math.sqrt(Math.max(0,variance));
     const kCi95:[number,number]|null=kSigma===null?null:[kv-t*kSigma,kv+t*kSigma];
-    return {wavelength,n:nv,k:kv,kSigma,kCi95,...(kCi95?{belowDetection:kCi95[0]<=0}:{})};
+    return {wavelength,n:nv,k:kv,kSigma,kCi95,...(kCi95?{belowDetection:kCi95[0]<=0}:{}),...(weightingMode?{fitAdequacy:assessFitAdequacy(statistics,weightingMode).fitAdequacy}:{})};
   });
 }
 export function compareOpticalModels(free:OpticalConstantPoint[],physical:OpticalConstantPoint[],

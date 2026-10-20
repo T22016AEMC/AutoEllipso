@@ -2,7 +2,7 @@ import {SPLINE_STAGES,effectiveSplineParameters,splineBic,continueSplineRefineme
 import type {SplineStageResult} from './splineRefinement';
 import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics } from './statistics';
-import {freeFormCurve,compareOpticalModels} from './freeFormOptics';
+import {freeFormCurve,compareOpticalModels,assessFitAdequacy} from './freeFormOptics';
 /**
  * AutoEllipso — Automated Spectroscopic Ellipsometry Thin-Film Fitting and Optical Constant Extraction
  *
@@ -1209,7 +1209,7 @@ export async function runAutomatedEllipsometryFit(
   });
   const freeWavelengths=Array.from(new Set([...fittingPoints.map(p=>p.wavelength),fitWlMax,
     ...Array.from({length:Math.floor(fitWlMax-fitWlMin)+1},(_,i)=>fitWlMin+i)])).sort((a,b)=>a-b);
-  const freeFormOpticalConstants=freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics);
+  const freeFormOpticalConstants=freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics,residualWeights(fittingPoints,config).mode);
 
   // =========================================================================
   // STEP 4: B-spline Diagnostic
@@ -1867,6 +1867,8 @@ export async function runAutomatedEllipsometryFit(
     return finalFittingPoints.flatMap(pt=>{const c=calculatePoint(ambient,statisticsLayers,substrate,pt.wavelength,pt.aoi);
       return [c.psiDeg-pt.psiExp,circularDifferenceDeg(c.deltaDeg,pt.deltaExp)];});
   },{weights:residualWeights(finalFittingPoints,config).weights});
+  const physicalAdequacy=assessFitAdequacy(statistics,finalMetrics.weightingMode);
+  const freeAdequacy=assessFitAdequacy(freeFormStatistics,residualWeights(fittingPoints,config).mode);
   const freeCount=freeFormStatistics.covariance.ids.length,physicalCount=statistics.covariance.ids.length;
   const physicalComparisonCurve=freeWavelengths.map(wavelength=>({wavelength,...finalModelDef.calculate(wavelength,finalParamRecord)}));
   const opticalModelComparison=compareOpticalModels(freeFormOpticalConstants,physicalComparisonCurve,
@@ -1958,9 +1960,10 @@ export async function runAutomatedEllipsometryFit(
     updatedPoints: finalAllPoints,
     fittingResult: {
       initialization:winningCandidate.initialization,
-      statistics,
+      statistics,fitAdequacy:physicalAdequacy.fitAdequacy,fitAdequacyWarning:physicalAdequacy.warning,
+      freeFormFitAdequacy:freeAdequacy.fitAdequacy,freeFormFitAdequacyWarning:freeAdequacy.warning,
       freeFormStatistics,freeFormOpticalConstants,freeFormCoefficientBounds,opticalModelComparison,freeFormModel,
-      finalOpticalConstants:physicalComparisonCurve,
+      finalOpticalConstants:physicalComparisonCurve.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
       weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,improved:winningCandidate.improved,convergenceStatus:winningCandidate.convergenceStatus,
       perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,psiWeight,deltaWeight,numActiveParams).perAoi).map(([a,m])=>[a,m.mseWoollam])),
@@ -2017,7 +2020,7 @@ export async function runAutomatedEllipsometryFit(
       freshCalculationVerified,
     },
     finalThickness,
-    finalOpticalConstants,
+    finalOpticalConstants:finalOpticalConstants.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),
     modelComparisons: evaluatedCandidates.map((c) => ({
       modelId: c.modelId,
       modelName: c.modelName,

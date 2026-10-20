@@ -1,3 +1,4 @@
+import {unreliableUncertainty} from '../fitting/freeFormOptics';
 /**
  * AutoEllipso Export and Persistence Utilities
  *
@@ -54,7 +55,7 @@ export function opticalConstantsCsv(opticalConstants:import('../fitting/freeForm
   for (const pt of opticalConstants) {
     if(![pt.wavelength,pt.n,pt.k].every(Number.isFinite)||pt.kSigma!=null&&(!Number.isFinite(pt.kSigma)||pt.kSigma<0))throw new Error('Optical constants export requires finite values');
     // 17 significant digits preserve IEEE-754 doubles on CSV round-trip, including very small k.
-    rows.push(`${pt.wavelength},${pt.n.toPrecision(17)},${pt.k.toExponential(16)},${pt.kSigma==null?'':pt.kSigma.toExponential(16)},${pt.belowDetection?'below_detection':''},${source}`);
+    rows.push(`${pt.wavelength},${pt.n.toPrecision(17)},${pt.k.toExponential(16)},${pt.kSigma==null?'':pt.kSigma.toExponential(16)},${[pt.belowDetection?'below_detection':'',unreliableUncertainty(pt.fitAdequacy)?'unreliable':''].filter(Boolean).join(';')},${source}`);
   }
   return rows.join('\n');
 }
@@ -120,6 +121,8 @@ export function exportFittedParametersJson(
   const deltaRmse = pts.length > 0 ? Math.sqrt(sumDeltaSq / pts.length) : 0;
 
   const exportData = {
+    fitAdequacy:project.fittingResult?.fitAdequacy,fitAdequacyWarning:project.fittingResult?.fitAdequacyWarning,
+    freeFormFitAdequacy:project.fittingResult?.freeFormFitAdequacy,freeFormFitAdequacyWarning:project.fittingResult?.freeFormFitAdequacyWarning,
     initialization:project.fittingResult?.initialization,
     statistics:project.fittingResult?.statistics,convergenceStatus:project.fittingResult?.convergenceStatus,
     freeFormOpticalConstants:project.fittingResult?.freeFormOpticalConstants,

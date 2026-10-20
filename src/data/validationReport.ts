@@ -15,6 +15,8 @@ export function createValidationReport(project:EllipsometryProject) {
   const wavelengths=Array.from(new Set(input.map(p=>p.wavelength))).sort((a,b)=>a-b);
   return {
     application:'AutoEllipso',version:APP_VERSION,buildCommit:BUILD_COMMIT,buildTime:BUILD_TIME,generatedAt:new Date().toISOString(),
+    fitAdequacy:project.fittingResult?.fitAdequacy,fitAdequacyWarning:project.fittingResult?.fitAdequacyWarning,
+    freeFormFitAdequacy:project.fittingResult?.freeFormFitAdequacy,freeFormFitAdequacyWarning:project.fittingResult?.freeFormFitAdequacyWarning,
     initialization:project.fittingResult?.initialization,
     freeFormOpticalConstants:project.fittingResult?.freeFormOpticalConstants,
     freeFormStatistics:project.fittingResult?.freeFormStatistics,
