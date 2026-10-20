@@ -61,8 +61,8 @@ function generateBenchmarkData(
       deltaSigma: noiseDeltaDeg,
       psiCalc: pt.psiCalc,
       deltaCalc: pt.deltaCalc,
-      psiResidual: Number((pt.psiCalc! - psiNoisy).toFixed(3)),
-      deltaResidual: Number((pt.deltaCalc! - deltaNoisy).toFixed(3)),
+      psiResidual: pt.psiCalc! - psiNoisy,
+      deltaResidual: pt.deltaCalc! - deltaNoisy,
     };
   });
 }

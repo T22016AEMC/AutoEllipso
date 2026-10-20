@@ -268,7 +268,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
           currentRmse: Math.sqrt(currentCost),
           paramValues: variables.map((v, i) => ({
             name: v.name,
-            value: Number(currentParamVals[i].toFixed(4)),
+            value: currentParamVals[i],
           })),
         });
       }
@@ -296,8 +296,8 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
       layerName: t.layerName || 'Substrate',
       paramId: t.paramId || 'thickness',
       paramName: t.paramName,
-      initialValue: Number(t.initialValue.toFixed(4)),
-      finalValue: Number(finalVal.toFixed(4)),
+      initialValue: t.initialValue,
+      finalValue: finalVal,
       min: t.min,
       max: t.max,
       unit: t.unit,

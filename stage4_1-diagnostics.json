@@ -1,0 +1,1193 @@
+{
+  "runs": [
+    {
+      "scenario": "absorbing",
+      "lambdaN": 0.25,
+      "lambdaK": 0.6,
+      "elapsedMs": 11852.0835,
+      "freeFormThickness": 102.65933704202604,
+      "physicalThickness": 100.07111116343209,
+      "physicalConverged": true,
+      "knots": 12,
+      "comparison": {
+        "freeForm": {
+          "mseWoollam": 5.343663943059108,
+          "rawMse": 0.024212043635196762,
+          "effectiveParameters": 25,
+          "aic": -1557.431002655972,
+          "bic": -1455.7203629498692
+        },
+        "physical": {
+          "mseWoollam": 24.801367381375456,
+          "rawMse": 0.5433452445209256,
+          "effectiveParameters": 8,
+          "aic": -247.52447191650668,
+          "bic": -214.9770672105538
+        },
+        "significantFreeFormMaxK": 0.36319455479264057,
+        "physicalMaxK": 0.4316572484590792
+      },
+      "regularizedStatistics": {
+        "available": true,
+        "dof": 407,
+        "chiSquare": 11621.780944894448,
+        "reducedChiSquare": 28.554744336349994,
+        "conditionNumber": 95.8039578709264,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 25,
+        "warnings": [
+          "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+        ]
+      },
+      "dataOnlyStatistics": {
+        "available": true,
+        "dof": 407,
+        "chiSquare": 11621.780944894448,
+        "reducedChiSquare": 28.554744336349994,
+        "conditionNumber": 104.08157120311859,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 25,
+        "warnings": []
+      },
+      "table": [
+        {
+          "wavelength": 190,
+          "trueK": 0.392876052209544,
+          "fittedK": 0.36319455479264057,
+          "nBias": -0.018302769124732388,
+          "regularizedSigmaK": 0.0008671218043844931,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0009583095626330776,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 200,
+          "trueK": 0.32,
+          "fittedK": 0.3088385189626567,
+          "nBias": -0.0219273423116797,
+          "regularizedSigmaK": 0.0005537532075018222,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0006040321305296159,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 250,
+          "trueK": 0.13107200000000002,
+          "fittedK": 0.1304980669401622,
+          "nBias": -0.033683024623493374,
+          "regularizedSigmaK": 0.00023104173685303594,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00023718063397717412,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 300,
+          "trueK": 0.06320987654320986,
+          "fittedK": 0.060237550274889654,
+          "nBias": -0.030147392174375343,
+          "regularizedSigmaK": 0.0002255167766389245,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0002383717965194858,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 350,
+          "trueK": 0.03411911703456892,
+          "fittedK": 0.03531417820296492,
+          "nBias": -0.0275641434667091,
+          "regularizedSigmaK": 0.00021165796279145778,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0002133427204653147,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 400,
+          "trueK": 0.02,
+          "fittedK": 0.024200284754776546,
+          "nBias": -0.027336315284116397,
+          "regularizedSigmaK": 0.0003557344012054725,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0003859952901813488,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 450,
+          "trueK": 0.01248590153939948,
+          "fittedK": 0.019434923193922978,
+          "nBias": -0.023786225870308764,
+          "regularizedSigmaK": 0.00037285136119637164,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00039926069117874366,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 500,
+          "trueK": 0.008192000000000001,
+          "fittedK": 0.017056273522188817,
+          "nBias": -0.023194802567961137,
+          "regularizedSigmaK": 0.0004527163325448297,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.000489922785201697,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 550,
+          "trueK": 0.0055952462263506595,
+          "fittedK": 0.01697563619869163,
+          "nBias": -0.023678650486745,
+          "regularizedSigmaK": 0.0005845796219483493,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0006325889077504468,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 600,
+          "trueK": 0.0039506172839506165,
+          "fittedK": 0.017369552135649682,
+          "nBias": -0.023211299036594246,
+          "regularizedSigmaK": 0.0006978223536401907,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0007529482603542368,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 650,
+          "trueK": 0.002868246910122195,
+          "fittedK": 0.017508752778105378,
+          "nBias": -0.02218134025944951,
+          "regularizedSigmaK": 0.0007948008335284083,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.000856868240151315,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 700,
+          "trueK": 0.0021324448146605576,
+          "fittedK": 0.018283405629930607,
+          "nBias": -0.021693553577382785,
+          "regularizedSigmaK": 0.0009231655132936699,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0010007162133169967,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 750,
+          "trueK": 0.0016181728395061729,
+          "fittedK": 0.018187015437199642,
+          "nBias": -0.021070447181178453,
+          "regularizedSigmaK": 0.000977079602111596,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0010694370720199663,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 800,
+          "trueK": 0.00125,
+          "fittedK": 0.0177142103049964,
+          "nBias": -0.020708647525350843,
+          "regularizedSigmaK": 0.0010451779353000017,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0011119309135277121,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 810,
+          "trueK": 0.001189405344021441,
+          "fittedK": 0.017646810692559894,
+          "nBias": -0.020710173144484312,
+          "regularizedSigmaK": 0.0010632206190505117,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0011323217448343601,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 820,
+          "trueK": 0.0011324383059996934,
+          "fittedK": 0.017588230195367784,
+          "nBias": -0.020733651870111336,
+          "regularizedSigmaK": 0.0010909887062550624,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0011771595047996937,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 830,
+          "trueK": 0.001078841369040426,
+          "fittedK": 0.017537832651378097,
+          "nBias": -0.020777612406083668,
+          "regularizedSigmaK": 0.0011226119433695462,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0012333914582490035,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 840,
+          "trueK": 0.0010283780934898523,
+          "fittedK": 0.01749498189854887,
+          "nBias": -0.02084062297019651,
+          "regularizedSigmaK": 0.0011500782807381048,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.001281807537666356,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 850,
+          "trueK": 0.0009808311682091928,
+          "fittedK": 0.017459041774838126,
+          "nBias": -0.02092128852151043,
+          "regularizedSigmaK": 0.001168399142210824,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.001306263430398245,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 860,
+          "trueK": 0.0009360006622204685,
+          "fittedK": 0.017429376118203905,
+          "nBias": -0.021018248212030244,
+          "regularizedSigmaK": 0.0011823425073452982,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0013037775392398436,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 870,
+          "trueK": 0.0008937024540912294,
+          "fittedK": 0.017405348766604243,
+          "nBias": -0.02113017304222886,
+          "regularizedSigmaK": 0.0012152158102912698,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0012997398498496933,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 880,
+          "trueK": 0.0008537668192063383,
+          "fittedK": 0.017386323557997158,
+          "nBias": -0.021255763702000108,
+          "regularizedSigmaK": 0.0013158140666576763,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0013684126762157835,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 890,
+          "trueK": 0.0008160371574869313,
+          "fittedK": 0.017371664330340698,
+          "nBias": -0.021393748580450955,
+          "regularizedSigmaK": 0.0015491178028480396,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0016265149039538097,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 900,
+          "trueK": 0.0007803688462124675,
+          "fittedK": 0.017360734921592878,
+          "nBias": -0.021542881929630386,
+          "regularizedSigmaK": 0.00196672188212857,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0021633672145750984,
+          "dataOnlyFlag": ""
+        }
+      ]
+    },
+    {
+      "scenario": "transparent",
+      "lambdaN": 0.25,
+      "lambdaK": 0.15,
+      "elapsedMs": 13860.919699999999,
+      "freeFormThickness": 100.54360221645382,
+      "physicalThickness": 100.1331128454647,
+      "physicalConverged": false,
+      "knots": 12,
+      "comparison": {
+        "freeForm": {
+          "mseWoollam": 2.195081721354053,
+          "rawMse": 0.004105664498416401,
+          "effectiveParameters": 23,
+          "aic": -2328.0074750827475,
+          "bic": -2234.433686553133
+        },
+        "physical": {
+          "mseWoollam": 57.934655085276695,
+          "rawMse": 2.9928116316995617,
+          "effectiveParameters": 4,
+          "aic": 481.5641415414378,
+          "bic": 497.8378438944142
+        },
+        "significantFreeFormMaxK": 0.0035992850724366875,
+        "physicalMaxK": 0,
+        "warning": "物理模型在資料範圍內 k 偏低，與自由形式曲線差異如下：顯著自由形式 max k=0.0035992851，物理 max k=0.0000000（差異 > 2σ_k）。"
+      },
+      "regularizedStatistics": {
+        "available": true,
+        "dof": 409,
+        "chiSquare": 1970.718959239873,
+        "reducedChiSquare": 4.8183837634226725,
+        "conditionNumber": 105.32643646119938,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 23,
+        "warnings": [
+          "其餘參數的不確定度為條件於該參數固定在邊界。",
+          "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+        ]
+      },
+      "dataOnlyStatistics": {
+        "available": true,
+        "dof": 409,
+        "chiSquare": 1970.718959239873,
+        "reducedChiSquare": 4.8183837634226725,
+        "conditionNumber": 105.55140781587777,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 23,
+        "warnings": [
+          "其餘參數的不確定度為條件於該參數固定在邊界。"
+        ]
+      },
+      "table": [
+        {
+          "wavelength": 190,
+          "trueK": 0,
+          "fittedK": 0,
+          "nBias": -0.007493326025339364,
+          "regularizedSigmaK": 0,
+          "regularizedFlag": "below_detection",
+          "dataOnlySigmaK": 0,
+          "dataOnlyFlag": "below_detection"
+        },
+        {
+          "wavelength": 200,
+          "trueK": 0,
+          "fittedK": 0.00013936467102892535,
+          "nBias": -0.006287392627428057,
+          "regularizedSigmaK": 0.00002115485514620088,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00002118009907844267,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 250,
+          "trueK": 0,
+          "fittedK": 0.0003792484913704865,
+          "nBias": -0.007589247529475651,
+          "regularizedSigmaK": 0.000055968724470080935,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00005603866052124331,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 300,
+          "trueK": 0,
+          "fittedK": 0.0002753005440813001,
+          "nBias": -0.006359119273055214,
+          "regularizedSigmaK": 0.00004614278089104754,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00004626565585450565,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 350,
+          "trueK": 0,
+          "fittedK": 0.0003747836186502812,
+          "nBias": -0.005944859908692646,
+          "regularizedSigmaK": 0.00010158346136810539,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0001019307705230431,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 400,
+          "trueK": 0,
+          "fittedK": 0.0009083307101823779,
+          "nBias": -0.0064663973589922374,
+          "regularizedSigmaK": 0.00011832577940096495,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00011870107845076078,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 450,
+          "trueK": 0,
+          "fittedK": 0.0015762022804947885,
+          "nBias": -0.004980383980921488,
+          "regularizedSigmaK": 0.00013845790979317158,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00013885348639765976,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 500,
+          "trueK": 0,
+          "fittedK": 0.001913946260941758,
+          "nBias": -0.004795566343730684,
+          "regularizedSigmaK": 0.0001548110896559464,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0001550741486064008,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 550,
+          "trueK": 0,
+          "fittedK": 0.0024304760615644167,
+          "nBias": -0.00494453775266912,
+          "regularizedSigmaK": 0.00019989681246331806,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00020042879166642713,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 600,
+          "trueK": 0,
+          "fittedK": 0.00287688127369666,
+          "nBias": -0.004818902104106959,
+          "regularizedSigmaK": 0.00024091328157481898,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00024134689072003004,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 650,
+          "trueK": 0,
+          "fittedK": 0.00313505349751302,
+          "nBias": -0.004640812193550836,
+          "regularizedSigmaK": 0.0002708395219341753,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00027131006873663615,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 700,
+          "trueK": 0,
+          "fittedK": 0.0035027235592036843,
+          "nBias": -0.0045490989493019995,
+          "regularizedSigmaK": 0.0003359791105020844,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0003406594746822116,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 750,
+          "trueK": 0,
+          "fittedK": 0.0035920777310904806,
+          "nBias": -0.004383599321378773,
+          "regularizedSigmaK": 0.00036264715010787005,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00037027673653909296,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 800,
+          "trueK": 0,
+          "fittedK": 0.003492365323557754,
+          "nBias": -0.004239654517242508,
+          "regularizedSigmaK": 0.00038804495711991754,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0003898061600803764,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 810,
+          "trueK": 0,
+          "fittedK": 0.0034719264851591474,
+          "nBias": -0.004227344786893461,
+          "regularizedSigmaK": 0.00039815092695553436,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004007040523729514,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 820,
+          "trueK": 0,
+          "fittedK": 0.0034544745726493606,
+          "nBias": -0.0042219980941891055,
+          "regularizedSigmaK": 0.0004168680137267174,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00042376857071287376,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 830,
+          "trueK": 0,
+          "fittedK": 0.0034413069794750183,
+          "nBias": -0.0042242708556663455,
+          "regularizedSigmaK": 0.0004391328412449261,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00045200930032379075,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 840,
+          "trueK": 0,
+          "fittedK": 0.0034337210990827483,
+          "nBias": -0.004234859001804203,
+          "regularizedSigmaK": 0.0004580746534431985,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00047595837190191813,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 850,
+          "trueK": 0,
+          "fittedK": 0.0034330143249191748,
+          "nBias": -0.004254495204348396,
+          "regularizedSigmaK": 0.0004685216619545764,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004881037138919796,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 860,
+          "trueK": 0,
+          "fittedK": 0.0034404840504309265,
+          "nBias": -0.0042839463279875645,
+          "regularizedSigmaK": 0.00047091896602856445,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00048725885736456787,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 870,
+          "trueK": 0,
+          "fittedK": 0.0034574276690646282,
+          "nBias": -0.004324011085879764,
+          "regularizedSigmaK": 0.00047715037851067736,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00048560855760515704,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 880,
+          "trueK": 0,
+          "fittedK": 0.0034851425742669067,
+          "nBias": -0.004375517880603086,
+          "regularizedSigmaK": 0.0005168337449359842,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0005184019092756312,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 890,
+          "trueK": 0,
+          "fittedK": 0.00352492615948439,
+          "nBias": -0.004439322813948765,
+          "regularizedSigmaK": 0.000630807083541259,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.000637863611502657,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 900,
+          "trueK": 0,
+          "fittedK": 0.003578075818163701,
+          "nBias": -0.004516307850650936,
+          "regularizedSigmaK": 0.0008464699322427079,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0008775266540588969,
+          "dataOnlyFlag": ""
+        }
+      ]
+    },
+    {
+      "scenario": "transparent",
+      "lambdaN": 0.25,
+      "lambdaK": 0.6,
+      "elapsedMs": 11026.727599999995,
+      "freeFormThickness": 100.54216376672133,
+      "physicalThickness": 100.13311262628386,
+      "physicalConverged": false,
+      "knots": 12,
+      "comparison": {
+        "freeForm": {
+          "mseWoollam": 2.195070804640947,
+          "rawMse": 0.004105623661440216,
+          "effectiveParameters": 23,
+          "aic": -2328.0117719904606,
+          "bic": -2234.437983460846
+        },
+        "physical": {
+          "mseWoollam": 57.93462986434299,
+          "rawMse": 2.9928090259539295,
+          "effectiveParameters": 4,
+          "aic": 481.5637654126527,
+          "bic": 497.8374677656291
+        },
+        "significantFreeFormMaxK": 0.0035835827478123126,
+        "physicalMaxK": 0,
+        "warning": "物理模型在資料範圍內 k 偏低，與自由形式曲線差異如下：顯著自由形式 max k=0.0035835827，物理 max k=0.0000000（差異 > 2σ_k）。"
+      },
+      "regularizedStatistics": {
+        "available": true,
+        "dof": 409,
+        "chiSquare": 1970.6993574913033,
+        "reducedChiSquare": 4.81833583738705,
+        "conditionNumber": 105.12099155048355,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 23,
+        "warnings": [
+          "其餘參數的不確定度為條件於該參數固定在邊界。",
+          "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+        ]
+      },
+      "dataOnlyStatistics": {
+        "available": true,
+        "dof": 409,
+        "chiSquare": 1970.6993574913033,
+        "reducedChiSquare": 4.81833583738705,
+        "conditionNumber": 105.55169212207149,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 23,
+        "warnings": [
+          "其餘參數的不確定度為條件於該參數固定在邊界。"
+        ]
+      },
+      "table": [
+        {
+          "wavelength": 190,
+          "trueK": 0,
+          "fittedK": 0,
+          "nBias": -0.007474666798268581,
+          "regularizedSigmaK": 0,
+          "regularizedFlag": "below_detection",
+          "dataOnlySigmaK": 0,
+          "dataOnlyFlag": "below_detection"
+        },
+        {
+          "wavelength": 200,
+          "trueK": 0,
+          "fittedK": 0.00013864311672775017,
+          "nBias": -0.006269273406506848,
+          "regularizedSigmaK": 0.000021111999225317233,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00002118059417354499,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 250,
+          "trueK": 0,
+          "fittedK": 0.0003774707193317536,
+          "nBias": -0.007572435349279649,
+          "regularizedSigmaK": 0.00005586359519083953,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.000056039899882008614,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 300,
+          "trueK": 0,
+          "fittedK": 0.0002750327942219006,
+          "nBias": -0.006342507354864413,
+          "regularizedSigmaK": 0.00004598891448021633,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00004626616596251337,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 350,
+          "trueK": 0,
+          "fittedK": 0.0003761359362175854,
+          "nBias": -0.005928854124003458,
+          "regularizedSigmaK": 0.00010105415105678947,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00010193181097272655,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 400,
+          "trueK": 0,
+          "fittedK": 0.0009069087857244344,
+          "nBias": -0.00645094378514921,
+          "regularizedSigmaK": 0.00011801082318842928,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00011870324963789852,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 450,
+          "trueK": 0,
+          "fittedK": 0.0015699480302307522,
+          "nBias": -0.004965645833072241,
+          "regularizedSigmaK": 0.00013793311372818382,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00013885922223313916,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 500,
+          "trueK": 0,
+          "fittedK": 0.0019095207960690191,
+          "nBias": -0.004783137476071175,
+          "regularizedSigmaK": 0.00015459644755629962,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00015507998222420895,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 550,
+          "trueK": 0,
+          "fittedK": 0.0024228714330520344,
+          "nBias": -0.004931388121529157,
+          "regularizedSigmaK": 0.00019937199528357848,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00020043666394186318,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 600,
+          "trueK": 0,
+          "fittedK": 0.0028705115144803364,
+          "nBias": -0.0048068864574577486,
+          "regularizedSigmaK": 0.00024048022527867587,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00024135507099347521,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 650,
+          "trueK": 0,
+          "fittedK": 0.0031305050860280332,
+          "nBias": -0.004630271799413999,
+          "regularizedSigmaK": 0.0002703912002154482,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0002713187798846454,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 700,
+          "trueK": 0,
+          "fittedK": 0.003486380248796671,
+          "nBias": -0.004534021000677013,
+          "regularizedSigmaK": 0.0003301712349852744,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0003406713346842341,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 750,
+          "trueK": 0,
+          "fittedK": 0.003578637709954132,
+          "nBias": -0.004370345349524074,
+          "regularizedSigmaK": 0.00035317610110575226,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0003702889638319726,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 800,
+          "trueK": 0,
+          "fittedK": 0.0034916618783108187,
+          "nBias": -0.004231502864240788,
+          "regularizedSigmaK": 0.000384859657308967,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00038981567432937425,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 810,
+          "trueK": 0,
+          "fittedK": 0.0034731238448826034,
+          "nBias": -0.00421984757458671,
+          "regularizedSigmaK": 0.00039366497913801275,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00040071364979690766,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 820,
+          "trueK": 0,
+          "fittedK": 0.0034569421792130205,
+          "nBias": -0.004214908896869263,
+          "regularizedSigmaK": 0.0004070093425789393,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004237786438931384,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 830,
+          "trueK": 0,
+          "fittedK": 0.0034442354655938754,
+          "nBias": -0.004217291192496475,
+          "regularizedSigmaK": 0.00042206120712796896,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004520201678437261,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 840,
+          "trueK": 0,
+          "fittedK": 0.003436122288316977,
+          "nBias": -0.004227638336819384,
+          "regularizedSigmaK": 0.0004351272977383266,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00047597018469182323,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 850,
+          "trueK": 0,
+          "fittedK": 0.003433721231674128,
+          "nBias": -0.004246630946455721,
+          "regularizedSigmaK": 0.0004440399669266611,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004881163790030671,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 860,
+          "trueK": 0,
+          "fittedK": 0.0034381508799571393,
+          "nBias": -0.004274983830965695,
+          "regularizedSigmaK": 0.0004511732544502462,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004872718990917967,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 870,
+          "trueK": 0,
+          "fittedK": 0.003450529817457817,
+          "nBias": -0.004313443648379156,
+          "regularizedSigmaK": 0.0004673373991505966,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004856208116511613,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 880,
+          "trueK": 0,
+          "fittedK": 0.003471976628467966,
+          "nBias": -0.004362786746145764,
+          "regularizedSigmaK": 0.0005143943390355366,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0005184113801312457,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 890,
+          "trueK": 0,
+          "fittedK": 0.0035036098972793957,
+          "nBias": -0.004423817170928546,
+          "regularizedSigmaK": 0.000619663713052756,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.000637868950740942,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 900,
+          "trueK": 0,
+          "fittedK": 0.0035465482081839103,
+          "nBias": -0.004497364832333206,
+          "regularizedSigmaK": 0.0008026699670005805,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0008775288992633323,
+          "dataOnlyFlag": ""
+        }
+      ]
+    },
+    {
+      "scenario": "transparent",
+      "lambdaN": 0.25,
+      "lambdaK": 2.4,
+      "elapsedMs": 16811.339099999997,
+      "freeFormThickness": 100.5368810992887,
+      "physicalThickness": 100.13311173904842,
+      "physicalConverged": false,
+      "knots": 12,
+      "comparison": {
+        "freeForm": {
+          "mseWoollam": 2.195280308677514,
+          "rawMse": 0.004106407404520625,
+          "effectiveParameters": 23,
+          "aic": -2327.9293132152693,
+          "bic": -2234.355524685655
+        },
+        "physical": {
+          "mseWoollam": 57.93453870312959,
+          "rawMse": 2.9927996074804404,
+          "effectiveParameters": 4,
+          "aic": 481.5624058915759,
+          "bic": 497.83610824455235
+        },
+        "significantFreeFormMaxK": 0.003533872917149786,
+        "physicalMaxK": 0,
+        "warning": "物理模型在資料範圍內 k 偏低，與自由形式曲線差異如下：顯著自由形式 max k=0.0035338729，物理 max k=0.0000000（差異 > 2σ_k）。"
+      },
+      "regularizedStatistics": {
+        "available": true,
+        "dof": 409,
+        "chiSquare": 1971.0755541698989,
+        "reducedChiSquare": 4.819255633667234,
+        "conditionNumber": 104.40481343705537,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 23,
+        "warnings": [
+          "其餘參數的不確定度為條件於該參數固定在邊界。",
+          "共變異包含擬合所用正則化的局部曲率；χ² 與 dof 僅使用實驗資料。"
+        ]
+      },
+      "dataOnlyStatistics": {
+        "available": true,
+        "dof": 409,
+        "chiSquare": 1971.0755541698989,
+        "reducedChiSquare": 4.819255633667234,
+        "conditionNumber": 105.55221873715915,
+        "conditionLevel": "ok",
+        "truncatedSingularValues": 0,
+        "freeParameters": 23,
+        "warnings": [
+          "其餘參數的不確定度為條件於該參數固定在邊界。"
+        ]
+      },
+      "table": [
+        {
+          "wavelength": 190,
+          "trueK": 0,
+          "fittedK": 0,
+          "nBias": -0.007406132254883513,
+          "regularizedSigmaK": 0,
+          "regularizedFlag": "below_detection",
+          "dataOnlySigmaK": 0,
+          "dataOnlyFlag": "below_detection"
+        },
+        {
+          "wavelength": 200,
+          "trueK": 0,
+          "fittedK": 0.00013597026518522031,
+          "nBias": -0.00620270908825904,
+          "regularizedSigmaK": 0.000020958215397113443,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.000021184833377443944,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 250,
+          "trueK": 0,
+          "fittedK": 0.00037083726249575257,
+          "nBias": -0.007510653610373508,
+          "regularizedSigmaK": 0.00005548048812626221,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00005605088148555149,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 300,
+          "trueK": 0,
+          "fittedK": 0.0002737414823698348,
+          "nBias": -0.006281524289200924,
+          "regularizedSigmaK": 0.000045406056816382184,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00004627345344239226,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 350,
+          "trueK": 0,
+          "fittedK": 0.00038032396908018986,
+          "nBias": -0.005870250690186651,
+          "regularizedSigmaK": 0.00009909706441667623,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00010194747151427185,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 400,
+          "trueK": 0,
+          "fittedK": 0.0009013243395429964,
+          "nBias": -0.00639470740628334,
+          "regularizedSigmaK": 0.00011682687070737936,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00011872494001342968,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 450,
+          "trueK": 0,
+          "fittedK": 0.001547551470353265,
+          "nBias": -0.004912093140891027,
+          "regularizedSigmaK": 0.00013622597764543695,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00013889570111520725,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 500,
+          "trueK": 0,
+          "fittedK": 0.0018929969014501627,
+          "nBias": -0.004737259443827746,
+          "regularizedSigmaK": 0.00015380857052139045,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0001551191139165092,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 550,
+          "trueK": 0,
+          "fittedK": 0.002395454383227654,
+          "nBias": -0.0048831349982181305,
+          "regularizedSigmaK": 0.00019767873525196157,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0002004881715956416,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 600,
+          "trueK": 0,
+          "fittedK": 0.002845825388154744,
+          "nBias": -0.004762024004405285,
+          "regularizedSigmaK": 0.00023897539788514613,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00024141305637711646,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 650,
+          "trueK": 0,
+          "fittedK": 0.003111968584259986,
+          "nBias": -0.004590706186513138,
+          "regularizedSigmaK": 0.00026901509108439176,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0002713820082010691,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 700,
+          "trueK": 0,
+          "fittedK": 0.00343224299962327,
+          "nBias": -0.004481486242719379,
+          "regularizedSigmaK": 0.0003189654775948063,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00034075265524569667,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 750,
+          "trueK": 0,
+          "fittedK": 0.003533430024165639,
+          "nBias": -0.004323304426268493,
+          "regularizedSigmaK": 0.00034077337177184296,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00037037486173952796,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 800,
+          "trueK": 0,
+          "fittedK": 0.0034800164600222666,
+          "nBias": -0.004198156720250923,
+          "regularizedSigmaK": 0.0003752898472260237,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0003898969801995893,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 810,
+          "trueK": 0,
+          "fittedK": 0.003465933578384633,
+          "nBias": -0.0041880824632283264,
+          "regularizedSigmaK": 0.00038226755714819216,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004007966478048554,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 820,
+          "trueK": 0,
+          "fittedK": 0.0034525709952851987,
+          "nBias": -0.004184072871804112,
+          "regularizedSigmaK": 0.00039018437687187894,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004238657414836692,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 830,
+          "trueK": 0,
+          "fittedK": 0.0034406762776279308,
+          "nBias": -0.004186624809654926,
+          "regularizedSigmaK": 0.0003983935735384333,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00045211275058204455,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 840,
+          "trueK": 0,
+          "fittedK": 0.0034309969923168016,
+          "nBias": -0.004196274654401089,
+          "regularizedSigmaK": 0.00040647399428222006,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00047606808161489454,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 850,
+          "trueK": 0,
+          "fittedK": 0.0034242807062557787,
+          "nBias": -0.004213595524928282,
+          "regularizedSigmaK": 0.0004154155189717135,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00048821790937273216,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 860,
+          "trueK": 0,
+          "fittedK": 0.0034212749863488344,
+          "nBias": -0.004239194733065776,
+          "regularizedSigmaK": 0.0004291152126224429,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0004873743436226459,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 870,
+          "trueK": 0,
+          "fittedK": 0.003422727399499938,
+          "nBias": -0.004273711439112038,
+          "regularizedSigmaK": 0.0004557413947710202,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.00048572136472587834,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 880,
+          "trueK": 0,
+          "fittedK": 0.0034293855126130584,
+          "nBias": -0.0043178144927853435,
+          "regularizedSigmaK": 0.0005076073466997508,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0005185096484931922,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 890,
+          "trueK": 0,
+          "fittedK": 0.0034419968925921683,
+          "nBias": -0.004372200443017782,
+          "regularizedSigmaK": 0.0005981307573868285,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0006379727828278934,
+          "dataOnlyFlag": ""
+        },
+        {
+          "wavelength": 900,
+          "trueK": 0,
+          "fittedK": 0.003461309106341234,
+          "nBias": -0.004437591701683008,
+          "regularizedSigmaK": 0.0007376356827459569,
+          "regularizedFlag": "",
+          "dataOnlySigmaK": 0.0008776566978819753,
+          "dataOnlyFlag": ""
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

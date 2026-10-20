@@ -35,20 +35,27 @@ export function downloadFile(filename: string, content: string, mimeType: string
  * Columns: Wavelength, n, k
  */
 export function exportOpticalConstantsCsv(
-  opticalConstants: { wavelength: number; n: number; k: number }[],
-  _filename?: string
+  opticalConstants: import('../fitting/freeFormOptics').OpticalConstantPoint[],
+  filename: string = 'AutoEllipso_optical_constants.csv',
+  source: 'physical'|'free_form' = 'physical'
 ): void {
+  const target=source==='physical'?'AutoEllipso_optical_constants.csv':filename.endsWith('.csv')?filename:filename+'.csv';
+  downloadFile(target,opticalConstantsCsv(opticalConstants,source),'text/csv');
+}
+
+export function opticalConstantsCsv(opticalConstants:import('../fitting/freeFormOptics').OpticalConstantPoint[],source:'physical'|'free_form'='physical'):string {
   if (!opticalConstants || opticalConstants.length === 0) {
     throw new Error('無可匯出的光學常數數據 (No optical constants available)。');
   }
 
   const rows: string[] = [];
-  rows.push('Wavelength,n,k');
+  rows.push('Wavelength,n,k,k_sigma,flag,source');
   for (const pt of opticalConstants) {
-    rows.push(`${pt.wavelength},${pt.n},${pt.k}`);
+    if(![pt.wavelength,pt.n,pt.k].every(Number.isFinite)||pt.kSigma!=null&&(!Number.isFinite(pt.kSigma)||pt.kSigma<0))throw new Error('Optical constants export requires finite values');
+    // 17 significant digits preserve IEEE-754 doubles on CSV round-trip, including very small k.
+    rows.push(`${pt.wavelength},${pt.n.toPrecision(17)},${pt.k.toExponential(16)},${pt.kSigma==null?'':pt.kSigma.toExponential(16)},${pt.belowDetection?'below_detection':''},${source}`);
   }
-
-  downloadFile('AutoEllipso_optical_constants.csv', rows.join('\n'), 'text/csv');
+  return rows.join('\n');
 }
 
 /**
@@ -114,6 +121,12 @@ export function exportFittedParametersJson(
   const exportData = {
     initialization:project.fittingResult?.initialization,
     statistics:project.fittingResult?.statistics,convergenceStatus:project.fittingResult?.convergenceStatus,
+    freeFormOpticalConstants:project.fittingResult?.freeFormOpticalConstants,
+    finalOpticalConstants:project.fittingResult?.finalOpticalConstants,
+    freeFormStatistics:project.fittingResult?.freeFormStatistics,
+    freeFormModel:project.fittingResult?.freeFormModel,
+    freeFormCoefficientBounds:project.fittingResult?.freeFormCoefficientBounds,
+    opticalModelComparison:project.fittingResult?.opticalModelComparison,
     expert: project.expert,
     layers: project.layers,
     parameterBoundsAndLocks: primaryLayer?.parameters,

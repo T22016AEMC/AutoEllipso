@@ -183,6 +183,12 @@ export interface FittedParameterResult {
 }
 
 export interface FittingResult {
+  freeFormOpticalConstants?: import('../fitting/freeFormOptics').OpticalConstantPoint[];
+  finalOpticalConstants?: import('../fitting/freeFormOptics').OpticalConstantPoint[];
+  freeFormStatistics?: FitStatistics;
+  freeFormModel?: {primaryLayerIndex:number;layers:Layer[];variables:import('../fitting/optimizer').OptimizationVariable[];lambdaN:number;lambdaK:number};
+  freeFormCoefficientBounds?: {id:string;value:number;min:number;max:number;boundaryHit:boolean}[];
+  opticalModelComparison?: import('../fitting/freeFormOptics').OpticalModelComparison;
   initialization?: PeakInitialization;
   statistics?: FitStatistics;
   convergenceStatus?: ConvergenceStatus;

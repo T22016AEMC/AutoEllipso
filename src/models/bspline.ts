@@ -32,7 +32,7 @@ export function generateAdaptiveKnots(
   const knots: number[] = [];
   for (let i = 0; i < count; i++) {
     const wl = minW + (i / (count - 1)) * (maxW - minW);
-    knots.push(Number(wl.toFixed(1)));
+    knots.push(wl);
   }
   return knots;
 }

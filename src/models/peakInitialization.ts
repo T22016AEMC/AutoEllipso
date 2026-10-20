@@ -51,13 +51,18 @@ export function initializeDetectedPeaks(modelId:string,spectrum:{wavelength:numb
   const supported=['gaussian','lorentz','tauc_lorentz','multi_oscillator'].includes(modelId);
   const capacity=supported?Math.min(maximum,1+Number(!!params.A2)+Number(!!params.A3)):1;
   const info=detectEpsilonPeaks(data,capacity),result=structuredClone(params);
-  const transparent=Math.max(...data.map(p=>p.k))<.035&&Math.max(...data.map(p=>p.eps2))<.18;
-  if(!supported||transparent||(!info.peaksDetected&&!info.edgePeak))
-    return {parameters:result,initialization:{...info,oscillatorsUsed:1,method:transparent?'transparent-legacy-fallback':'single-legacy-fallback'},useLegacyFallback:true};
+  if(!supported)return {parameters:result,initialization:{...info,method:'model-specific-fallback'},useLegacyFallback:true};
   const lo=data[0].energy,hi=data.at(-1)!.energy,range=hi-lo;
   const peaks=[...info.peaks];
   if(info.edgePeak&&peaks.length<capacity)peaks.push({energy:data[0].eps2>data.at(-1)!.eps2?Math.max(.01,lo-.15*range):hi+.15*range,
     height:Math.max(...data.map(p=>p.eps2)),prominence:0,width:.15*range,edgePeak:true});
+  if(!peaks.length) {
+    const maximumPoint=data.reduce((a,b)=>b.eps2>a.eps2?b:a);
+    const flat=Math.max(...data.map(p=>p.eps2))-Math.min(...data.map(p=>p.eps2))<1e-12;
+    peaks.push({energy:flat?(lo+hi)/2:clamp(maximumPoint.energy,lo+.1*range,hi-.1*range),
+      height:Math.max(1e-3,maximumPoint.eps2),prominence:0,width:.15*range,edgePeak:false});
+    info.method='single-inband-fallback';
+  }
   const set=(key:string,value:number,fit=true)=>{const p=result[key];if(p){p.current=clamp(value,p.min,p.max);p.initial=p.current;p.fit=fit;}};
   for(let i=1;i<=3;i++){const suffix=i===1&&modelId!=='multi_oscillator'?'':String(i);set('A'+suffix,0,false);}
   const first=Math.min(...peaks.map(p=>p.energy));

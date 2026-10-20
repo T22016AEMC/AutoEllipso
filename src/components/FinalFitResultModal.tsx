@@ -1,4 +1,5 @@
 import {FitStatisticsPanel,StatisticsWarning,ParameterEstimate} from './FitStatisticsPanel';
+import {OpticalModelComparisonPanel} from './OpticalModelComparisonPanel';
 /**
  * AutoEllipso — Final Fitting Results & Diagnostics Modal
  *
@@ -259,6 +260,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
             </div>
           )}
 
+          <OpticalModelComparisonPanel result={fittingResult}/>
           {/* Fitted Parameters Summary Table */}
           <div className="pt-4 space-y-2">
             <span className="font-semibold text-slate-200 block">

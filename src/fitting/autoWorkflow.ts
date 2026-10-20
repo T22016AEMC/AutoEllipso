@@ -1,5 +1,6 @@
 import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics } from './statistics';
+import {freeFormCurve,compareOpticalModels} from './freeFormOptics';
 /**
  * AutoEllipso — Automated Spectroscopic Ellipsometry Thin-Film Fitting and Optical Constant Extraction
  *
@@ -47,7 +48,7 @@ import {
   circularDifferenceDeg,
   findLargestResidualRegion,
 } from './residual';
-import { ConvergenceStatus } from './numerics';
+import { ConvergenceStatus, FIT_NUMERICS } from './numerics';
 import { optimizeBoundedLM, OptimizationVariable } from './optimizer';
 import {
   generateAdaptiveKnots,
@@ -233,7 +234,7 @@ export function validateExperimentalData(
       continue;
     }
 
-    const key = `${pt.wavelength.toFixed(2)}_${aoi.toFixed(1)}`;
+    const key = `${pt.wavelength}_${aoi}`;
     if (seenWavelengthAoi.has(key)) {
       continue;
     }
@@ -321,10 +322,8 @@ function buildPerturbedPhysicalStartParams(
   if (!modelDef || bsplineSpectrum.length === 0) return params;
 
   const sorted = [...bsplineSpectrum].sort((a, b) => a.wavelength - b.wavelength);
-  const maxK = Math.max(...sorted.map((p) => p.k));
   const minWl = sorted[0].wavelength;
   const maxEnergyEv = 1239.84 / Math.max(120, minWl);
-  const isTransparent = maxK < 0.035;
 
   // Compute target eps1, eps2 at sampled wavelengths for fast least-squares amplitude/eps_inf matching
   const sampleStep = Math.max(1, Math.floor(sorted.length / 16));
@@ -333,7 +332,7 @@ function buildPerturbedPhysicalStartParams(
   const clampAndSet = (key: string, val: number, fit?: boolean) => {
     if (!params[key]) return;
     const c = Math.max(params[key].min, Math.min(params[key].max, val));
-    params[key].current = Number(c.toFixed(4));
+    params[key].current = c;
     if (fit !== undefined) params[key].fit = fit;
   };
 
@@ -404,7 +403,7 @@ function buildPerturbedPhysicalStartParams(
   const epsDelta = epsDeltas[(startIdx * 5) % epsDeltas.length];
 
   // Decide whether this start explores VUV dielectric pole or in-band absorption resonance
-  const useVuvPole = isTransparent ? startIdx % 5 !== 4 : startIdx % 4 === 3;
+  const useVuvPole = startIdx % 5 !== 4;
 
   if (modelId === 'gaussian') {
     const baseE0 = baseParams['E0']?.current ?? 3.6;
@@ -688,10 +687,10 @@ export async function runAutomatedEllipsometryFit(
   cauchyLayers[primaryLayerIndex].parameters = cauchyParams;
   cauchyLayers[primaryLayerIndex].thicknessFit = true;
 
-  // Identify long-wavelength transparent window (upper 60% of wavelength range, >= 420 nm)
-  const transparentWlThreshold = Math.max(420, fitWlMin + 0.4 * (fitWlMax - fitWlMin));
-  const transparentPoints = fittingPoints.filter((p) => p.wavelength >= transparentWlThreshold);
-  const cauchyScanPts = transparentPoints.length >= 6 ? transparentPoints : fastScanPoints;
+  // Existing Stage 1 long-wavelength window; it does not classify or constrain the subsequent k curve.
+  const longWavelengthThreshold = Math.max(420, fitWlMin + 0.4 * (fitWlMax - fitWlMin));
+  const longWavelengthPoints = fittingPoints.filter((p) => p.wavelength >= longWavelengthThreshold);
+  const cauchyScanPts = longWavelengthPoints.length >= 6 ? longWavelengthPoints : fastScanPoints;
 
   // 2D coarse scan over thickness and refractive index A so both low-n (SiO2 ~ 1.46) and high-n (TiO2 ~ 2.4) find their true basin
   const candidateAs = [1.45, 1.65, 1.95, 2.35];
@@ -906,9 +905,8 @@ export async function runAutomatedEllipsometryFit(
 
   // Regularization weights:
   //   regularizedObjective = rawMse + lambdaN * smoothN + lambdaK * smoothK
-  const isTransparentBaseline = cauchyFinalMse < 1.0 && !prefitSpectrumMap;
-  const lambdaN = isTransparentBaseline ? 0.35 : 0.25;
-  const lambdaK = isTransparentBaseline ? 8.0 : 0.6;
+  const lambdaN = 0.25;
+  const lambdaK = 0.6;
   const knotImprovementTolerance = 0.005;
 
   let activeKnots: number[] = generateAdaptiveKnots(fitWlMin, fitWlMax, 8);
@@ -916,7 +914,7 @@ export async function runAutomatedEllipsometryFit(
     prefitSpectrumMap ? prefitSpectrumMap(wl).n : evalBaselineN(wl)
   );
   let activeKCoeffs: number[] = activeKnots.map((wl) =>
-    prefitSpectrumMap ? prefitSpectrumMap(wl).k : 0.0002
+    prefitSpectrumMap ? Math.max(1e-12, prefitSpectrumMap(wl).k) : 1e-3
   );
   let activeBsplineThickness = bsplineInitialThickness;
   let activeBsplineRawMse = cauchyFinalMse;
@@ -929,6 +927,9 @@ export async function runAutomatedEllipsometryFit(
 
   const knotRefinementHistory: KnotStageRecord[] = [];
   const bsplineLayers: Layer[] = JSON.parse(JSON.stringify(workingLayers));
+  let bestSplineVariables: OptimizationVariable[] = [];
+  let bestSplineResidual: (p:number[])=>number[] = ()=>[];
+  let bestSplineRegularization: (p:number[])=>number[] = ()=>[];
   bsplineLayers[primaryLayerIndex].modelId = 'bspline';
   bsplineLayers[primaryLayerIndex].thicknessFit = true;
 
@@ -942,14 +943,14 @@ export async function runAutomatedEllipsometryFit(
     let initNCoeffs: number[];
     let initKCoeffs: number[];
     if (stageIdx === 0) {
-      initNCoeffs = stageKnots.map((wl) => Number((prefitSpectrumMap ? prefitSpectrumMap(wl).n : evalBaselineN(wl)).toFixed(4)));
-      initKCoeffs = stageKnots.map((wl) => Number((prefitSpectrumMap ? prefitSpectrumMap(wl).k : 0.0002).toFixed(4)));
+      initNCoeffs = stageKnots.map((wl) => (prefitSpectrumMap ? prefitSpectrumMap(wl).n : evalBaselineN(wl)));
+      initKCoeffs = stageKnots.map((wl) => (prefitSpectrumMap ? Math.max(1e-12, prefitSpectrumMap(wl).k) : 1e-3));
     } else {
       initNCoeffs = stageKnots.map((wl) =>
-        Number(Math.max(1.0, evaluateAdaptiveSpline(wl, activeKnots, activeNCoeffs)).toFixed(4))
+        Math.max(1.0, evaluateAdaptiveSpline(wl, activeKnots, activeNCoeffs))
       );
       initKCoeffs = stageKnots.map((wl) =>
-        Number(Math.max(0.0, evaluateAdaptiveSpline(wl, activeKnots, activeKCoeffs)).toFixed(4))
+        Math.max(1e-12, evaluateAdaptiveSpline(wl, activeKnots, activeKCoeffs))
       );
     }
 
@@ -1011,7 +1012,7 @@ export async function runAutomatedEllipsometryFit(
 
     for (let i = 0; i < stageKnotCount; i++) {
       const kInit = initKCoeffs[i];
-      const kMax = isTransparentBaseline ? 0.06 : Math.min(3.5, Math.max(0.4, kInit + 1.2));
+      const kMax = Math.min(3.5, Math.max(0.4, kInit + 1.2));
       stageParamDict[`K${i}`] = {
         id: `K${i}`,
         name: `Extinction Node ${i + 1}`,
@@ -1110,12 +1111,12 @@ export async function runAutomatedEllipsometryFit(
 
     knotRefinementHistory.push({
       knots: stageKnotCount,
-      rawMse: Number(stageRawMse.toFixed(5)),
+      rawMse: stageRawMse,
       // Preserve the legacy Raw diagnostic contract; weighted fields are the optimized objective.
-      regularizationPenalty: Number(smoothInfo.regularizationPenalty.toFixed(5)),
-      totalObjective: Number((stageRawMse+smoothInfo.regularizationPenalty).toFixed(5)),
+      regularizationPenalty: smoothInfo.regularizationPenalty,
+      totalObjective: (stageRawMse+smoothInfo.regularizationPenalty),
       weightedRegularizationPenalty:stageRegPenalty,weightedTotalObjective:stageTotalObj,
-      thicknessNm: Number(stageT.toFixed(2)),
+      thicknessNm: stageT,
     });
 
     log(
@@ -1124,6 +1125,9 @@ export async function runAutomatedEllipsometryFit(
 
     const prevRawMse = activeBsplineRawMse;
     if (stageIdx === 0 || stageTotalObj < activeBsplineTotalObj) {
+      bestSplineVariables=structuredClone(stageVars);
+      bestSplineResidual=bsplineExpResidualFn;
+      bestSplineRegularization=bsplineRegResidualFn;
       activeKnots = stageKnots;
       activeNCoeffs = stageN;
       activeKCoeffs = stageK;
@@ -1157,7 +1161,7 @@ export async function runAutomatedEllipsometryFit(
   const finalBsplineParamDict: Record<string, ParameterValue> = {};
   const finalBsplineCoeffRecord: Record<string, number> = {};
   for (let i = 0; i < activeKnots.length; i++) {
-    finalBsplineCoeffRecord[`N${i}`] = Number(activeNCoeffs[i].toFixed(5));
+    finalBsplineCoeffRecord[`N${i}`] = activeNCoeffs[i];
     finalBsplineParamDict[`N${i}`] = {
       id: `N${i}`,
       name: `Refractive Index Node ${i + 1}`,
@@ -1171,7 +1175,7 @@ export async function runAutomatedEllipsometryFit(
     };
   }
   for (let i = 0; i < activeKnots.length; i++) {
-    finalBsplineCoeffRecord[`K${i}`] = Number(activeKCoeffs[i].toFixed(5));
+    finalBsplineCoeffRecord[`K${i}`] = activeKCoeffs[i];
     finalBsplineParamDict[`K${i}`] = {
       id: `K${i}`,
       name: `Extinction Node ${i + 1}`,
@@ -1188,8 +1192,24 @@ export async function runAutomatedEllipsometryFit(
   finalBsplineParamDict._knotCount={id:'_knotCount',name:'Count',unit:'',current:activeKnots.length,initial:activeKnots.length,min:4,max:20,fit:false};
   activeKnots.forEach((w,i)=>finalBsplineParamDict[`_knot${i}`]={id:`_knot${i}`,name:'Knot',unit:'nm',current:w,initial:w,min:150,max:2500,fit:false});
   bsplineLayers[primaryLayerIndex].parameters = finalBsplineParamDict;
+  for(const variable of bestSplineVariables)if(variable.id!=='thickness') {
+    finalBsplineParamDict[variable.id].min=variable.min;
+    finalBsplineParamDict[variable.id].max=variable.max;
+  }
   bsplineLayers[primaryLayerIndex].thickness = activeBsplineThickness;
   const finalBsplineThickness = activeBsplineThickness;
+  const splineVector=[finalBsplineThickness,...activeNCoeffs,...activeKCoeffs];
+  const freeFormStatistics=computeFitStatistics(bestSplineVariables.map(v=>({...v,splineCoefficient:/^[NK]\d+$/.test(v.id)})),
+    splineVector,bestSplineResidual,{weights:residualWeights(fittingPoints,config).weights,regularizationResidualsFn:bestSplineRegularization});
+  const freeFormModel={primaryLayerIndex,layers:structuredClone(bsplineLayers),
+    variables:bestSplineVariables.map((v,i)=>({...v,value:splineVector[i]})),lambdaN,lambdaK};
+  const freeFormCoefficientBounds=bestSplineVariables.filter(v=>v.id.startsWith('K')).map((v,i)=>{
+    const value=activeKCoeffs[i],u=(value-v.min)/(v.max-v.min);
+    return {id:v.id,value,min:v.min,max:v.max,boundaryHit:u<=FIT_NUMERICS.boundaryEpsilon||u>=1-FIT_NUMERICS.boundaryEpsilon};
+  });
+  const freeWavelengths=Array.from(new Set([...fittingPoints.map(p=>p.wavelength),fitWlMax,
+    ...Array.from({length:Math.floor(fitWlMax-fitWlMin)+1},(_,i)=>fitWlMin+i)])).sort((a,b)=>a-b);
+  const freeFormOpticalConstants=freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics);
 
   // =========================================================================
   // STEP 4: B-spline Diagnostic
@@ -1225,7 +1245,7 @@ export async function runAutomatedEllipsometryFit(
   for (let w = fitWlMin; w <= fitWlMax; w += stepWl) {
     const opt = bsplineDef.calculate(w, { ...finalBsplineCoeffRecord, _knotCount: activeKnots.length, ...Object.fromEntries(activeKnots.map((w,i)=>[`_knot${i}`,w])) });
     bsplineContinuousSpectrum.push({
-      wavelength: Number(w.toFixed(1)),
+      wavelength: w,
       n: opt.n,
       k: opt.k,
     });
@@ -1313,9 +1333,9 @@ export async function runAutomatedEllipsometryFit(
     });
 
     const rawGridSet = new Set<number>();
-    rawGridSet.add(Number(finalBsplineThickness.toFixed(2)));
-    rawGridSet.add(Number(finalCauchyThickness.toFixed(2)));
-    rawGridSet.add(Number(primaryLayer.thickness.toFixed(2)));
+    rawGridSet.add(finalBsplineThickness);
+    rawGridSet.add(finalCauchyThickness);
+    rawGridSet.add(primaryLayer.thickness);
 
     // Interference phase-period harmonics: D_pi = lambda_avg / (2 * sqrt(n^2 - sin^2(theta)))
     const avgN =
@@ -1328,7 +1348,7 @@ export async function runAutomatedEllipsometryFit(
       for (const mult of [-2, -1, -0.5, -0.15, -0.06, 0.06, 0.15, 0.5, 1, 2]) {
         const cand = refD + mult * halfWavePeriodNm;
         if (cand >= tMin && cand <= tMax) {
-          rawGridSet.add(Number(cand.toFixed(2)));
+          rawGridSet.add(cand);
         }
       }
     }
@@ -1343,7 +1363,7 @@ export async function runAutomatedEllipsometryFit(
     const linearSteps = 60;
     for (let s = 0; s <= linearSteps; s++) {
       const val = tMin + (s / linearSteps) * (linearSearchMax - tMin);
-      rawGridSet.add(Number(val.toFixed(2)));
+      rawGridSet.add(val);
     }
 
     const sortedGrid = Array.from(rawGridSet).sort((a, b) => a - b);
@@ -1593,14 +1613,14 @@ export async function runAutomatedEllipsometryFit(
 
       const finalParamsRecord: Record<string, number> = {};
       for (const [pKey, pVal] of Object.entries(startLayers[primaryLayerIndex].parameters)) {
-        finalParamsRecord[pKey] = Number(pVal.current.toFixed(4));
+        finalParamsRecord[pKey] = pVal.current;
       }
 
       multiStartRuns.push({
         startIndex: startIdx + 1,
-        initialThickness: Number(startT.toFixed(2)),
-        finalThickness: Number(startLayers[primaryLayerIndex].thickness.toFixed(2)),
-        rawMse: Number(fullMetrics.rawMse.toFixed(5)),
+        initialThickness: startT,
+        finalThickness: startLayers[primaryLayerIndex].thickness,
+        rawMse: fullMetrics.rawMse,
         initialParams: initialParamsRecord,
         finalParams: finalParamsRecord,
       });
@@ -1679,8 +1699,8 @@ export async function runAutomatedEllipsometryFit(
     // Update the corresponding record in multiStartRuns
     const winRunRecord = multiStartRuns.find((r) => r.startIndex === bestStartState.startIndex);
     if (winRunRecord) {
-      winRunRecord.finalThickness = Number(bestStartState.layers[primaryLayerIndex].thickness.toFixed(2));
-      winRunRecord.rawMse = Number(bestStartState.rawMse.toFixed(5));
+      winRunRecord.finalThickness = bestStartState.layers[primaryLayerIndex].thickness;
+      winRunRecord.rawMse = bestStartState.rawMse;
     }
 
     const bestEvalPts = calculateSpectrum(ambient, bestStartState.layers, substrate, fittingPoints);
@@ -1698,8 +1718,8 @@ export async function runAutomatedEllipsometryFit(
         layerName: bestStartState.layers[primaryLayerIndex].name,
         paramId: 'thickness',
         paramName: '膜層厚度 (Thickness)',
-        initialValue: Number(bestStartState.initialThickness.toFixed(2)),
-        finalValue: Number(bestStartState.layers[primaryLayerIndex].thickness.toFixed(2)),
+        initialValue: bestStartState.initialThickness,
+        finalValue: bestStartState.layers[primaryLayerIndex].thickness,
         min: tMin,
         max: tMax,
         unit: 'nm',
@@ -1714,8 +1734,8 @@ export async function runAutomatedEllipsometryFit(
           layerName: bestStartState.layers[primaryLayerIndex].name,
           paramId: pKey,
           paramName: pVal.name || pKey,
-          initialValue: Number((bestStartState.initialParamsRecord[pKey] ?? pVal.initial).toFixed(4)),
-          finalValue: Number(pVal.current.toFixed(4)),
+          initialValue: (bestStartState.initialParamsRecord[pKey] ?? pVal.initial),
+          finalValue: pVal.current,
           min: pVal.min,
           max: pVal.max,
           unit: pVal.unit || '',
@@ -1827,9 +1847,9 @@ export async function runAutomatedEllipsometryFit(
   for (let w = minW; w <= maxW; w += 1.0) {
     const opt = finalModelDef.calculate(w, finalParamRecord);
     finalOpticalConstants.push({
-      wavelength: Number(w.toFixed(1)),
-      n: Number(opt.n.toFixed(4)),
-      k: Number(opt.k.toFixed(4)),
+      wavelength: w,
+      n: opt.n,
+      k: opt.k,
     });
   }
 
@@ -1847,6 +1867,11 @@ export async function runAutomatedEllipsometryFit(
     return finalFittingPoints.flatMap(pt=>{const c=calculatePoint(ambient,statisticsLayers,substrate,pt.wavelength,pt.aoi);
       return [c.psiDeg-pt.psiExp,circularDifferenceDeg(c.deltaDeg,pt.deltaExp)];});
   },{weights:residualWeights(finalFittingPoints,config).weights});
+  const freeCount=freeFormStatistics.covariance.ids.length,physicalCount=statistics.covariance.ids.length;
+  const physicalComparisonCurve=freeWavelengths.map(wavelength=>({wavelength,...finalModelDef.calculate(wavelength,finalParamRecord)}));
+  const opticalModelComparison=compareOpticalModels(freeFormOpticalConstants,physicalComparisonCurve,
+    computeResidualMetrics(bsplineEval,config.fitWeighting,psiWeight,deltaWeight,freeCount),
+    computeResidualMetrics(finalFittingPoints,config.fitWeighting,psiWeight,deltaWeight,physicalCount),freeCount,physicalCount);
 
   const targetAchieved = finalMetrics.rawMse < TARGET_MSE;
   const finalStatus: FittingResult['status'] = targetAchieved ? 'target_achieved' : 'target_not_achieved';
@@ -1897,10 +1922,10 @@ export async function runAutomatedEllipsometryFit(
       nodeCoefficients: finalBsplineCoeffRecord,
       thicknessNm: finalBsplineThickness,
       rawMse: bsplineFinalMse,
-      regularizationPenalty: Number(activeBsplineRegPenalty.toFixed(5)),
-      smoothN: Number(activeBsplineSmoothN.toFixed(6)),
-      smoothK: Number(activeBsplineSmoothK.toFixed(6)),
-      totalObjective: Number((bsplineFinalMse + activeBsplineRegPenalty).toFixed(5)),
+      regularizationPenalty: activeBsplineRegPenalty,
+      smoothN: activeBsplineSmoothN,
+      smoothK: activeBsplineSmoothK,
+      totalObjective: (bsplineFinalMse + activeBsplineRegPenalty),
       weightedRegularizationPenalty:activeWeightedRegPenalty,weightedTotalObjective:activeBsplineTotalObj,
       rmse: bsplineFinalRmse,
       psiRmse: bsplinePsiRmse,
@@ -1909,11 +1934,11 @@ export async function runAutomatedEllipsometryFit(
     },
     selectedPhysicalModel: MODEL_NAMES[finalModelId] || finalModelDef.name,
     physicalModelParameters: finalParamRecord,
-    finalThicknessNm: Number(finalThickness.toFixed(2)),
+    finalThicknessNm: finalThickness,
     rawMse: finalMetrics.rawMse,
     rawRmse: finalMetrics.rawRmse,
-    psiRmse: Number(finalPsiRmse.toFixed(4)),
-    deltaRmse: Number(finalDeltaRmse.toFixed(4)),
+    psiRmse: finalPsiRmse,
+    deltaRmse: finalDeltaRmse,
     perAoiMse,
     multiStartSummary: {
       totalStarts: winningCandidate.multiStartRuns.length,
@@ -1934,6 +1959,8 @@ export async function runAutomatedEllipsometryFit(
     fittingResult: {
       initialization:winningCandidate.initialization,
       statistics,
+      freeFormStatistics,freeFormOpticalConstants,freeFormCoefficientBounds,opticalModelComparison,freeFormModel,
+      finalOpticalConstants:physicalComparisonCurve,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
       weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,improved:winningCandidate.improved,convergenceStatus:winningCandidate.convergenceStatus,
       perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,psiWeight,deltaWeight,numActiveParams).perAoi).map(([a,m])=>[a,m.mseWoollam])),
@@ -1945,8 +1972,8 @@ export async function runAutomatedEllipsometryFit(
       finalRmse: finalMetrics.rawRmse,
       rawMse: finalMetrics.rawMse,
       rawRmse: finalMetrics.rawRmse,
-      psiRmse: Number(finalPsiRmse.toFixed(4)),
-      deltaRmse: Number(finalDeltaRmse.toFixed(4)),
+      psiRmse: finalPsiRmse,
+      deltaRmse: finalDeltaRmse,
       weightedMse: finalMetrics.weightedMse,
       targetMse: TARGET_MSE,
       targetAchieved,
@@ -1971,10 +1998,10 @@ export async function runAutomatedEllipsometryFit(
         rawRmse: bsplineFinalRmse,
         psiRmse: bsplinePsiRmse,
         deltaRmse: bsplineDeltaRmse,
-        regularizationPenalty: Number(activeBsplineRegPenalty.toFixed(5)),
-        smoothN: Number(activeBsplineSmoothN.toFixed(6)),
-        smoothK: Number(activeBsplineSmoothK.toFixed(6)),
-        totalObjective: Number((bsplineFinalMse + activeBsplineRegPenalty).toFixed(5)),
+        regularizationPenalty: activeBsplineRegPenalty,
+        smoothN: activeBsplineSmoothN,
+        smoothK: activeBsplineSmoothK,
+        totalObjective: (bsplineFinalMse + activeBsplineRegPenalty),
       weightedRegularizationPenalty:activeWeightedRegPenalty,weightedTotalObjective:activeBsplineTotalObj,
         activeKnots: activeKnots.length,
         knotRefinementHistory,

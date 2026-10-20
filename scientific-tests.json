@@ -323,5 +323,45 @@
     "name": "Stage4 D: Expert stages preserve optional KK model and expose independent parameters",
     "passed": true,
     "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: flat-spectrum fallback stays in band with positive absorption",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: Automatic absorbing k and propagated uncertainty",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: Automatic transparent k and propagated uncertainty",
+    "passed": false,
+    "detail": "AssertionError [ERR_ASSERTION]: high wavelength detection flags"
+  },
+  {
+    "name": "Stage4.1: Automatic weak k and propagated uncertainty",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: covariance propagation uses existing statistics and retains below-detection k",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: optical CSV small k survives round-trip with stable first columns and both sources",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: SiO2 regression and timing against Stage3/4 baseline",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: no absorption threshold branching or optical four-decimal rounding",
+    "passed": true,
+    "detail": "PASS"
   }
 ]
