@@ -1,0 +1,367 @@
+[
+  {
+    "name": "Woollam MSE on synthetic data at ground truth",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Sigma weighting changes the objective but not Raw MSE",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Missing sigma falls back to uniform with warning",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Central-difference Jacobian",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Converged flag is not set by mere improvement",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Optimizer weighting, regularization scaling and weight count validation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Weighted LM optimum and seventh progress argument are consistent",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Engine and Expert jointly optimize heterogeneous sigma across AOIs",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Delta convention matches Woollam/Horiba/Fujiwara",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "CSV sigma columns and delta convention",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Synthetic sigma describes reproducible Box-Muller noise without measurement rounding",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Legacy project clears calculated spectra and MSE in candidates without changing measurements",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Bare interface TMM agrees with analytic Fresnel at several AOIs",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Single transparent and absorbing layers agree with independent recursion",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Multi-layer absorbing stack agrees with independent recursion",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Zero thickness removes a layer",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Opaque passive layer has finite physical limiting reflection",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Delta circular wrapping including ±360 and multiple rotations",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Unscaled Raw MSE and per AOI use both psi and wrapped delta",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Nonuniform cubic basis partition of unity and endpoint interpolation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Four controls give exact cubic Bezier basis",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Dielectric square root reconstruction including negative eps1 / n below 1",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Gaussian analytic Hilbert transform agrees with independent KK quadrature",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "KK principal value reproduces analytic Lorentz susceptibility including narrow peaks",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Tauc-Lorentz band gap, positivity, linearity and quadrature convergence",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Mixed Lorentz + Drude responses sum epsilon, not n/k",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Every mixed peak type supports duplicate/delete/disable/serialization and free correction",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Manual spline changes affect real TMM and knot projection retains constant response",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Validation rejects absent AOI, invalid bounds and nonfinite data",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Synthetic multi-AOI jointly recovers thickness and n from manual parameters",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Manual physical handoff preserves peak metadata, locked values, substrate, AOI and thickness",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "All locked parameters keep true forward error (no fabricated zero objective)",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Candidate snapshots preserve project data and exclude recursive history",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Manual n and k spline coefficients are optimized from their actual edited values",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Global thickness search evaluates physical TMM and 20 starts recover distant solution",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Locked-variable optimizer returns measured nonzero cost and regularization",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Legacy Lorentz / Tauc / mixed models preserve dielectric conversion without n or eps1 floor",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Mixed Lorentz and Drude synthetic response recovers manually seeded peak amplitudes",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Multi-layer multi-AOI synthetic thickness recovery",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Independent Expert stages 0 through 5 execute and preserve full data and handoff source",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Legacy project JSON upgrades spline grid, while V2 candidate/peak locks round-trip exactly",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Entering peak builder retains manual n/k exactly as a labeled noncausal baseline",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "SVD reconstruction and Moore-Penrose identities: random, Hilbert and rank deficient",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "SVD solution agrees with normal equations on a well-conditioned problem to 1e-9",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Student t 97.5 percent quantiles against tabulated values",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Relative convergence is invariant to uniform sigma scaling",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Fresh final Jacobian, physical scaling, covariance and unscaled standard errors",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Boundary parameters have no uncertainty; remaining errors are conditional",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Locked variables excluded and spline coefficients included in dof and covariance",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Rank deficiency flags non-identifiable parameters without nonfinite JSON values",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Nonpositive dof returns warning without uncertainty calculation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Monte Carlo: 100 seeded multi-AOI thickness fits and reported uncertainties",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Ultrathin film: thickness-index correlation and condition warning fields",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Automatic multi-AOI sigma fit converges and retains baseline fit within tolerance",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Fit statistics survive project JSON and validation report; legacy fields remain optional",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Statistics UI renders errors, confidence intervals, warnings and correlation matrix",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 A: analytic TL versus independent KK, domain and boundary protection",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 B: deterministic two/three peak detection with and without noise",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 B: model-specific multi-peak seeds, metadata and edge seed are reproducible",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 C: explicit grids remain bit-identical under interleaved calls and fits",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: KK basis independent quadrature, positivity, linear Jacobian and instance cache",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: TL epsilon2 projection records epsilon1 truncation deviation",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: synthetic multi-AOI TL layer fitted by KK spline",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 E: high physical correlation upgrades condition level without changing kappa",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4 D: Expert stages preserve optional KK model and expose independent parameters",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: flat-spectrum fallback stays in band with positive absorption",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: Automatic absorbing k and propagated uncertainty",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: Automatic transparent k and propagated uncertainty",
+    "passed": false,
+    "detail": "AssertionError [ERR_ASSERTION]: high wavelength detection flags"
+  },
+  {
+    "name": "Stage4.1: Automatic weak k and propagated uncertainty",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: covariance propagation uses existing statistics and retains below-detection k",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: optical CSV small k survives round-trip with stable first columns and both sources",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: SiO2 regression and timing against Stage3/4 baseline",
+    "passed": true,
+    "detail": "PASS"
+  },
+  {
+    "name": "Stage4.1: no absorption threshold branching or optical four-decimal rounding",
+    "passed": true,
+    "detail": "PASS"
+  }
+]
