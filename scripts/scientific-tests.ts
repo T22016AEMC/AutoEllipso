@@ -20,6 +20,7 @@ import {inspectCsv,convertRowsToPoints} from '../src/data/csvParser';
 import {normalizeDeltaDeg,psiDeltaFromRho} from '../src/solver/ellipsometricAngles';
 import {runAutoFit} from '../src/fitting/engine';
 import {stage3Tests} from './stage3-tests';
+import {stage43Tests} from './stage4_3-tests';
 import {stage41Tests} from './stage4_1-tests';
 import {stage4Tests} from './stage4-tests';
 const results:{name:string;passed:boolean;detail:string}[]=[];
@@ -360,6 +361,7 @@ await test('Entering peak builder retains manual n/k exactly as a labeled noncau
 await stage3Tests(test);
 await stage4Tests(test);
 await stage41Tests(test);
+await stage43Tests(test);
 writeFileSync('scientific-tests.json',JSON.stringify(results,null,2));
 console.log(JSON.stringify({total:results.length,passed:results.filter(r=>r.passed).length,failures:results.filter(r=>!r.passed)},null,2));
 if(results.some(r=>!r.passed))process.exitCode=1;
