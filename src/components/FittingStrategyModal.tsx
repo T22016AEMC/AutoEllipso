@@ -4,7 +4,7 @@
  * Implements full user control for AutoEllipso:
  * - Sample Structure: Single Layer (Default) vs Multi-Layer
  * - Target Physical Model: Gaussian, Lorentz, Tauc-Lorentz, Drude, Automatic (No Cauchy/B-spline here!)
- * - Adaptive B-spline Knots: 8, 12, 16, 20
+ * - Adaptive B-spline Knots: 8, 12, 16, 20, 24, 32, 40
  * - Thickness Search Grid: Min (0.1) ~ Max (5000) nm
  * - Fitting Strategy: Standard vs Aggressive
  * - Multi-Start Joint Optimization toggle
@@ -46,7 +46,7 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
   const mode = config.fittingStrategy || 'aggressive';
   const targetMse = config.targetMse ?? 10.0;
   const maxOscillators = config.maxOscillators ?? 3;
-  const knotCount = config.knotCount ?? (mode === 'aggressive' ? 12 : 8);
+  const knotCount = config.maxBsplineKnots ?? config.knotCount ?? 40;
   const minThickness = config.minThickness ?? 0.1;
   const maxThickness = config.maxThickness ?? 5000.0;
   const enableMultiStart = config.enableMultiStart ?? true;
@@ -62,7 +62,8 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
       fittingStrategy: 'aggressive',
       targetMse: 10.0,
       maxOscillators: 3,
-      knotCount: 12,
+      knotCount: 40,
+      maxBsplineKnots: 40,
       minThickness: 0.1,
       maxThickness: 5000.0,
       enableMultiStart: true,
@@ -207,13 +208,13 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
           <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-slate-300 font-semibold mb-1 flex items-center justify-between">
-                <span>Adaptive B-spline 節點數</span>
+                <span>Adaptive B-spline 節點上限</span>
                 <span className="text-cyan-400 font-mono text-[11px]">{knotCount} Knots</span>
               </label>
               <select
                 value={knotCount}
                 onChange={(e) =>
-                  onUpdateConfig({ ...config, knotCount: parseInt(e.target.value, 10) })
+                  onUpdateConfig({ ...config, knotCount: parseInt(e.target.value, 10), maxBsplineKnots: parseInt(e.target.value, 10) })
                 }
                 className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 font-mono text-slate-100 focus:outline-none focus:border-cyan-500"
               >
@@ -224,7 +225,7 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
                 <option value={24}>24 Knots</option><option value={32}>32 Knots</option><option value={40}>40 Knots (上限)</option>
               </select>
               <span className="text-[10px] text-slate-500 mt-1 block">
-                動態自適應對齊實驗光譜波長範圍
+                逐階暖啟動，依資料 BIC 決定停止與採用階段
               </span>
             </div>
 
