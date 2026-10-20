@@ -220,7 +220,8 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
                 <option value={8}>8 Knots (Standard 標準)</option>
                 <option value={12}>12 Knots (Standard / Aggressive)</option>
                 <option value={16}>16 Knots (Aggressive 高解析度)</option>
-                <option value={20}>20 Knots (Aggressive 上限)</option>
+                <option value={20}>20 Knots</option>
+                <option value={24}>24 Knots</option><option value={32}>32 Knots</option><option value={40}>40 Knots (上限)</option>
               </select>
               <span className="text-[10px] text-slate-500 mt-1 block">
                 動態自適應對齊實驗光譜波長範圍

@@ -6,7 +6,7 @@
  *
  * Eliminates fixed 5-node limitations. Dynamically creates knots based on the
  * experimental wavelength range [wavelengthMin, wavelengthMax] with configurable
- * knot count (Standard: 8~12 knots, Aggressive: 12~20 knots, max 20).
+ * knot count (Standard: 8~12 knots, Aggressive: 12~20 knots, max 40).
  *
  * Equation:
  *   n(λ) = Σ c_n,i · B_i(λ)
@@ -16,7 +16,7 @@ import { ModelDefinition, OpticalConstants, ParameterDef } from '../types/ellips
 import { dielectricToRefractiveIndex } from './base';
 import { cubicEvaluate } from './cubicSpline';
 
-export const MAX_BSPLINE_NODES = 20;
+export const MAX_BSPLINE_NODES = 40;
 
 /**
  * Automatically generates adaptive B-spline knots covering the exact experimental wavelength range
@@ -48,7 +48,7 @@ export function evaluateAdaptiveSpline(
   return cubicEvaluate(wavelengthNm, knots, coeffs);
 }
 
-// Generate up to 20 parameter definitions dynamically
+// Generate up to 40 parameter definitions dynamically
 function buildBsplineParamDefs(): ParameterDef[] {
   const defs: ParameterDef[] = [];
   for (let i = 0; i < MAX_BSPLINE_NODES; i++) {

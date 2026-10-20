@@ -1,3 +1,5 @@
+import {SPLINE_STAGES,effectiveSplineParameters,splineBic,continueSplineRefinement,bestSplineStage} from './splineRefinement';
+import type {SplineStageResult} from './splineRefinement';
 import type {PeakInitialization} from '../models/peakInitialization';
 import { computeFitStatistics } from './statistics';
 import {freeFormCurve,compareOpticalModels} from './freeFormOptics';
@@ -11,7 +13,7 @@ import {freeFormCurve,compareOpticalModels} from './freeFormOptics';
  *          ↓
  *   Cauchy 0-point (Transparent region baseline n(λ) and initial thickness basin)
  *          ↓
- *   Adaptive B-spline n/k (Progressive 8 → 12 → 16 → 20 knots with 2nd-order smoothness regularization)
+ *   Adaptive B-spline n/k (Progressive 8 → 12 → 16 → 20 → 24 → 32 → 40 knots with 2nd-order smoothness regularization)
  *          ↓
  *   B-spline Diagnostic (Raw MSE, Regularization Penalty, Total Objective, RMSE, Psi RMSE, Delta RMSE)
  *          ↓
@@ -106,15 +108,7 @@ export interface ModelComparisonResult {
   fittedParameters: FittedParameterResult[];
 }
 
-export interface KnotStageRecord {
-  knots: number;
-  rawMse: number;
-  regularizationPenalty: number;
-  totalObjective: number;
-  weightedRegularizationPenalty?:number;
-  weightedTotalObjective?:number;
-  thicknessNm: number;
-}
+export type KnotStageRecord = SplineStageResult;
 
 export interface MultiStartRunRecord {
   startIndex: number;
@@ -652,7 +646,7 @@ export async function runAutomatedEllipsometryFit(
       oscillatorsCount: p.oscillatorsCount,
       maxOscillators: config.maxOscillators ?? 3,
       bsplineKnots: p.bsplineKnots,
-      maxBsplineKnots: config.maxBsplineKnots ?? 20,
+      maxBsplineKnots: config.maxBsplineKnots ?? 40,
       multiStartRun: p.multiStartRun,
       totalMultiStartRuns: p.totalMultiStartRuns,
       currentParams: p.currentParams,
@@ -825,7 +819,7 @@ export async function runAutomatedEllipsometryFit(
 
   // =========================================================================
   // STEP 3: Adaptive B-spline n/k with 2nd-Order Smoothness Regularization
-  //         & Progressive Knot Refinement (Stage 1: 8 -> 12 -> 16 -> 20 Knots)
+  //         & Progressive Knot Refinement (Stage 1: 8 -> 12 -> 16 -> 20 -> 24 -> 32 -> 40 Knots)
   // =========================================================================
   if (shouldStop?.()) throw new Error('使用者中止擬合');
 
@@ -899,15 +893,15 @@ export async function runAutomatedEllipsometryFit(
   }
 
   // Progressive Knot Refinement Schedule: Stage 1 (8) -> Stage 2 (12) -> Stage 3 (16) -> Stage 4 (20)
-  const maxAllowedKnots = Math.max(8, Math.min(20, config.maxBsplineKnots ?? config.knotCount ?? (isAggressiveMode ? 20 : 12)));
-  const allKnotStages = [8, 12, 16, 20].filter((k) => k <= maxAllowedKnots);
-  if (allKnotStages.length === 0) allKnotStages.push(8);
+  const maxAllowedKnots = Math.max(8, Math.min(40, config.maxBsplineKnots ?? config.knotCount ?? 40));
+  const allKnotStages = [...SPLINE_STAGES];
 
   // Regularization weights:
   //   regularizedObjective = rawMse + lambdaN * smoothN + lambdaK * smoothK
   const lambdaN = 0.25;
   const lambdaK = 0.6;
-  const knotImprovementTolerance = 0.005;
+  let previousBic:number|undefined;
+  let refinementStopped=false;
 
   let activeKnots: number[] = generateAdaptiveKnots(fitWlMin, fitWlMax, 8);
   let activeNCoeffs: number[] = activeKnots.map((wl) =>
@@ -937,6 +931,12 @@ export async function runAutomatedEllipsometryFit(
     if (shouldStop?.()) throw new Error('使用者中止擬合');
 
     const stageKnotCount = allKnotStages[stageIdx];
+    // Conservative admission: all candidate coefficients may become interior during fitting.
+    const candidateParameters=1+2*stageKnotCount;
+    const skipReason=stageKnotCount>maxAllowedKnots?'Configured knot limit '+maxAllowedKnots:refinementStopped?'BIC evidence improvement ≤ 10':candidateParameters>fittingPoints.length?
+      'Candidate free parameter count '+candidateParameters+' exceeds half of '+(2*fittingPoints.length)+' data residuals':undefined;
+    if(skipReason){knotRefinementHistory.push({knots:stageKnotCount,skipped:true,skipReason,selected:false,elapsedMs:0});continue;}
+    const stageStarted=performance.now();
     const stageKnots = generateAdaptiveKnots(fitWlMin, fitWlMax, stageKnotCount);
 
     // Interpolate initial N and K coefficients from previous stage spline (or baseline for Stage 1)
@@ -976,7 +976,7 @@ export async function runAutomatedEllipsometryFit(
         current: stageKnotCount,
         initial: stageKnotCount,
         min: 4,
-        max: 20,
+        max: 40,
         fit: false,
       },
     };
@@ -1103,14 +1103,21 @@ export async function runAutomatedEllipsometryFit(
     }
 
     const stageEval = calculateSpectrum(ambient, bsplineLayers, substrate, fittingPoints);
-    const stageMetrics = computeResidualMetrics(stageEval, config.fitWeighting, psiWeight, deltaWeight, stageVars.length);
+    const stageEffectiveParameters=effectiveSplineParameters(stageVars,stageOpt.finalParams);
+    const stageMetrics = computeResidualMetrics(stageEval, config.fitWeighting, psiWeight, deltaWeight, stageEffectiveParameters);
+    const bic=splineBic(2*fittingPoints.length,stageEffectiveParameters,stageMetrics.chiSquare,
+      stageMetrics.rawMse*2*fittingPoints.length,stageMetrics.weightingMode==='sigma');
+    const deltaBic=previousBic===undefined?null:previousBic-bic;
     const stageRawMse = stageMetrics.rawMse;
     const smoothInfo = computeBsplineSmoothness(stageN, stageK, lambdaN, lambdaK);
     const stageRegPenalty = stageOpt.finalRegularizationPenalty;
     const stageTotalObj = stageMetrics.weightedMse + stageRegPenalty;
 
     knotRefinementHistory.push({
-      knots: stageKnotCount,
+      knots: stageKnotCount,skipped:false,selected:false,elapsedMs:performance.now()-stageStarted,
+      iterations:stageOpt.iterations,status:stageOpt.status,converged:stageOpt.converged,
+      mseWoollam:stageMetrics.mseWoollam,reducedChiSquare:stageMetrics.reducedChiSquare,
+      effectiveParameters:stageEffectiveParameters,bic,deltaBic,
       rawMse: stageRawMse,
       // Preserve the legacy Raw diagnostic contract; weighted fields are the optimized objective.
       regularizationPenalty: smoothInfo.regularizationPenalty,
@@ -1123,8 +1130,7 @@ export async function runAutomatedEllipsometryFit(
       `[3/8] B-spline Stage ${stageIdx + 1} (${stageKnotCount} knots): d = ${stageT.toFixed(2)} nm, Raw MSE = ${stageRawMse.toFixed(4)}, Reg Penalty = ${stageRegPenalty.toFixed(4)}, Total Obj = ${stageTotalObj.toFixed(4)}`
     );
 
-    const prevRawMse = activeBsplineRawMse;
-    if (stageIdx === 0 || stageTotalObj < activeBsplineTotalObj) {
+    if (bestSplineStage(knotRefinementHistory) === knotRefinementHistory.length-1) {
       bestSplineVariables=structuredClone(stageVars);
       bestSplineResidual=bsplineExpResidualFn;
       bestSplineRegularization=bsplineRegResidualFn;
@@ -1139,22 +1145,16 @@ export async function runAutomatedEllipsometryFit(
       activeBsplineSmoothN = smoothInfo.smoothN;
       activeBsplineSmoothK = smoothInfo.smoothK;
       activeBsplineTotalObj = stageTotalObj;
-    } else {
-      // Revert active knots if adding more knots did not reduce the weighted regularized objective
-
-      log(`[3/8] B-spline 節點加密停止：${stageKnotCount} knots 未進一步降低加權目標，保留 ${activeKnots.length} knots 最佳平滑解。`);
-      break;
     }
-
-    // Stopping condition: if Raw MSE is already very low (< 0.025) or improvement < tolerance, stop adding knots
-    const improvement = prevRawMse - stageRawMse;
-    if (stageRawMse < 0.025 || (stageIdx > 0 && improvement < knotImprovementTolerance)) {
-      log(
-        `[3/8] B-spline 節點收斂完成 (${stageKnotCount} knots)：Raw MSE = ${stageRawMse.toFixed(4)} (改善量 ΔMSE = ${improvement.toFixed(5)} <= 門檻)，停止增加節點。`
-      );
-      break;
-    }
+    const keepRefining=continueSplineRefinement(previousBic,bic);
+    log('[3/8] BIC='+bic+', ΔBIC='+deltaBic+', M_eff='+stageEffectiveParameters+
+      (keepRefining?'：繼續加密':'：ΔBIC ≤ 10，停止加密'));
+    previousBic=bic;
+    refinementStopped=!keepRefining;
   }
+  const selectedStage=bestSplineStage(knotRefinementHistory);
+  if(selectedStage<0)throw new Error('Insufficient data for even the 8-knot B-spline stage (17 candidate parameters)');
+  knotRefinementHistory[selectedStage].selected=true;
 
   // Restore best B-spline state cleanly
 
@@ -1189,7 +1189,7 @@ export async function runAutomatedEllipsometryFit(
     };
   }
 
-  finalBsplineParamDict._knotCount={id:'_knotCount',name:'Count',unit:'',current:activeKnots.length,initial:activeKnots.length,min:4,max:20,fit:false};
+  finalBsplineParamDict._knotCount={id:'_knotCount',name:'Count',unit:'',current:activeKnots.length,initial:activeKnots.length,min:4,max:40,fit:false};
   activeKnots.forEach((w,i)=>finalBsplineParamDict[`_knot${i}`]={id:`_knot${i}`,name:'Knot',unit:'nm',current:w,initial:w,min:150,max:2500,fit:false});
   bsplineLayers[primaryLayerIndex].parameters = finalBsplineParamDict;
   for(const variable of bestSplineVariables)if(variable.id!=='thickness') {

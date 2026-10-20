@@ -56,7 +56,7 @@ export function validateExpert(project:EllipsometryProject):void {
     }
     if(!modelRegistry.has(l.modelId)) throw new Error('Unknown film model: '+l.modelId);
     if(![l.thickness,l.thicknessMin,l.thicknessMax].every(Number.isFinite)||l.thickness<0||l.thicknessMin<0||l.thicknessMax<l.thicknessMin || (l.thicknessFit&&(l.thickness<l.thicknessMin||l.thickness>l.thicknessMax))) throw new Error('Invalid film thickness or bounds');
-    if(l.modelId==='bspline'||l.modelId==='expert_mixed') cubicBasis(splineGrid(l)[0],splineGrid(l));
+    if(l.modelId==='bspline'||l.modelId==='expert_mixed') {const grid=splineGrid(l);if(!Number.isInteger(l.parameters._knotCount?.current??8)||grid.length<4||grid.length>40)throw new Error('Invalid spline control count');cubicBasis(grid[0],grid);}
     if(l.modelId==='expert_mixed') {
       const count=l.parameters._peakCount?.current;
       if(!Number.isInteger(count)||count<0||count>32)throw new Error('Invalid peak count');
@@ -105,7 +105,7 @@ export function initializeSpline(project:EllipsometryProject,index:number):Ellip
   const wavelengths=p.experimentData!.points.map(x=>x.wavelength);
   const grid=generateAdaptiveKnots(Math.min(...wavelengths),Math.max(...wavelengths),8);
   const n=projectSpline(grid,w=>old.calculate(w,params).n),k=projectSpline(grid,w=>old.calculate(w,params).k);
-  l.modelId='bspline';l.parameters={_knotCount:parameter('_knotCount',grid.length,4,20,false)};
+  l.modelId='bspline';l.parameters={_knotCount:parameter('_knotCount',grid.length,4,40,false)};
   grid.forEach((w,i)=>{l.parameters[`_knot${i}`]=parameter(`_knot${i}`,w,150,2500,false);
     l.parameters[`N${i}`]=parameter(`N${i}`,Math.max(0.001,n[i]),0.001,Math.max(10,n[i]*2));
     l.parameters[`K${i}`]=parameter(`K${i}`,Math.max(0,k[i]),0,Math.max(10,k[i]*2));});
@@ -125,7 +125,7 @@ export function initializeKkSpline(project:EllipsometryProject,index:number):Ell
   layer.modelId='kk_bspline';layer.parameters=params;return p;
 }
 export function changeSplineGrid(layer:Layer,grid:number[]):Layer {
-  if(grid.length<4||grid.length>20)throw new Error('Control count must be 4–20');
+  if(grid.length<4||grid.length>40)throw new Error('Control count exceeds model limit');
   cubicBasis(grid[0],grid);
   const l=clone(layer),oldGrid=splineGrid(l),old=values(l);
   const prefixes=l.modelId==='bspline'?['N','K']:[...Array.from({length:old._peakCount??0},(_,i)=>[`p${i}_R`,`p${i}_I`]).flat().filter(x=>old[x+'0']!==undefined),...(old.base_N0!==undefined?['base_N','base_K']:[])];
@@ -135,7 +135,7 @@ export function changeSplineGrid(layer:Layer,grid:number[]):Layer {
     next.forEach((v,i)=>{const free=l.modelId==='expert_mixed'&&!pre.startsWith('base_'); const min=free?-50:pre.endsWith('N')?0.001:0;
       l.parameters[pre+i]=parameter(pre+i,Math.max(min,v),min,free?50:Math.max(10,v*2));});}
   oldGrid.forEach((_,i)=>delete l.parameters[`_knot${i}`]);
-  l.parameters._knotCount=parameter('_knotCount',grid.length,4,20,false);
+  l.parameters._knotCount=parameter('_knotCount',grid.length,4,40,false);
   grid.forEach((v,i)=>l.parameters[`_knot${i}`]=parameter(`_knot${i}`,v,150,2500,false));
   return l;
 }
@@ -146,7 +146,7 @@ export function initializeMixed(project:EllipsometryProject,index:number,preserv
   const model=modelRegistry.get(l.modelId)!,opt=model.calculate((grid[0]+grid[grid.length-1])/2,values(l));
   p.expert={...session(p),manualSource:snapshot(p)};
   const offset=Math.max(0.01,opt.eps1??opt.n*opt.n);
-  l.modelId='expert_mixed';l.parameters={eps_inf:parameter('eps_inf',offset,0.01,Math.max(50,offset*2)),_peakCount:parameter('_peakCount',0,0,32,false),_knotCount:parameter('_knotCount',grid.length,4,20,false)};
+  l.modelId='expert_mixed';l.parameters={eps_inf:parameter('eps_inf',offset,0.01,Math.max(50,offset*2)),_peakCount:parameter('_peakCount',0,0,32,false),_knotCount:parameter('_knotCount',grid.length,4,40,false)};
   grid.forEach((v,i)=>l.parameters[`_knot${i}`]=parameter(`_knot${i}`,v,150,2500,false));
   if(keep) {
     l.parameters._baseEnabled=parameter('_baseEnabled',1,0,1,false);

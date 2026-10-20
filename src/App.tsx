@@ -596,7 +596,7 @@ export default function App() {
                     <span className="text-slate-400">
                       Knots:{' '}
                       <b className="text-slate-200">
-                        {workflowProgress.bsplineKnots}/{workflowProgress.maxBsplineKnots ?? 20}
+                        {workflowProgress.bsplineKnots}/{workflowProgress.maxBsplineKnots ?? 40}
                       </b>
                     </span>
                   )}

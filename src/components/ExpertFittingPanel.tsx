@@ -179,7 +179,7 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
               <td key={key+'max'}><Numeric label={key+' max'} disabled={locked} value={v.max} onChange={x=>edit(key,{max:x})}/></td>,
               <td key={key+'lock'}><input aria-label={key+' unlocked'} disabled={locked} type="checkbox" checked={v.fit} onChange={e=>edit(key,{fit:e.target.checked})}/></td>];})}
             <td><button className={btn} disabled={locked||grid.length<=4} onClick={()=>{try{layerChange(changeSplineGrid(l,grid.filter((_,j)=>j!==i)));}catch(e){setError(String(e));}}}>Remove</button>
-              <button className={btn} disabled={locked||i===grid.length-1||grid.length>=20} onClick={()=>{try{layerChange(changeSplineGrid(l,[...grid.slice(0,i+1),(w+grid[i+1])/2,...grid.slice(i+1)]));}catch(e){setError(String(e));}}}>Insert After</button></td>
+              <button className={btn} disabled={locked||i===grid.length-1||grid.length>=40} onClick={()=>{try{layerChange(changeSplineGrid(l,[...grid.slice(0,i+1),(w+grid[i+1])/2,...grid.slice(i+1)]));}catch(e){setError(String(e));}}}>Insert After</button></td>
           </tr>)}
         </tbody></table><p className="p-2 text-slate-400">Changing topology projects the old curve into the new basis. Unlock all spline coefficients first.</p></div>}
       </>}
@@ -200,7 +200,7 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
         </div>
         {s.stage===2&&<div className="flex flex-wrap gap-2"><span>Free correction grid (nm)</span>{grid.map((w,j)=><div key={j}>
           <Numeric label={`Free knot ${j}`} disabled={locked} value={w} onChange={v=>{try{layerChange(changeSplineGrid(l,grid.map((x,k)=>k===j?v:x)));}catch(e){setError(String(e));}}}/>
-          <button className={btn} disabled={locked||grid.length>=20||j===grid.length-1} onClick={()=>{try{layerChange(changeSplineGrid(l,[...grid.slice(0,j+1),(w+grid[j+1])/2,...grid.slice(j+1)]));}catch(e){setError(String(e));}}}>Insert</button>
+          <button className={btn} disabled={locked||grid.length>=40||j===grid.length-1} onClick={()=>{try{layerChange(changeSplineGrid(l,[...grid.slice(0,j+1),(w+grid[j+1])/2,...grid.slice(j+1)]));}catch(e){setError(String(e));}}}>Insert</button>
           <button className={btn} disabled={locked||grid.length<=4} onClick={()=>{try{layerChange(changeSplineGrid(l,grid.filter((_,k)=>k!==j)));}catch(e){setError(String(e));}}}>Remove</button>
         </div>)}</div>}
         {Array.from({length:params._peakCount??0},(_,i)=>i).map(i=><div key={i} className="p-2 border border-slate-700 rounded space-y-2">

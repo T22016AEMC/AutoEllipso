@@ -8,6 +8,7 @@
  */
 
 import { EllipsometryProject, Layer } from '../types/ellipsometry';
+import {cubicBasis} from '../models/cubicSpline';
 import { APP_VERSION } from '../version';
 import {validateTaucLorentzParameters} from '../models/taucLorentz';
 import { modelRegistry } from '../modelRegistry/registry';
@@ -232,7 +233,15 @@ export function importProjectJson(jsonContent: string, onLegacyProject?: () => v
   }
   if (parsed.experimentData) parsed.experimentData.deltaConvention ??= 'standard';
   const validateDomains=(saved:EllipsometryProject)=>{
-    for(const layer of [...saved.layers,saved.substrate])validateTaucLorentzParameters(layer.modelId,Object.fromEntries(Object.entries(layer.parameters??{}).map(([k,v])=>[k,v.current])));
+    for(const layer of [...saved.layers,...(saved.fittingResult?.freeFormModel?.layers??[]),saved.substrate]) {
+      validateTaucLorentzParameters(layer.modelId,Object.fromEntries(Object.entries(layer.parameters??{}).map(([k,v])=>[k,v.current])));
+      if('thickness' in layer&&(layer.modelId==='bspline'||layer.modelId==='expert_mixed')) {
+        const count=layer.parameters._knotCount?.current??8;
+        if(!Number.isInteger(count)||count<4||count>40)throw new Error('Spline control count must be an integer from 4 to 40');
+        const grid=splineGrid(layer);cubicBasis(grid[0],grid);
+        if(layer.parameters._knotCount)layer.parameters._knotCount.max=40;
+      }
+    }
   };
   validateDomains(parsed);
   for(const candidate of parsed.expert?.candidates??[])validateDomains(candidate.snapshot);
@@ -260,7 +269,7 @@ export function importProjectJson(jsonContent: string, onLegacyProject?: () => v
   // Old JSON files did not serialize their global B-spline grid. Persist the
   // compatible active grid on import so each V2 layer now evaluates independently.
   for(const layer of parsed.layers)if(layer.modelId==='bspline'&&layer.parameters?._knot0===undefined) {
-    const grid=splineGrid(layer);layer.parameters._knotCount=parameter('_knotCount',grid.length,4,20,false);
+    const grid=splineGrid(layer);layer.parameters._knotCount=parameter('_knotCount',grid.length,4,40,false);
     grid.forEach((w,i)=>layer.parameters[`_knot${i}`]=parameter(`_knot${i}`,w,150,2500,false));
   }
   return parsed as EllipsometryProject;

@@ -236,7 +236,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                       key={idx}
                       className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300"
                     >
-                      {st.knots} knots: Raw MSE={st.rawMse.toFixed(4)}, Reg={st.regularizationPenalty.toFixed(4)}, d={st.thicknessNm.toFixed(2)}nm
+                      {st.knots} knots: {st.skipped?'跳過：'+st.skipReason:'BIC='+st.bic?.toFixed(3)+' · ΔBIC='+(st.deltaBic?.toFixed(3)??'—')+' · M_eff='+st.effectiveParameters+' · '+st.status+(st.selected?' · 最終採用':'')} · Raw MSE={st.rawMse?.toFixed(4)??'—'}, Reg={st.regularizationPenalty?.toFixed(4)??'—'}, d={st.thicknessNm?.toFixed(2)??'—'}nm
                     </span>
                   ))}
                 </div>

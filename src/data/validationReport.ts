@@ -18,6 +18,7 @@ export function createValidationReport(project:EllipsometryProject) {
     initialization:project.fittingResult?.initialization,
     freeFormOpticalConstants:project.fittingResult?.freeFormOpticalConstants,
     freeFormStatistics:project.fittingResult?.freeFormStatistics,
+    splineStages:project.fittingResult?.bsplineDiagnostic?.knotRefinementHistory,
     freeFormModel:project.fittingResult?.freeFormModel,
     freeFormCoefficientBounds:project.fittingResult?.freeFormCoefficientBounds,
     opticalModelComparison:project.fittingResult?.opticalModelComparison,

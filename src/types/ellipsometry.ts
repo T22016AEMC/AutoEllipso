@@ -155,11 +155,11 @@ export interface FittingConfig {
   maxOscillators?: number; // Default 3 (1 to 3)
   sampleStructure?: 'single_layer' | 'multi_layer'; // Default 'single_layer'
   knotMode?: 'auto' | 'manual'; // Default 'auto'
-  knotCount?: number; // 8, 12, 16, 20
+  knotCount?: number; // 8, 12, 16, 20, 24, 32, 40
   oscillatorComplexity?: 'auto' | 1 | 2 | 3; // Default 'auto'
   minThickness?: number; // Default 0.1 nm
   maxThickness?: number; // Default 5000 nm
-  maxBsplineKnots?: number; // Default 20 (8 to 20)
+  maxBsplineKnots?: number; // Default 40 (8 to 40)
   enableMultiStart?: boolean; // Default true
   enableAdaptiveModel?: boolean; // Default true
   enablePhysicalConstraints?: boolean; // Default true
@@ -247,15 +247,7 @@ export interface FittingResult {
     smoothK?: number;
     totalObjective?: number;
     activeKnots?: number;
-    knotRefinementHistory?: {
-      knots: number;
-      rawMse: number;
-      regularizationPenalty: number;
-      totalObjective: number;
-      weightedRegularizationPenalty?:number;
-      weightedTotalObjective?:number;
-      thicknessNm: number;
-    }[];
+    knotRefinementHistory?: import('../fitting/splineRefinement').SplineStageResult[];
   };
   multiStartSummary?: {
     totalStarts: number;
