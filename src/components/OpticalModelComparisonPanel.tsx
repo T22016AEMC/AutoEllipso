@@ -3,7 +3,7 @@ import type {FittingResult} from '../types/ellipsometry';
 import {exportOpticalConstantsCsv} from '../data/export';
 export function OpticalModelComparisonPanel({result}:{result:FittingResult}) {
   const comparison=result.opticalModelComparison;
-  if(!comparison)return null;
+  if(!comparison)return result.freeFormWarning?<p role="alert" className="my-3 text-amber-300">⚠ {result.freeFormWarning}</p>:null;
   return <details className="my-3 rounded border border-slate-700 p-3 text-xs text-slate-200" open>
     <summary>自由形式 / 物理模型比較（保留兩組結果）</summary>
     {result.freeFormFitAdequacyWarning&&<p role="alert" className="text-amber-300">自由形式：⚠ {result.freeFormFitAdequacyWarning}</p>}

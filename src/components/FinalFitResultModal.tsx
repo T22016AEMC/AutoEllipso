@@ -193,7 +193,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                 <span className="font-semibold text-slate-200 flex items-center space-x-1.5">
                   <Cpu className="w-3.5 h-3.5 text-cyan-400" />
                   <span>
-                    B-spline 前處理診斷 ({bsplineDiag.activeKnots ?? 8} Knots)
+                    {bsplineDiag.skipped?'自由形式已略過（以下為 Cauchy 診斷）':`B-spline 前處理診斷 (${bsplineDiag.activeKnots ?? 8} Knots)`}
                   </span>
                 </span>
                 <span className="text-[10px] font-mono text-slate-400">

@@ -187,6 +187,7 @@ export interface FittingResult {
   fitAdequacyWarning?:string;
   freeFormFitAdequacy?: import('../fitting/freeFormOptics').FitAdequacy;
   freeFormFitAdequacyWarning?:string;
+  freeFormWarning?:string;
   freeFormOpticalConstants?: import('../fitting/freeFormOptics').OpticalConstantPoint[];
   finalOpticalConstants?: import('../fitting/freeFormOptics').OpticalConstantPoint[];
   freeFormStatistics?: FitStatistics;
@@ -240,6 +241,9 @@ export interface FittingResult {
   selectedAois?: number[];
   perAoiMse?: Record<number, number>;
   bsplineDiagnostic?: {
+    skipped?: boolean;
+    warning?: string;
+    sourceModel?: string;
     rawMse: number;
     rawRmse: number;
     psiRmse: number;

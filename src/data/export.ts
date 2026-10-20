@@ -127,6 +127,7 @@ export function exportFittedParametersJson(
     statistics:project.fittingResult?.statistics,convergenceStatus:project.fittingResult?.convergenceStatus,
     freeFormOpticalConstants:project.fittingResult?.freeFormOpticalConstants,
     finalOpticalConstants:project.fittingResult?.finalOpticalConstants,
+    freeFormWarning:project.fittingResult?.freeFormWarning,
     freeFormStatistics:project.fittingResult?.freeFormStatistics,
     freeFormModel:project.fittingResult?.freeFormModel,
     freeFormCoefficientBounds:project.fittingResult?.freeFormCoefficientBounds,
@@ -152,6 +153,9 @@ export function exportFittedParametersJson(
     bsplineKnots: primaryLayer?.parameters._knotCount ? splineGrid(primaryLayer) : pipelineData?.bspline?.nodeWavelengths || [],
     bsplineCoefficients: primaryLayer?.modelId==='bspline'?values(primaryLayer):pipelineData?.bspline?.nodeCoefficients || {},
     bsplineDiagnostic: {
+      skipped:project.fittingResult?.bsplineDiagnostic?.skipped,
+      warning:project.fittingResult?.freeFormWarning,
+      sourceModel:project.fittingResult?.bsplineDiagnostic?.sourceModel,
       weightedRegularizationPenalty:pipelineData?.bspline?.weightedRegularizationPenalty??project.fittingResult?.bsplineDiagnostic?.weightedRegularizationPenalty,
       weightedTotalObjective:pipelineData?.bspline?.weightedTotalObjective??project.fittingResult?.bsplineDiagnostic?.weightedTotalObjective,
       rawMse: pipelineData?.bspline?.rawMse ?? project.fittingResult?.bsplineDiagnostic?.rawMse ?? 0,

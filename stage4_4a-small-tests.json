@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Stage4.4a: 3 wavelengths x 1 AOI gracefully skips free-form",
+    "passed": true
+  },
+  {
+    "name": "Stage4.4a: 5 wavelengths x 2 AOI gracefully skips free-form",
+    "passed": true
+  }
+]

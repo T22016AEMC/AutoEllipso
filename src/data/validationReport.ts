@@ -19,6 +19,7 @@ export function createValidationReport(project:EllipsometryProject) {
     freeFormFitAdequacy:project.fittingResult?.freeFormFitAdequacy,freeFormFitAdequacyWarning:project.fittingResult?.freeFormFitAdequacyWarning,
     initialization:project.fittingResult?.initialization,
     freeFormOpticalConstants:project.fittingResult?.freeFormOpticalConstants,
+    freeFormWarning:project.fittingResult?.freeFormWarning,
     freeFormStatistics:project.fittingResult?.freeFormStatistics,
     splineStages:project.fittingResult?.bsplineDiagnostic?.knotRefinementHistory,
     freeFormModel:project.fittingResult?.freeFormModel,

@@ -127,6 +127,9 @@ export interface PipelineAuditData {
     rawMse: number;
   };
   bspline: {
+    skipped?: boolean;
+    warning?: string;
+    sourceModel?: string;
     nodeWavelengths: number[];
     nodeCoefficients: Record<string, number>;
     thicknessNm: number;
@@ -1153,13 +1156,17 @@ export async function runAutomatedEllipsometryFit(
     refinementStopped=!keepRefining;
   }
   const selectedStage=bestSplineStage(knotRefinementHistory);
-  if(selectedStage<0)throw new Error('Insufficient data for even the 8-knot B-spline stage (17 candidate parameters)');
-  knotRefinementHistory[selectedStage].selected=true;
+  const freeFormWarning=selectedStage<0
+    ? `資料點數不足（${fittingPoints.length} 點），自由形式 n/k 已略過；其餘階段使用 Cauchy 結果繼續。`
+    : undefined;
+  if(selectedStage>=0)knotRefinementHistory[selectedStage].selected=true;
+  else log('⚠ '+freeFormWarning);
 
   // Restore best B-spline state cleanly
 
   const finalBsplineParamDict: Record<string, ParameterValue> = {};
   const finalBsplineCoeffRecord: Record<string, number> = {};
+  if(!freeFormWarning) {
   for (let i = 0; i < activeKnots.length; i++) {
     finalBsplineCoeffRecord[`N${i}`] = activeNCoeffs[i];
     finalBsplineParamDict[`N${i}`] = {
@@ -1197,11 +1204,17 @@ export async function runAutomatedEllipsometryFit(
     finalBsplineParamDict[variable.id].max=variable.max;
   }
   bsplineLayers[primaryLayerIndex].thickness = activeBsplineThickness;
+  } else {
+    // No admissible spline was fitted: hand the actual Cauchy model to physical initialization.
+    bsplineLayers[primaryLayerIndex]=structuredClone(cauchyLayers[primaryLayerIndex]);
+    activeBsplineThickness=finalCauchyThickness;
+    activeKnots=[];
+  }
   const finalBsplineThickness = activeBsplineThickness;
   const splineVector=[finalBsplineThickness,...activeNCoeffs,...activeKCoeffs];
-  const freeFormStatistics=computeFitStatistics(bestSplineVariables.map(v=>({...v,splineCoefficient:/^[NK]\d+$/.test(v.id)})),
+  const freeFormStatistics=freeFormWarning?undefined:computeFitStatistics(bestSplineVariables.map(v=>({...v,splineCoefficient:/^[NK]\d+$/.test(v.id)})),
     splineVector,bestSplineResidual,{weights:residualWeights(fittingPoints,config).weights,regularizationResidualsFn:bestSplineRegularization});
-  const freeFormModel={primaryLayerIndex,layers:structuredClone(bsplineLayers),
+  const freeFormModel=freeFormWarning?undefined:{primaryLayerIndex,layers:structuredClone(bsplineLayers),
     variables:bestSplineVariables.map((v,i)=>({...v,value:splineVector[i]})),lambdaN,lambdaK};
   const freeFormCoefficientBounds=bestSplineVariables.filter(v=>v.id.startsWith('K')).map((v,i)=>{
     const value=activeKCoeffs[i],u=(value-v.min)/(v.max-v.min);
@@ -1209,7 +1222,7 @@ export async function runAutomatedEllipsometryFit(
   });
   const freeWavelengths=Array.from(new Set([...fittingPoints.map(p=>p.wavelength),fitWlMax,
     ...Array.from({length:Math.floor(fitWlMax-fitWlMin)+1},(_,i)=>fitWlMin+i)])).sort((a,b)=>a-b);
-  const freeFormOpticalConstants=freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics,residualWeights(fittingPoints,config).mode);
+  const freeFormOpticalConstants=freeFormStatistics?freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics,residualWeights(fittingPoints,config).mode):undefined;
 
   // =========================================================================
   // STEP 4: B-spline Diagnostic
@@ -1243,7 +1256,9 @@ export async function runAutomatedEllipsometryFit(
   const bsplineContinuousSpectrum: { wavelength: number; n: number; k: number }[] = [];
   const stepWl = Math.max(1, Math.round((fitWlMax - fitWlMin) / 80));
   for (let w = fitWlMin; w <= fitWlMax; w += stepWl) {
-    const opt = bsplineDef.calculate(w, { ...finalBsplineCoeffRecord, _knotCount: activeKnots.length, ...Object.fromEntries(activeKnots.map((w,i)=>[`_knot${i}`,w])) });
+    const opt = freeFormWarning
+      ? modelRegistry.get(bsplineLayers[primaryLayerIndex].modelId)!.calculate(w,Object.fromEntries(Object.entries(bsplineLayers[primaryLayerIndex].parameters).map(([id,p])=>[id,p.current])))
+      : bsplineDef.calculate(w, { ...finalBsplineCoeffRecord, _knotCount: activeKnots.length, ...Object.fromEntries(activeKnots.map((w,i)=>[`_knot${i}`,w])) });
     bsplineContinuousSpectrum.push({
       wavelength: w,
       n: opt.n,
@@ -1868,12 +1883,12 @@ export async function runAutomatedEllipsometryFit(
       return [c.psiDeg-pt.psiExp,circularDifferenceDeg(c.deltaDeg,pt.deltaExp)];});
   },{weights:residualWeights(finalFittingPoints,config).weights});
   const physicalAdequacy=assessFitAdequacy(statistics,finalMetrics.weightingMode);
-  const freeAdequacy=assessFitAdequacy(freeFormStatistics,residualWeights(fittingPoints,config).mode);
-  const freeCount=freeFormStatistics.covariance.ids.length,physicalCount=statistics.covariance.ids.length;
+  const freeAdequacy=freeFormStatistics?assessFitAdequacy(freeFormStatistics,residualWeights(fittingPoints,config).mode):undefined;
+  const freeCount=freeFormStatistics?.covariance.ids.length??0,physicalCount=statistics.covariance.ids.length;
   const physicalComparisonCurve=freeWavelengths.map(wavelength=>({wavelength,...finalModelDef.calculate(wavelength,finalParamRecord)}));
-  const opticalModelComparison=compareOpticalModels(freeFormOpticalConstants,physicalComparisonCurve,
+  const opticalModelComparison=freeFormOpticalConstants?compareOpticalModels(freeFormOpticalConstants,physicalComparisonCurve,
     computeResidualMetrics(bsplineEval,config.fitWeighting,psiWeight,deltaWeight,freeCount),
-    computeResidualMetrics(finalFittingPoints,config.fitWeighting,psiWeight,deltaWeight,physicalCount),freeCount,physicalCount);
+    computeResidualMetrics(finalFittingPoints,config.fitWeighting,psiWeight,deltaWeight,physicalCount),freeCount,physicalCount):undefined;
 
   const targetAchieved = finalMetrics.rawMse < TARGET_MSE;
   const finalStatus: FittingResult['status'] = targetAchieved ? 'target_achieved' : 'target_not_achieved';
@@ -1920,6 +1935,8 @@ export async function runAutomatedEllipsometryFit(
       rawMse: cauchyFinalMse,
     },
     bspline: {
+      skipped:freeFormWarning?true:undefined,warning:freeFormWarning,
+      sourceModel:freeFormWarning?'cauchy':undefined,
       nodeWavelengths: activeKnots,
       nodeCoefficients: finalBsplineCoeffRecord,
       thicknessNm: finalBsplineThickness,
@@ -1961,7 +1978,8 @@ export async function runAutomatedEllipsometryFit(
     fittingResult: {
       initialization:winningCandidate.initialization,
       statistics,fitAdequacy:physicalAdequacy.fitAdequacy,fitAdequacyWarning:physicalAdequacy.warning,
-      freeFormFitAdequacy:freeAdequacy.fitAdequacy,freeFormFitAdequacyWarning:freeAdequacy.warning,
+      freeFormWarning,
+      freeFormFitAdequacy:freeAdequacy?.fitAdequacy,freeFormFitAdequacyWarning:freeAdequacy?.warning,
       freeFormStatistics,freeFormOpticalConstants,freeFormCoefficientBounds,opticalModelComparison,freeFormModel,
       finalOpticalConstants:physicalComparisonCurve.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
@@ -1997,6 +2015,8 @@ export async function runAutomatedEllipsometryFit(
       selectedAois: activeAois,
       perAoiMse,
       bsplineDiagnostic: {
+        skipped:freeFormWarning?true:undefined,warning:freeFormWarning,
+        sourceModel:freeFormWarning?'cauchy':undefined,
         rawMse: bsplineFinalMse,
         rawRmse: bsplineFinalRmse,
         psiRmse: bsplinePsiRmse,
