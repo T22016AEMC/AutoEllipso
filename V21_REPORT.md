@@ -1,3 +1,5 @@
+> 原始輸出位置：本機 `.qa/`，不在 repo。本文歷史 JSON／log／CSV／校驗清單檔名均指 `.qa/` 下同名檔案；測試必需的小型數值基準另存 `scripts/fixtures/`，數值未改。
+
 # AutoEllipso V2.1 交付與驗證
 
 驗證日期：2026-10-13。從既有 V2 複製至獨立 AutoEllipso_V2.1；V2、原始解壓專案與 archive 不變。

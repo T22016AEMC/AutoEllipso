@@ -1,5 +1,6 @@
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
-import {writeFileSync,readFileSync} from 'node:fs';
+
 import {computeTaucLorentzEps1 as tl1,computeTaucLorentzEps2 as tl2,validateTaucLorentzParameters} from '../src/models/taucLorentz';
 import {dielectricToRefractiveIndex} from '../src/models/base';
 import {kkReal} from '../src/models/kk';
@@ -81,7 +82,7 @@ export async function stage4Tests(test:Test) {
     const alone=await fitExpert(b);await fitExpert(a);const second=await fitExpert(b);
     assert.equal(second.layers[0].thickness,alone.layers[0].thickness);assert.equal(second.fittingResult!.rawMse,alone.fittingResult!.rawMse);
     assert.deepEqual(second.experimentData!.points,alone.experimentData!.points);assert.deepEqual(values(second.layers[0]),values(alone.layers[0]));
-    const before=JSON.parse(readFileSync(new URL('../stage4-before.json',import.meta.url),'utf8')),after=JSON.parse(readFileSync(new URL('../stage4-c-only.json',import.meta.url),'utf8'));
+    const before=JSON.parse(readFileSync(new URL('./fixtures/stage4-before.json',import.meta.url),'utf8')),after=JSON.parse(readFileSync(new URL('./fixtures/stage4-c-only.json',import.meta.url),'utf8'));
     const thicknessRelative=Math.abs(after.thickness-before.thickness)/Math.abs(before.thickness),mseRelative=Math.abs(after.rawMse-before.rawMse)/Math.abs(before.rawMse);
     assert.ok(thicknessRelative<=1e-9&&mseRelative<=1e-9);record('C_ISOLATION',{thicknessRelative,mseRelative,interleaved:'bit-identical',sequential:'bit-identical'});
   });

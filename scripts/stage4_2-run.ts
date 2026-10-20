@@ -1,4 +1,5 @@
-import {writeFileSync,readFileSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
+import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import assert from 'node:assert/strict';

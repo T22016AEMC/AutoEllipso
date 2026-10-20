@@ -1,3 +1,4 @@
+import {writeQaFileSync} from './qa-files.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -74,9 +75,9 @@ try {
     await page.waitForFunction(()=>!Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Run Stage 3')?.disabled,{},{timeout:60000});
     assert.equal(await val('p0_A'),2.5);assert.equal(await page.getByRole('alert').count(),0);
   });
-  await page.screenshot({path:'expert-ui.png',fullPage:true});
+  await page.screenshot({path:'.qa/expert-ui.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  fs.writeFileSync('ui-tests.json',JSON.stringify({checks,browserErrors:errors,passed:true},null,2));console.log(JSON.stringify({passed:true,checks:checks.length}));
+  writeQaFileSync('ui-tests.json',JSON.stringify({checks,browserErrors:errors,passed:true},null,2));console.log(JSON.stringify({passed:true,checks:checks.length}));
 } catch(e) {
-  await page.screenshot({path:'expert-ui-failure.png',fullPage:true});fs.writeFileSync('ui-tests.json',JSON.stringify({checks,browserErrors:errors,passed:false,error:String(e)},null,2));throw e;
+  await page.screenshot({path:'.qa/expert-ui-failure.png',fullPage:true});writeQaFileSync('ui-tests.json',JSON.stringify({checks,browserErrors:errors,passed:false,error:String(e)},null,2));throw e;
 } finally {await browser.close();await server.close();}

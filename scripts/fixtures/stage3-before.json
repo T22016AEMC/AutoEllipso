@@ -1,0 +1,38 @@
+{
+  "thickness": 99.99715906148896,
+  "rawMse": 0.009153355272130782,
+  "converged": true,
+  "medianMs": 7073.2503,
+  "parameters": {
+    "eps_inf": {
+      "current": 1.1816960877822302
+    },
+    "A": {
+      "current": 13.477871856130012
+    },
+    "E0": {
+      "current": 10.830576001049312
+    },
+    "sigma": {
+      "current": 0.6637577606355206
+    },
+    "A2": {
+      "current": 0
+    },
+    "E02": {
+      "current": 12.3255
+    },
+    "sigma2": {
+      "current": 0.6
+    },
+    "A3": {
+      "current": 0
+    },
+    "E03": {
+      "current": 13.3255
+    },
+    "sigma3": {
+      "current": 0.7
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync,existsQaFileSync as existsSync} from './qa-files.mjs';
+
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 const read=(file:string)=>JSON.parse(readFileSync(file,'utf8'));

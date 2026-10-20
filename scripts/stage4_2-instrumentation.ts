@@ -1,5 +1,6 @@
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
 // Diagnostic-only source copies. Every replacement is guarded; src is never written.
-import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {mkdirSync} from 'node:fs';
 import {posix,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import assert from 'node:assert/strict';

@@ -1,4 +1,5 @@
-import {writeFileSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
+
 import assert from 'node:assert/strict';
 import {stage41Fixture,trueN,trueK,Scenario} from './stage4_1-fixture';
 import {modelRegistry} from '../src/modelRegistry/registry';

@@ -1,4 +1,5 @@
-import {writeFileSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
+
 import {createMultiAoiSiO2OnSiProject} from '../src/data/defaultProjects';
 import {runAutomatedEllipsometryFit} from '../src/fitting/autoWorkflow';
 

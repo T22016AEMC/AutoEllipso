@@ -1,6 +1,7 @@
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
 import {stage41Fixture,trueK} from './stage4_1-fixture';
 import assert from 'node:assert/strict';
-import {readFileSync,writeFileSync,readdirSync} from 'node:fs';
+import {readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {createMultiAoiSiO2OnSiProject} from '../src/data/defaultProjects';
 import {runAutomatedEllipsometryFit} from '../src/fitting/autoWorkflow';
@@ -73,7 +74,7 @@ export async function stage41Tests(test:Test) {
     const out=await runAutomatedEllipsometryFit({ambient:p.ambient,layers:p.layers,substrate:p.substrate,points:p.experimentData!.points,config:p.fittingConfig,targetModelId:'gaussian',selectedAois:[65,70,75]});
     const elapsedMs=performance.now()-start;
     const baselines=['stage3-before.json','stage4-after.json','stage4_1-before.json'].map(file=>{
-      const b=JSON.parse(readFileSync(file,'utf8'));
+      const b=JSON.parse(readFileSync(new URL('./fixtures/'+file,import.meta.url),'utf8'));
       return {file,oldThickness:b.thickness,newThickness:out.finalThickness,deltaThickness:out.finalThickness-b.thickness,
         oldRawMse:b.rawMse,newRawMse:out.fittingResult.rawMse,deltaRawMse:out.fittingResult.rawMse!-b.rawMse,
         oldConverged:b.converged,newConverged:out.fittingResult.converged,oldMedianMs:b.medianMs,newElapsedMs:elapsedMs};

@@ -1,5 +1,6 @@
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
-import {writeFileSync} from 'node:fs';
+
 import {Complex} from '../src/optics/complex';
 import {calculateFresnelInterface} from '../src/optics/fresnel';
 import {solveEllipsometryTMM,LayerOpticalState} from '../src/solver/transferMatrix';

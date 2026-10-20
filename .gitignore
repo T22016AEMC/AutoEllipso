@@ -13,3 +13,15 @@ expert-ui*.png
 .qa/
 test-results/
 *.zip
+
+# Raw stage/test outputs are local-only; .qa/ is the canonical output directory.
+/stage*.json
+/stage*.csv
+/*-tests.json
+/*-results.json
+/verification-summary.json
+/*manifest*.json
+/*integrity*.json
+/*-verification.json
+/*-files.json
+/v21-packages.json

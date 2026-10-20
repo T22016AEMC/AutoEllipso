@@ -1,5 +1,6 @@
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
 import {spawn} from 'node:child_process';
-import {writeFileSync} from 'node:fs';
+
 import path from 'node:path';
 // Execute installed CLIs directly. No automatic install or ignored-build policy changes.
 const commands=[['typecheck','node_modules/typescript/bin/tsc','--noEmit'],

@@ -1,3 +1,4 @@
+import {writeQaFileSync} from './qa-files.mjs';
 import fs from 'node:fs';
 import {createSiO2OnSiProject,createMultiAoiSiO2OnSiProject} from '../src/data/defaultProjects';
 import {calculatePoint,calculateSpectrum} from '../src/solver/calculator';
@@ -11,4 +12,4 @@ spline.experimentData!.points=spline.experimentData!.points.map(p=>{const c=calc
 spline.layers[0].parameters.N3.current=1.7;spline.fittingConfig.maxIterations=40;
 const expectedForward=calculateSpectrum(spline.ambient,spline.layers,spline.substrate,spline.experimentData!.points);
 let mixed=initializeMixed(project,0);mixed.layers[0]=addPeak(mixed.layers[0],1);mixed.layers[0]=addPeak(mixed.layers[0],3);mixed.layers[0].thicknessFit=false;for(const p of Object.values(mixed.layers[0].parameters))p.fit=false;
-fs.mkdirSync('.qa',{recursive:true});fs.writeFileSync('.qa/worker-fixtures.json',JSON.stringify({project,multi,spline,mixed,expectedForward}));
+fs.mkdirSync('.qa',{recursive:true});writeQaFileSync('.qa/worker-fixtures.json',JSON.stringify({project,multi,spline,mixed,expectedForward}));

@@ -1,3 +1,4 @@
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -5,7 +6,7 @@ import {createMultiAoiSiO2OnSiProject} from '../src/data/defaultProjects';
 import {runAutomatedEllipsometryFit} from '../src/fitting/autoWorkflow';
 import {OpticalModelComparisonPanel} from '../src/components/OpticalModelComparisonPanel';
 import {createValidationReport} from '../src/data/validationReport';
-import {writeFileSync} from 'node:fs';
+
 
 export async function stage44aTests(test:(name:string,fn:()=>void|Promise<void>)=>Promise<void>) {
  for(const [wavelengthCount,aois] of [[3,[70]],[5,[65,75]]] as const) {

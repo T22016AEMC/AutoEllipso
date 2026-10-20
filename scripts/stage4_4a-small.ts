@@ -1,5 +1,6 @@
+import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
 import {stage44aTests} from './stage4_4a-tests';
-import {writeFileSync} from 'node:fs';
+
 const results:any[]=[];
 await stage44aTests(async(name,fn)=>{
  try {await fn();results.push({name,passed:true});}

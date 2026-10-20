@@ -1686,7 +1686,7 @@ export async function runAutomatedEllipsometryFit(
           }
           return residuals;
         },
-        { maxIterations: 35, tolerance: 1e-6, residualWeights:residualWeights(fittingPoints,config).weights, shouldStop }
+        { maxIterations: 100, tolerance: 1e-6, residualWeights:residualWeights(fittingPoints,config).weights, shouldStop }
       );
       totalOptimizerIterations += polishOpt.iterations;
 

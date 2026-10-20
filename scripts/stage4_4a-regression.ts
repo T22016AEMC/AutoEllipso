@@ -1,4 +1,5 @@
-import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
+import {mkdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {resolve,dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';

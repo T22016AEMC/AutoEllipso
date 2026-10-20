@@ -1,3 +1,5 @@
+> 原始輸出位置：本機 `.qa/`，不在 repo。本文歷史 JSON／log／CSV／校驗清單檔名均指 `.qa/` 下同名檔案；測試必需的小型數值基準另存 `scripts/fixtures/`，數值未改。
+
 # Stage 4.4(a)：回歸處理
 
 基準：`ea378c5b6062038e17251933c7a7d322ab404ac9`；分支：`v2.2-integration`。

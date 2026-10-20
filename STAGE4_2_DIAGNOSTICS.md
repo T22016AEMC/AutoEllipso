@@ -1,3 +1,5 @@
+> 原始輸出位置：本機 `.qa/`，不在 repo。本文歷史 JSON／log／CSV／校驗清單檔名均指 `.qa/` 下同名檔案；測試必需的小型數值基準另存 `scripts/fixtures/`，數值未改。
+
 # Stage 4.2 — Automatic 診斷
 
 基準 `5d73894ce3faae3d6988eb75818abce1057206e5`；分支 `v2.2-integration`。本階段只新增 scripts、報告及原始輸出，未修改正式演算法、參數、src、部署檔或既有測試期望值。下述皆為執行紀錄與診斷解讀。三個案例沿用 Stage 4.1 的 Automatic workflow 呼叫，固定 `targetModelId='gaussian'`，不是自動比較所有模型族的選模模式。

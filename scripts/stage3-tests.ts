@@ -1,5 +1,6 @@
+import {readQaFileSync as readFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+
 import {svd,solveLeastSquaresSvd} from '../src/fitting/svd';
 import {computeFitStatistics,studentT975} from '../src/fitting/statistics';
 import {optimizeBoundedLM} from '../src/fitting/optimizer';
@@ -122,7 +123,7 @@ export async function stage3Tests(test:Test) {
     const out=await runAutomatedEllipsometryFit({ambient:p.ambient,layers:p.layers,substrate:p.substrate,points:p.experimentData!.points,config:p.fittingConfig,targetModelId:'gaussian',selectedAois:[65,70,75]});
     console.log('STAGE3_AUTOMATIC '+JSON.stringify({thickness:out.finalThickness,rawMse:out.fittingResult.rawMse,converged:out.fittingResult.converged,reason:out.fittingResult.convergenceStatus,statisticsMs:out.fittingResult.statistics?.elapsedMs}));
     assert.equal(out.fittingResult.converged,true);assert.ok(['cost','step','gradient','no_better_step'].includes(out.fittingResult.convergenceStatus!));
-    const baseline=JSON.parse(readFileSync(new URL('../stage3-before.json',import.meta.url),'utf8'));
+    const baseline=JSON.parse(readFileSync(new URL('./fixtures/stage3-before.json',import.meta.url),'utf8'));
     near(out.finalThickness,baseline.thickness,1e-3);near(out.fittingResult.rawMse!,baseline.rawMse,1e-5);
     for(const [key,param] of Object.entries(out.updatedLayers[0].parameters))if(param.fit)
       near(param.current,baseline.parameters[key].current,p.fittingConfig.tolerance*Math.max(1,Math.abs(baseline.parameters[key].current)));

@@ -1,4 +1,5 @@
-import {readFileSync,writeFileSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
+
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 const base='5d73894ce3faae3d6988eb75818abce1057206e5';

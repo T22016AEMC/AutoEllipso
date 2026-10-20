@@ -46,6 +46,6 @@ HTTPS QA 先用 Python 安裝 `cryptography` 並執行 `python scripts/make-test
 
 `AutoEllipso_V2.1.zip` 為完整可重建來源；`AutoEllipso_V2.1_static.zip` 為已測試 production dist，index.html 在壓縮檔根目錄。`pnpm run package:v21` 在保有相鄰 V2/Original/原 archive 的開發目錄校驗 SHA-256 後封裝；独立下載的專案可直接 build，追溯式封裝需相鄰原始來源。
 
-`v2-baseline-manifest.json` 為複製前 72 個 V2 檔案的 SHA-256；`original-manifest.json` 為 49 個原始檔案。`v21-integrity.json` 為逐檔校驗，`v21-modified-files.json` 為本次修改/新增/移除清單，`v21-packages.json` 為 ZIP checksum。
+原始輸出與校驗清單現存本機 `.qa/`（不在 repo）；測試所需的小型基準存於 `scripts/fixtures/`。`v2-baseline-manifest.json` 為複製前 72 個 V2 檔案的 SHA-256；`original-manifest.json` 為 49 個原始檔案。`v21-integrity.json` 為逐檔校驗，`v21-modified-files.json` 為本次修改/新增/移除清單，`v21-packages.json` 為 ZIP checksum。
 
 原 V2_REPORT、baseline/UI 歷史報告與 package.mjs 保留作來源證據；V2.1 以本 README、V21_REPORT、production-browser-tests 為準，不使用舊 package:v2 封裝 V2.1。

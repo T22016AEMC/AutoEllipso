@@ -1,3 +1,4 @@
+import {writeQaFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {ComputationClient} from '../src/workers/client';
@@ -63,4 +64,4 @@ await test('CSV preserves full measurement precision and rejects nonfinite input
   const parsed=inspectCsv('Wavelength,Psi,Delta\n450.123456789,30.123456789,155.123456789\n500,31,-10\n550,32,1e20\nInfinity,33,170\n600,Infinity,180');
   assert.equal(parsed.points.length,3);assert.equal(parsed.points[0].wavelength,450.123456789);assert.equal(parsed.points[0].psiExp,30.123456789);assert.equal(parsed.points[0].deltaExp,155.123456789);assert.equal(parsed.points[1].deltaExp,350);assert.ok(parsed.points[2].deltaExp>=0&&parsed.points[2].deltaExp<360);
 });
-fs.writeFileSync('worker-tests.json',JSON.stringify(results,null,2));console.log(JSON.stringify({total:results.length,passed:results.filter(r=>r.passed).length,failures:results.filter(r=>!r.passed)},null,2));if(results.some(r=>!r.passed))process.exitCode=1;
+writeQaFileSync('worker-tests.json',JSON.stringify(results,null,2));console.log(JSON.stringify({total:results.length,passed:results.filter(r=>r.passed).length,failures:results.filter(r=>!r.passed)},null,2));if(results.some(r=>!r.passed))process.exitCode=1;

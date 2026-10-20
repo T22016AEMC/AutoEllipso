@@ -1,5 +1,6 @@
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
-import {readFileSync,writeFileSync} from 'node:fs';
+
 import {execFileSync} from 'node:child_process';
 const runs=JSON.parse(readFileSync('stage4_3-runs.json','utf8')).runs;
 const results:{name:string;passed:boolean;error?:string}[]=[];

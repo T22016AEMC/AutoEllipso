@@ -1,3 +1,4 @@
+import {writeQaFileSync,readQaFileSync} from './qa-files.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -6,23 +7,23 @@ import {preview} from 'vite';
 const require=createRequire(import.meta.url);
 process.env.PLAYWRIGHT_BROWSERS_PATH=path.resolve('.playwright');
 let pw;try{pw=require('playwright');}catch{pw=createRequire('C:/Users/T22016/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/package.json')('playwright');}
-const tls=fs.existsSync('.qa/test-cert.pem')?{cert:fs.readFileSync('.qa/test-cert.pem'),key:fs.readFileSync('.qa/test-key.pem')}:undefined;
+const tls=fs.existsSync('.qa/test-cert.pem')?{cert:readQaFileSync('.qa/test-cert.pem'),key:readQaFileSync('.qa/test-key.pem')}:undefined;
 const server=await preview({preview:{host:'127.0.0.1',port:0,strictPort:true,https:tls}});
 const url=`${tls?'https':'http'}://127.0.0.1:${server.httpServer.address().port}`;
-const fixtures=JSON.parse(fs.readFileSync('.qa/worker-fixtures.json','utf8'));
+const fixtures=JSON.parse(readQaFileSync('.qa/worker-fixtures.json','utf8'));
 const workerFile=fs.readdirSync('dist/assets').find(x=>/^compute\.worker-.*\.js$/.test(x));assert.ok(workerFile,'Production must include a real module worker');
-fs.mkdirSync('test-results',{recursive:true});
+fs.mkdirSync('.qa/test-results',{recursive:true});
 const results=[];
 let activePage;
 async function check(engine,name,fn){const start=Date.now();try{await fn();results.push({engine,name,passed:true,ms:Date.now()-start});console.log(engine+': PASS '+name);}catch(e){
   const alerts=activePage?await activePage.getByRole('alert').allTextContents().catch(()=>[]):[];
   results.push({engine,name,passed:false,error:String(e),alerts,ms:Date.now()-start});console.log(engine+': FAIL '+name+' '+String(e)+' '+JSON.stringify(alerts));
-  if(activePage)await activePage.screenshot({path:`test-results/${engine}-failure.png`,fullPage:true}).catch(()=>{});
+  if(activePage)await activePage.screenshot({path:`.qa/test-results/${engine}-failure.png`,fullPage:true}).catch(()=>{});
 }}
 const waitForward=async page=>{await page.waitForFunction(()=>!document.body.textContent.includes('完整 TMM 重算中'),null,{timeout:60000});};
 const value=async(page,label)=>Number(await page.getByRole('spinbutton',{name:label,exact:true}).inputValue());
 async function fill(page,label,value){await page.getByRole('spinbutton',{name:label,exact:true}).fill(String(value));await page.getByRole('spinbutton',{name:label,exact:true}).blur();}
-async function saveProject(page){const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#btn-save-project').click()]);return JSON.parse(fs.readFileSync(await download.path(),'utf8'));}
+async function saveProject(page){const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#btn-save-project').click()]);return JSON.parse(readQaFileSync(await download.path(),'utf8'));}
 async function importProject(page,project){await page.locator('#btn-open-project').click();await page.locator('input[type="file"][accept=".json"]').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(project))});await page.waitForTimeout(250);await waitForward(page);}
 async function callWorker(page,operation,project,options={}) {
   return page.evaluate(({workerFile,operation,project,options})=>new Promise((resolve,reject)=>{
@@ -91,10 +92,10 @@ for(const engine of engines) {
     const close=page.getByRole('button',{name:'Close Expert',exact:true});if(await close.isVisible())await close.click();
     await page.locator('#btn-import-csv').click();await page.locator('input[type="file"]').last().setInputFiles({name:'measurement-private.csv',mimeType:'text/csv',buffer:Buffer.from('Wavelength,Psi,Delta\n450,30.1234567,155.1234567\n500,31.1234567,158.1234567\n550,32.1234567,160.1234567\n600,33.1234567,165.1234567\n650,34.1234567,170.1234567')});
     await page.getByRole('button',{name:/確認並匯入光譜數據/}).click();await waitForward(page);
-    const [d]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download Validation Report',exact:true}).click()]);const report=JSON.parse(fs.readFileSync(await d.path(),'utf8'));
+    const [d]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download Validation Report',exact:true}).click()]);const report=JSON.parse(readQaFileSync(await d.path(),'utf8'));
     assert.equal(report.version,'2.1.0');assert.equal(report.finalComparison.length,5);assert.equal(report.finalComparison[0].psiExp,30.1234567);assert.ok(report.finalFreshForwardVerified);assert.ok(Number.isFinite(report.finalRawMse));assert.equal(report.filmStack[0].finalNk.length,5);
     const saved=await saveProject(page);assert.equal(saved.experimentData.points.length,5);
-    await page.locator('#btn-export-menu').click();const [csv]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:/AutoEllipso_fitted_curve.csv/}).click()]);const text=fs.readFileSync(await csv.path(),'utf8');assert.equal(text.trim().split('\n').length,6);
+    await page.locator('#btn-export-menu').click();const [csv]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:/AutoEllipso_fitted_curve.csv/}).click()]);const text=readQaFileSync(await csv.path(),'utf8');assert.equal(text.trim().split('\n').length,6);
   });
   await check(engine,'Independent tabs and browser sessions; no stored or uploaded experimental data',async()=>{
     const saved=await saveProject(page),other=await context.newPage();await other.goto(url);await waitForward(other);const clean=await saveProject(other);assert.notEqual(clean.experimentData.points.length,saved.experimentData.points.length);
@@ -105,7 +106,7 @@ for(const engine of engines) {
   await check(engine,'Wide production layout and real wavelength zoom',async()=>{
     await page.getByRole('button',{name:'Zoom wavelength in',exact:true}).click();assert.ok((await page.locator('#spectra-panel').innerText()).includes('1.50×'));
     await page.getByRole('button',{name:'Reset wavelength zoom',exact:true}).click();assert.ok((await page.locator('#spectra-panel').innerText()).includes('1.00×'));
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));assert.deepEqual(errors,[],JSON.stringify(failedRequests));await page.screenshot({path:`test-results/${engine}-desktop.png`,fullPage:true});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));assert.deepEqual(errors,[],JSON.stringify(failedRequests));await page.screenshot({path:`.qa/test-results/${engine}-desktop.png`,fullPage:true});
   });
   for(const device of [{name:'phone',width:390,height:844},{name:'tablet',width:820,height:1180}]) {
     await check(engine,`Responsive ${device.name}: all scientific controls and touch-style pointer edit`,async()=>{
@@ -115,7 +116,7 @@ for(const engine of engines) {
       await p.getByRole('button',{name:'Stage 2: B-spline / Peak Editor',exact:true}).click();await p.getByRole('button',{name:'Initialize n/k B-spline from Current Model',exact:true}).click();await waitForward(p);
       const control=p.getByTestId('control-N3');
       try {await control.waitFor({state:'attached',timeout:5000});}
-      catch(e){await p.screenshot({path:`test-results/${engine}-${device.name}-failure.png`,fullPage:false});console.log('MOBILE STATE '+engine+' '+JSON.stringify({text:(await p.getByRole('dialog').innerText()).slice(0,2800),inputs:await p.getByRole('spinbutton').evaluateAll(xs=>xs.map(x=>({label:x.getAttribute('aria-label'),value:x.value})).slice(0,12))}));throw e;}
+      catch(e){await p.screenshot({path:`.qa/test-results/${engine}-${device.name}-failure.png`,fullPage:false});console.log('MOBILE STATE '+engine+' '+JSON.stringify({text:(await p.getByRole('dialog').innerText()).slice(0,2800),inputs:await p.getByRole('spinbutton').evaluateAll(xs=>xs.map(x=>({label:x.getAttribute('aria-label'),value:x.value})).slice(0,12))}));throw e;}
       await control.scrollIntoViewIfNeeded();const before=await value(p,'N3');
       if(engine==='edge') {
         const box=await control.boundingBox(),cdp=await mobile.newCDPSession(p),x=box.x+box.width/2,y=box.y+box.height/2;
@@ -130,11 +131,11 @@ for(const engine of engines) {
       await waitForward(p);assert.ok(await value(p,'N3')>before);await p.getByRole('checkbox',{name:'N3 unlocked',exact:true}).uncheck();assert.ok(await p.getByRole('spinbutton',{name:'N3',exact:true}).isDisabled());
       await p.getByRole('button',{name:'Initialize Physical Peak Builder',exact:true}).click();await p.getByRole('combobox',{name:'Peak type',exact:true}).selectOption('2');await p.getByRole('button',{name:'Add Peak',exact:true}).click();await waitForward(p);assert.equal(await value(p,'p0_Eg'),1);
       await p.getByRole('button',{name:'Continue to Next Stage',exact:true}).click();assert.equal(await value(p,'p0_Eg'),1);assert.deepEqual(mobileErrors,[]);
-      await p.screenshot({path:`test-results/${engine}-${device.name}.png`,fullPage:false});await mobile.close();
+      await p.screenshot({path:`.qa/test-results/${engine}-${device.name}.png`,fullPage:false});await mobile.close();
     });
   }
   await context.close();await browser.close();
 }
 await new Promise(resolve=>server.httpServer.close(resolve));
-fs.writeFileSync('browser-production-results.json',JSON.stringify({productionOnly:true,https:!!tls,selfSignedLocalQa:!!tls,url,results},null,2));
+writeQaFileSync('browser-production-results.json',JSON.stringify({productionOnly:true,https:!!tls,selfSignedLocalQa:!!tls,url,results},null,2));
 const passed=results.filter(r=>r.passed).length;console.log(JSON.stringify({total:results.length,passed,failures:results.filter(r=>!r.passed)},null,2));if(passed!==results.length)process.exitCode=1;

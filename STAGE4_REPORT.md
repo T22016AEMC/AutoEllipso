@@ -1,3 +1,5 @@
+> 原始輸出位置：本機 `.qa/`，不在 repo。本文歷史 JSON／log／CSV／校驗清單檔名均指 `.qa/` 下同名檔案；測試必需的小型數值基準另存 `scripts/fixtures/`，數值未改。
+
 # AutoEllipso 整合第 4 段：工程實作報告
 
 基準：`43c4231982c2d59fb63272d2f991e7477bc9cdb3`，分支 `v2.2-integration`。

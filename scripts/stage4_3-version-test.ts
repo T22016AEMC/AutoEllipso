@@ -1,5 +1,6 @@
+import {readQaFileSync as readFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+
 import {resolveBuildCommit} from './build-version.mjs';
 assert.equal(resolveBuildCommit({WORKERS_CI_COMMIT_SHA:' ci-commit '},()=>{throw new Error('git must not run');}),'ci-commit');
 assert.equal(resolveBuildCommit({},()=> 'git-commit'),'git-commit');

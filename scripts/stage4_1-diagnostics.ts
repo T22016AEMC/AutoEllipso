@@ -1,4 +1,5 @@
-import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {writeQaFileSync as writeFileSync,readQaFileSync as readFileSync} from './qa-files.mjs';
+import {mkdirSync} from 'node:fs';
 import {resolve,posix} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {stage41Fixture,trueN,trueK,Scenario} from './stage4_1-fixture';

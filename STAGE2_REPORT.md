@@ -1,3 +1,5 @@
+> 原始輸出位置：本機 `.qa/`，不在 repo。本文歷史 JSON／log／CSV／校驗清單檔名均指 `.qa/` 下同名檔案；測試必需的小型數值基準另存 `scripts/fixtures/`，數值未改。
+
 # AutoEllipso v2.2 integration — Stage 2
 
 日期：2026-10-19（Asia/Taipei）。版本維持 `2.2.0-dev`，分支 `v2.2-integration`。本段僅修改擬合統計、加權目標、Jacobian、收斂旗標與指定指標呈現；TMM、Δ 轉換、色散模型、Automatic/Expert 流程步驟順序及既有版面容器不變。
