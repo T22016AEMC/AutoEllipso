@@ -178,7 +178,6 @@ export const LorentzModel: ModelDefinition = {
     let eps2 = 0;
 
     const addOsc = (A: number, E0: number, gamma: number) => {
-      if (A <= 0.001) return;
       const diff = E0 * E0 - E * E;
       const denom = diff * diff + gamma * gamma * E * E;
       const num = A * E0;

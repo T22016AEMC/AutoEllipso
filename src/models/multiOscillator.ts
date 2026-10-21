@@ -267,7 +267,7 @@ export const MultiOscillatorModel: ModelDefinition = {
     const Eg1 = params['Eg1'] ?? 2.5;
     const type1 = params['osc1_type_code'] ?? 1; // 1: Gaussian, 2: Lorentz, 3: Tauc-Lorentz
 
-    if (A1 > 1e-5) {
+    { // Each oscillator contributes continuously down to zero amplitude.
       let oscRes: { dEps1: number; eps2: number };
       if (type1 === 2) {
         oscRes = computeLorentzOscillator(E, A1, E01, w1);
@@ -286,7 +286,7 @@ export const MultiOscillatorModel: ModelDefinition = {
     const w2 = Math.max(0.01, params['w2'] ?? 0.8);
     const type2 = params['osc2_type_code'] ?? 1;
 
-    if (A2 > 1e-5) {
+    { // Each oscillator contributes continuously down to zero amplitude.
       let oscRes: { dEps1: number; eps2: number };
       if (type2 === 2) {
         oscRes = computeLorentzOscillator(E, A2, E02, w2);
@@ -303,7 +303,7 @@ export const MultiOscillatorModel: ModelDefinition = {
     const w3 = Math.max(0.01, params['w3'] ?? 0.7);
     const type3 = params['osc3_type_code'] ?? 2;
 
-    if (A3 > 1e-5) {
+    { // Each oscillator contributes continuously down to zero amplitude.
       let oscRes: { dEps1: number; eps2: number };
       if (type3 === 1) {
         oscRes = computeGaussianOscillator(E, A3, E03, w3);

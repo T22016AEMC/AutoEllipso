@@ -269,7 +269,6 @@ export const TaucLorentzModel: ModelDefinition = {
     let eps1 = epsInf;
 
     const addTL = (A: number, E0: number, C: number) => {
-      if (A <= 0.01) return;
       eps2 += computeTaucLorentzEps2(E, A, E0, C, Eg);
       eps1 += computeTaucLorentzEps1(E, A, E0, C, Eg);
     };

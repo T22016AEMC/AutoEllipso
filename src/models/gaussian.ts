@@ -243,14 +243,10 @@ export const GaussianModel: ModelDefinition = {
     let eps2 = computeGaussianEps2(E, A1, E01, sigma1);
     let deltaEps1 = computeGaussianEps1(E, 0, A1, E01, sigma1);
 
-    if (A2 > 0.001) {
-      eps2 += computeGaussianEps2(E, A2, E02, sigma2);
-      deltaEps1 += computeGaussianEps1(E, 0, A2, E02, sigma2);
-    }
-    if (A3 > 0.001) {
-      eps2 += computeGaussianEps2(E, A3, E03, sigma3);
-      deltaEps1 += computeGaussianEps1(E, 0, A3, E03, sigma3);
-    }
+    eps2 += computeGaussianEps2(E, A2, E02, sigma2);
+    deltaEps1 += computeGaussianEps1(E, 0, A2, E02, sigma2);
+    eps2 += computeGaussianEps2(E, A3, E03, sigma3);
+    deltaEps1 += computeGaussianEps1(E, 0, A3, E03, sigma3);
 
     const eps1 = epsInf + deltaEps1;
     return { eps1, eps2 };
