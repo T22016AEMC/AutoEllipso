@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,copyFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {groups,settings,read,save,guard} from './stage4_6a-support';
+guard();
+const rows=groups.map(g=>read(g.id)),mean=(a:number[])=>a.reduce((s,x)=>s+x,0)/a.length,fmt=(x:number|null|undefined)=>x==null?'—':x.toPrecision(7);
+assert.equal(rows.length,16);assert.ok(rows.every(r=>r.table.length===24&&r.short.length===24&&r.continued.length===4));
+for(const r of rows)assert.deepEqual(r.settings,settings,'No mixed selection settings');
+const names=['S0','S1','S2','S3','S4'],s0time=mean(rows.map(r=>r.strategies[0].elapsedMs)),s0polish=mean(rows.map(r=>r.strategies[0].polishElapsedMs));
+const aggregates=names.map(name=>{const a=rows.map(r=>r.strategies.find((s:any)=>s.name===name));return {name,meanRegret:mean(a.map(s=>s.regret)),maxRegret:Math.max(...a.map(s=>s.regret)),
+ meanMseRegret:mean(a.map(s=>s.mseRegret)),meanIterations:mean(a.map(s=>s.iterations)),meanSeconds:mean(a.map(s=>s.elapsedMs))/1000,timeRatio:mean(a.map(s=>s.elapsedMs))/s0time,
+ meanPolishSeconds:mean(a.map(s=>s.polishElapsedMs))/1000,polishRatio:mean(a.map(s=>s.polishElapsedMs))/s0polish,positive:a.filter(s=>s.regret>0).length,
+ worseThanS0:rows.filter(r=>r.strategies.find((s:any)=>s.name===name).regret>r.strategies[0].regret).map(r=>r.summary.id)};});
+const summary={settings,aggregates,s0Positive:rows.filter(r=>r.summary.regret>0).map(r=>r.summary.id),groups:rows.map(r=>r.summary),
+ oracleCount:rows.reduce((s,r)=>s+r.table.length,0),shortCount:rows.reduce((s,r)=>s+r.short.length,0),continuedCount:rows.reduce((s,r)=>s+r.continued.length,0)};
+save('summary',summary);
+const verify=JSON.parse(readFileSync('.qa/verification-summary.json','utf8')),tests=JSON.parse(readFileSync('.qa/scientific-tests.json','utf8'));
+const [a0,,,a3,a4]=aggregates,L:string[]=[];const line=(s='')=>L.push(s);
+line('# Stage 4.6a：物理候選選擇診斷');line();
+line('基準 f2da2d1；正式src、測試斷言、容差/迭代上限與部署設定未改。所有原始JSON/log在本機 `.qa/stage4_6a-*`，不在repo；各組皆單獨串行執行。');
+line(`判定：沒有規則在這16組穩定消除遺憾。若優先低額外成本且不比S0退步，S4較值得後續受控比較：平均遺憾降低${fmt(100*(1-a4.meanRegret/a0.meanRegret))}%，估算總耗時增加${fmt(100*(a4.timeRatio-1))}%；最差遺憾仍${fmt(a4.maxRegret)}。S3平均遺憾最低，但有${a3.worseThanS0.length}組比S0更差，不宜據平均值直接取代。`);
+line();line('## 跑資料前凍結的規則與口徑');line();
+line('- C=正式全資料weightedMse=χ²/(2N)，不以子集成本排名；W為既有Woollam MSE。各候選保留原邊界、鎖定與參數數，精修一律全資料、原optimizer、max100/ftol1e-6與相同權重/其餘選項。');
+line('- S0/S1/S2：粗排前2/4/6名。S3：全部先max10，按全資料C取4名，再max90（早停可少於總100）；第二段重置LM阻尼為既有預設.01，不能當單次100的同軌跡。');
+line('- S4：前2名，再貪婪取兩個距已選集合最遠者；距離為雙方共有、fit=true的E0/E02/E03及sigma/gamma/C寬度之範圍正規化RMS，採maximin、距離同分取低粗排名，不用振幅或膜厚。');
+line('- 各規則保留最低粗成本；S3也保留已算出的10次狀態。終點同分沿用正式<=取後評估者；oracle及S3初篩同分取低粗排名；Spearman對精確同分取平均秩。規則在settings.json與初始報告固定後未調整。');
+line('- Oracle僅是這24個粗終點各跑一次100次之最低C，非全域最小值。S3負遺憾照列，因重啟路徑可比這個有限oracle更低。高粗/低終固定指粗C>10×最低粗C且終C≤1.1×oracle；另分出其中粗rank>2者才是被S0排除。');
+line('- 時間為共同前段至物理選擇終點＋串行子呼叫實測之和的估算；非完整Automatic，排除尾段驗證/M2。包含共同前段迭代；精修部分另外列出。受快取/JIT及一次量測影響，不當冷啟動基準。');
+line();line('## S0：16組遺憾、排序相關及粗擬合失效');line();
+line('每組24個候選；前3名起點訓練用全資料/最多25次，其餘用原fast-scan子集/最多14次；粗rank仍按全資料回算。下表k是涵蓋精確oracle最佳的最小粗排名，並列近似值不另設容差。B欄僅T1–T4，為相對100 nm的厚度誤差。');line();
+line('|組|正式#→oracle#|C正式→oracle|遺憾ΔC / ΔW|k|Spearman|粗max_iter/stalled|高粗低終/其中漏選|B厚度誤差nm 正式→oracle|');line('|---|---|---:|---:|---:|---:|---:|---:|---:|');
+for(const r of rows){const s=r.summary;line(`|${s.id}|${s.formalIndex}→${s.oracleIndex}|${fmt(s.formalCost)}→${fmt(s.oracleCost)}|${fmt(s.regret)} / ${fmt(s.mseRegret)}|${s.minimumK}|${fmt(s.spearman)}|${s.coarseMaxIter}/${s.coarseStalled}|${s.highRejected.length}/${s.highRejected.filter((x:any)=>x.rank>2).length}|${s.formalThicknessError==null?'—':fmt(s.formalThicknessError)+'→'+fmt(s.oracleThicknessError)}|`);}
+line('S0遺憾嚴格>0的組：'+summary.s0Positive.join('、')+'。其中T1只有8.33e-11，不作實質退步推論；k與微小遺憾受近並列末位差異影響。每候選粗成本/排名、終成本、迭代、status/converged、厚度、參數及耗時完整保存在各組.json的table。');
+line();line('## 規則彙總');line();
+line('平均以16組等權計算；總時間倍率=該規則平均時間/S0平均時間（非各組倍率的平均）。精修部分不含共同前段。');line();
+line('|規則|平均遺憾|最大遺憾|平均總迭代|平均估算秒/×S0|平均精修秒/×S0|遺憾>0組數|比S0退步組數|');line('|---|---:|---:|---:|---:|---:|---:|---:|');
+for(const a of aggregates)line(`|${a.name}|${fmt(a.meanRegret)}|${fmt(a.maxRegret)}|${fmt(a.meanIterations)}|${fmt(a.meanSeconds)}/${fmt(a.timeRatio)}|${fmt(a.meanPolishSeconds)}/${fmt(a.polishRatio)}|${a.positive}|${a.worseThanS0.length}|`);
+line('S3退步組：'+a3.worseThanS0.join('、')+'。S1幾乎沒有改善平均遺憾；S2增加開銷但仍漏掉後排佳解。S4平均遺憾及耗時都低於S2，但未解除主要最差案例；沒有觀測到穩定低遺憾替代品。');
+line();line('## 各規則逐組結果');line();
+line('每格為「選中起點#:遺憾 / 總迭代 / 估算秒」。S0/1/2/4只計所選100次呼叫；S3計全部24個10次與4個90次，不把其他oracle試算混入方案成本；完整W差值/參數見原始strategies、table、short、continued。');line();
+line('|組|S0|S1|S2|S3|S4|');line('|---|---:|---:|---:|---:|---:|');
+for(const r of rows)line('|'+r.summary.id+'|'+r.strategies.map((s:any)=>`#${s.selected.startIndex}:${fmt(s.regret)} / ${s.iterations} / ${(s.elapsedMs/1000).toFixed(3)}`).join('|')+'|');
+line();line('## 失效說明與判斷界限');line();
+line(`粗max_iter共${rows.reduce((s,r)=>s+r.summary.coarseMaxIter,0)}/384、stalled共${rows.reduce((s,r)=>s+r.summary.coarseStalled,0)}/384。absorbing/Lorentz的Spearman=-0.42087，S0遺憾464.484；高粗/低終門檻計數卻為0，故此門檻不能涵蓋所有排序失效。`);
+line('SiO2/Lorentz粗rank7精修C=3.568108914，rank17為3.568108793，前者近似同好但精確k為17；多樣性S4取到rank11，C=3.679659166，改善但非oracle。');
+line('transparent/Lorentz目前全部24個新粗終點精修，最佳W=27.91023，仍未達Stage4.5舊點的24.07436（舊C=564.8169；本次oracle C=759.1458）。舊點可達性沿用4.5報告，不算本段新重放；此固定預算全精修仍未恢復舊解，不能保證僅改篩選即可恢復，粗擬合/初始化的相對影響無法由本段分離。');
+line('weak/TL所有規則仍有約1236遺憾。S4在此C稍降但W由63.43470升至63.65924：參數數不同，依正式C排序與W排序並不等價。本段不改指標或排序。B四組S0最大遺憾僅8.33e-11，不能把工程案例的選擇問題推廣到所有匹配模型。');
+const weak=rows.find(r=>r.summary.id==='weak-tauc_lorentz')!,early=weak.short.find((r:any)=>r.startIndex===weak.summary.oracleIndex),s3=weak.strategies.find((s:any)=>s.name==='S3');
+line(`weak/TL的oracle #${weak.summary.oracleIndex}（粗rank${weak.summary.oracleRank}）10次後C=${fmt(early.cost)}，S3後續4名為#${s3.picks.join('/#')}，未包含它。S3在absorbing/Lorentz把遺憾464.484降至.003931，是平均改善的主要來源；這個改善未在最差組重現。`);
+line('候選集合、單種子、固定迭代預算不足以判定模型族極限或全域最小；沒有建議調容差、上限或斷言。S4僅是這16組在低開銷/不退步偏好下的續測對象，不是已證明可穩定採用的修法。');
+line();line('## 工程檢查');line();
+line(`384次完整oracle、384次10步與64次90步皆完成；32次正式前兩名回放的finalParams/finalCost/iterations/status/converged逐值相同，S0亦還原正式選中索引與成本；${rows.filter(r=>r.summary.baselineChecked).length}組另與既有4.5d原始物理結果逐值比對。Spearman/多樣性各有assert自檢。`);
+line('verify命令exit：'+verify.commands.map((c:any)=>c.name+'='+c.exitCode).join('；')+'；original 29/29、worker 8/8；scientific '+tests.filter((t:any)=>t.passed).length+'/'+tests.length+'。');
+line();
+for(const t of tests.filter((t:any)=>!t.passed))line('- '+t.name+'：'+t.detail.replaceAll('\n',' ').replace(/\s+/g,' ').trim());
+line();line('原始輸出：本機 `.qa/stage4_6a-verify.log`、`stage4_6a-v2-*.log`、`stage4_6a-scientific-tests.json`、`stage4_6a-summary.json`、各組.log/.json及*-formal.json/*-journal.json，均不入repo。最初腳本索引型別錯誤已於跑資料前補as const，未變更規則/數值設定；正式測試期望值修改：無。');
+line('未做跨種子/跨裝置效能或其他未列選擇規則。src tree與基準相同：'+execFileSync('git',['rev-parse',settings.base+':src'],{encoding:'utf8'}).trim()+'；正式行為沒有改動。');
+line('重現：`pnpm exec tsx scripts/stage4_6a-run.ts prepare`，依support.ts的groups逐個執行`run.ts <id>`（串行），再`pnpm run verify`及`pnpm exec tsx scripts/stage4_6a-report.ts`；缺舊QA快取時會標記未做舊輸出比對。');
+assert.ok(L.length<=100,'Report <=100 lines: '+L.length);writeFileSync('STAGE4_6A_REPORT.md',L.join('\n')+'\n');
+for(const component of ['typecheck','build','original-tests','scientific-tests','worker-tests'])copyFileSync(`.qa/v2-${component}.log`,`.qa/stage4_6a-v2-${component}.log`);
+copyFileSync('.qa/scientific-tests.json','.qa/stage4_6a-scientific-tests.json');console.log(JSON.stringify({reportLines:L.length,aggregates,oracleCount:summary.oracleCount,shortCount:summary.shortCount,continuedCount:summary.continuedCount}));
