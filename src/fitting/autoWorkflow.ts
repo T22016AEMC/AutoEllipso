@@ -1,3 +1,4 @@
+import {refineFreeForm,chooseFreeFormOrigin,FreeFormRefinement} from './freeFormRefine';
 import {SPLINE_STAGES,effectiveSplineParameters,splineBic,continueSplineRefinement,bestSplineStage} from './splineRefinement';
 import type {SplineStageResult} from './splineRefinement';
 import type {PeakInitialization} from '../models/peakInitialization';
@@ -69,6 +70,7 @@ export type WorkflowStage =
   | 'stage4_multilayer_optimizing'
   | 'stage_multistart'
   | 'stage5_final_rebuild'
+  | 'stage_free_form_refine'
   | 'completed'
   | 'failed';
 
@@ -1212,17 +1214,17 @@ export async function runAutomatedEllipsometryFit(
   }
   const finalBsplineThickness = activeBsplineThickness;
   const splineVector=[finalBsplineThickness,...activeNCoeffs,...activeKCoeffs];
-  const freeFormStatistics=freeFormWarning?undefined:computeFitStatistics(bestSplineVariables.map(v=>({...v,splineCoefficient:/^[NK]\d+$/.test(v.id)})),
+  let freeFormStatistics=freeFormWarning?undefined:computeFitStatistics(bestSplineVariables.map(v=>({...v,splineCoefficient:/^[NK]\d+$/.test(v.id)})),
     splineVector,bestSplineResidual,{weights:residualWeights(fittingPoints,config).weights,regularizationResidualsFn:bestSplineRegularization});
-  const freeFormModel=freeFormWarning?undefined:{primaryLayerIndex,layers:structuredClone(bsplineLayers),
+  let freeFormModel=freeFormWarning?undefined:{primaryLayerIndex,layers:structuredClone(bsplineLayers),
     variables:bestSplineVariables.map((v,i)=>({...v,value:splineVector[i]})),lambdaN,lambdaK};
-  const freeFormCoefficientBounds=bestSplineVariables.filter(v=>v.id.startsWith('K')).map((v,i)=>{
+  let freeFormCoefficientBounds=bestSplineVariables.filter(v=>v.id.startsWith('K')).map((v,i)=>{
     const value=activeKCoeffs[i],u=(value-v.min)/(v.max-v.min);
     return {id:v.id,value,min:v.min,max:v.max,boundaryHit:u<=FIT_NUMERICS.boundaryEpsilon||u>=1-FIT_NUMERICS.boundaryEpsilon};
   });
   const freeWavelengths=Array.from(new Set([...fittingPoints.map(p=>p.wavelength),fitWlMax,
     ...Array.from({length:Math.floor(fitWlMax-fitWlMin)+1},(_,i)=>fitWlMin+i)])).sort((a,b)=>a-b);
-  const freeFormOpticalConstants=freeFormStatistics?freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics,residualWeights(fittingPoints,config).mode):undefined;
+  let freeFormOpticalConstants=freeFormStatistics?freeFormCurve(freeWavelengths,activeKnots,activeNCoeffs,activeKCoeffs,freeFormStatistics,residualWeights(fittingPoints,config).mode):undefined;
 
   // =========================================================================
   // STEP 4: B-spline Diagnostic
@@ -1882,12 +1884,44 @@ export async function runAutomatedEllipsometryFit(
     return finalFittingPoints.flatMap(pt=>{const c=calculatePoint(ambient,statisticsLayers,substrate,pt.wavelength,pt.aoi);
       return [c.psiDeg-pt.psiExp,circularDifferenceDeg(c.deltaDeg,pt.deltaExp)];});
   },{weights:residualWeights(finalFittingPoints,config).weights});
+  let selectedFreeMetrics=computeResidualMetrics(bsplineEval,config.fitWeighting,psiWeight,deltaWeight,freeFormStatistics?.covariance.ids.length??0);
+  const freeFormRefinement:FreeFormRefinement=freeFormWarning?{skipped:true,warning:freeFormWarning}:
+    {origin:'ladder',ladder:{mseWoollam:selectedFreeMetrics.mseWoollam,rawMse:selectedFreeMetrics.rawMse}};
+  if(!freeFormWarning) {
+    reportProgress({stage:'stage_free_form_refine',stageName:'自由形式精修',stepNumber:8,progressPercent:96,
+      currentThickness:finalThickness,message:'物理模型僅作起點：全資料自由形式精修'});
+    try {
+      const refined=await refineFreeForm({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,
+        outputWavelengths:freeWavelengths,shouldStop,onIteration:(iteration,cost,prev,params,raw,reg,weighted)=>{
+          reportProgress({stage:'stage_free_form_refine',stageName:'自由形式精修',stepNumber:8,progressPercent:96,
+            iteration,currentThickness:params[0],currentMse:Math.sqrt((weighted??0)*2*fittingPoints.length/Math.max(1,2*fittingPoints.length-effectiveSplineParameters(
+              params.map((value,i)=>({id:String(i),name:String(i),value,min:i===0?40:i<=40?.5:0,max:i===0?200:i<=40?5.5:3.5})),params))),
+            message:`自由形式精修：迭代 ${iteration}，資料成本 ${(weighted??0).toPrecision(6)}`});
+        }});
+      freeFormRefinement.physicalSeeded={mseWoollam:refined.metrics.mseWoollam,rawMse:refined.metrics.rawMse,
+        thickness:refined.model.layers[primaryLayerIndex].thickness,converged:refined.result.converged,
+        status:refined.result.status,iterations:refined.result.iterations,elapsedMs:refined.elapsedMs};
+      const sigma=finalMetrics.weightingMode==='sigma';
+      freeFormRefinement.origin=chooseFreeFormOrigin(sigma?selectedFreeMetrics.mseWoollam:selectedFreeMetrics.rawMse,
+        sigma?refined.metrics.mseWoollam:refined.metrics.rawMse);
+      if(freeFormRefinement.origin==='physical_seeded') {
+        freeFormOpticalConstants=refined.curve;freeFormStatistics=refined.statistics;
+        freeFormModel=refined.model;freeFormCoefficientBounds=refined.coefficientBounds;selectedFreeMetrics=refined.metrics;
+      }
+    } catch(error) {
+      if(shouldStop?.())throw error;
+      freeFormRefinement.warning=`自由形式精修失敗，保留階梯結果：${error instanceof Error?error.message:String(error)}`;
+      log('⚠ '+freeFormRefinement.warning);
+    }
+    freeFormOpticalConstants=freeFormOpticalConstants?.map(p=>({...p,freeFormOrigin:freeFormRefinement.origin}));
+    log(`自由形式來源：${freeFormRefinement.origin}；階梯 MSE_W=${freeFormRefinement.ladder!.mseWoollam}；精修 MSE_W=${freeFormRefinement.physicalSeeded?.mseWoollam??'未取得'}`);
+  }
   const physicalAdequacy=assessFitAdequacy(statistics,finalMetrics.weightingMode);
   const freeAdequacy=freeFormStatistics?assessFitAdequacy(freeFormStatistics,residualWeights(fittingPoints,config).mode):undefined;
   const freeCount=freeFormStatistics?.covariance.ids.length??0,physicalCount=statistics.covariance.ids.length;
   const physicalComparisonCurve=freeWavelengths.map(wavelength=>({wavelength,...finalModelDef.calculate(wavelength,finalParamRecord)}));
   const opticalModelComparison=freeFormOpticalConstants?compareOpticalModels(freeFormOpticalConstants,physicalComparisonCurve,
-    computeResidualMetrics(bsplineEval,config.fitWeighting,psiWeight,deltaWeight,freeCount),
+    selectedFreeMetrics,
     computeResidualMetrics(finalFittingPoints,config.fitWeighting,psiWeight,deltaWeight,physicalCount),freeCount,physicalCount):undefined;
 
   const targetAchieved = finalMetrics.rawMse < TARGET_MSE;
@@ -1978,7 +2012,7 @@ export async function runAutomatedEllipsometryFit(
     fittingResult: {
       initialization:winningCandidate.initialization,
       statistics,fitAdequacy:physicalAdequacy.fitAdequacy,fitAdequacyWarning:physicalAdequacy.warning,
-      freeFormWarning,
+      freeFormWarning,freeFormOrigin:freeFormRefinement.origin,freeFormRefinement,
       freeFormFitAdequacy:freeAdequacy?.fitAdequacy,freeFormFitAdequacyWarning:freeAdequacy?.warning,
       freeFormStatistics,freeFormOpticalConstants,freeFormCoefficientBounds,opticalModelComparison,freeFormModel,
       finalOpticalConstants:physicalComparisonCurve.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),

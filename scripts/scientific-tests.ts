@@ -1,3 +1,4 @@
+import {stage45dTests} from './stage4_5d-tests';
 import {writeQaFileSync as writeFileSync} from './qa-files.mjs';
 import assert from 'node:assert/strict';
 
@@ -367,6 +368,7 @@ await stage41Tests(test);
 await stage43Tests(test);
 await stage44aTests(test);
 await stage44cTests(test);
+await stage45dTests(test);
 writeFileSync('scientific-tests.json',JSON.stringify(results,null,2));
 console.log(JSON.stringify({total:results.length,passed:results.filter(r=>r.passed).length,failures:results.filter(r=>!r.passed)},null,2));
 if(results.some(r=>!r.passed))process.exitCode=1;

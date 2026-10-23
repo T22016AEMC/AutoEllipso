@@ -6,6 +6,8 @@ export function OpticalModelComparisonPanel({result}:{result:FittingResult}) {
   if(!comparison)return result.freeFormWarning?<p role="alert" className="my-3 text-amber-300">⚠ {result.freeFormWarning}</p>:null;
   return <details className="my-3 rounded border border-slate-700 p-3 text-xs text-slate-200" open>
     <summary>自由形式 / 物理模型比較（保留兩組結果）</summary>
+    {result.freeFormRefinement&&<p>自由形式來源：{result.freeFormOrigin??'—'}；階梯 MSE (Woollam)：{result.freeFormRefinement.ladder?.mseWoollam.toPrecision(6)??'—'}；物理起點精修 MSE (Woollam)：{result.freeFormRefinement.physicalSeeded?.mseWoollam.toPrecision(6)??'—'}</p>}
+    {result.freeFormRefinement?.warning&&<p role="alert" className="text-amber-300">⚠ {result.freeFormRefinement.warning}</p>}
     {result.freeFormFitAdequacyWarning&&<p role="alert" className="text-amber-300">自由形式：⚠ {result.freeFormFitAdequacyWarning}</p>}
     {result.fitAdequacyWarning&&<p role="alert" className="text-amber-300">物理模型：⚠ {result.fitAdequacyWarning}</p>}
     {comparison.warning&&<p role="alert" className="my-2 text-amber-300">{comparison.warning}</p>}

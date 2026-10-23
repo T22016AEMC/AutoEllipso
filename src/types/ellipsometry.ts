@@ -188,6 +188,8 @@ export interface FittingResult {
   freeFormFitAdequacy?: import('../fitting/freeFormOptics').FitAdequacy;
   freeFormFitAdequacyWarning?:string;
   freeFormWarning?:string;
+  freeFormOrigin?:import('../fitting/freeFormRefine').FreeFormOrigin;
+  freeFormRefinement?:import('../fitting/freeFormRefine').FreeFormRefinement;
   freeFormOpticalConstants?: import('../fitting/freeFormOptics').OpticalConstantPoint[];
   finalOpticalConstants?: import('../fitting/freeFormOptics').OpticalConstantPoint[];
   freeFormStatistics?: FitStatistics;

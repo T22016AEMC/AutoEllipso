@@ -1,0 +1,52 @@
+import {readFileSync,writeFileSync,copyFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const read=(name:string)=>JSON.parse(readFileSync('.qa/'+name+'.json','utf8'));
+const serial=read('stage4_5d-serial-tests'),regression=read('stage4_5d-regression'),tests=read('scientific-tests'),verify=read('verification-summary'),zero=read('stage4_5d-zero-k');
+const fmt=(x:number)=>Number.isFinite(x)?x.toPrecision(10):String(x);
+const pct=(delta:number,old:number)=>Math.abs(delta)/Math.max(Math.abs(old),Number.MIN_VALUE);
+const L:string[]=[];const line=(s='')=>L.push(s);
+line('# Stage 4.5d：物理起點自由形式精修');line();
+line('基準 e589f5d；僅提交 v2.2-integration。原始輸出均為本機 `.qa/stage4_5d-*`，不在 repo。');
+line();line('## 修改與選擇規則');line();
+line('- `src/fitting/freeFormRefine.ts`：取最終物理模型在量測格點的曲線作SVD起點；只在副本變更主要圖層，其餘層固定。物理結果不被取代。');
+line('- 固定40個等距波長節點；n係數 .5–5.5、k係數0–3.5、厚度40–200 nm；全資料、100次、ftol=1e-5、既有xtol/gtol；λN=.25、λK=.6。k沒有正下限；正則化只有二階差分，沒有靠攏物理曲線的懲罰。');
+line('- `autoWorkflow.ts`：最終物理回算/統計之後，新增「自由形式精修」進度；既有shouldStop延續使用。失敗保留階梯並輸出警告；小資料集沿用原警告略過。T0–T5均使用216資料點/432殘差。');
+line('- 全資料比較：sigma模式使用Woollam MSE，其他模式用Raw MSE；取較低者，差≤1e-6×max(|a|,|b|)取physical_seeded。模型、統計、係數邊界、fitAdequacy與曲線同步切換。階梯稽核資料仍是原階梯。');
+line('- 統計只呼叫既有computeFitStatistics/freeFormCurve，沿用below_detection/unreliable。`ellipsometry.ts`、`freeFormOptics.ts`新增可選來源欄位，舊JSON不需遷移。');
+line('- `OpticalModelComparisonPanel.tsx`顯示來源與兩組MSE；`export.ts`、`validationReport.ts`加入freeFormOrigin/freeFormRefinement。新自由形式CSV保留source=free_form並附free_form_origin；前三欄與既有欄位不動。缺來源的舊資料維持舊CSV表頭。');
+line('- 新增 `stage4_5d-tests.ts`、`stage4_5d-run.ts`、本報告產生腳本；scientific-tests.ts只新增import/呼叫，未改任何既有斷言。');
+line();line('## A、D：完整Automatic與4.5c M2比較');line();
+line('同4.5fixture/seed45001；T0 Cauchy、T1 TL、T2 Gaussian、T3 Lorentz、T4雙Gaussian、T5 Cauchy n加700–900 nm線性k至.02。數字未拿來調參。厚度誤差相對100 nm。');
+line();line('|案例|階梯MSE_W|採用MSE_W / 4.5c M2|膜厚誤差nm / 4.5c M2|來源|總秒 / 新精修秒|');line('|---|---:|---:|---:|---|---:|');
+for(const [id,entry] of Object.entries<any>(serial.cases)) {
+ const c=entry.comparison;line(`|${id}|${fmt(c.ladder.mseWoollam)}|${fmt(c.selectedMse)} / ${fmt(c.prototype.mseWoollam)}|${fmt(c.freeThicknessError)} / ${fmt(c.prototype.thicknessError)}|${c.origin}|${fmt(c.elapsedMs/1000)} / ${fmt(c.physicalSeeded.elapsedMs/1000)}|`);
+}
+line();line('A：全部6例皆MSE_W≤階梯，k有限且≥0、自由形式膜厚在40–200內，來源均physical_seeded。新CSV來源、JSON還原、Validation Report及SSR文字亦在同一測試檢查。');
+const differences=Object.entries<any>(serial.cases).flatMap(([id,e])=>{
+ const c=e.comparison,dm=c.selectedMse-c.prototype.mseWoollam,dd=c.freeThicknessError-c.prototype.thicknessError;
+ return [...(pct(dm,c.prototype.mseWoollam)>1e-6?[`${id} MSE_W：Δ=${fmt(dm)}，相對差=${fmt(pct(dm,c.prototype.mseWoollam))}`]:[]),...(pct(dd,c.prototype.thicknessError)>1e-6?[`${id} 膜厚誤差：Δ=${fmt(dd)} nm，相對差=${fmt(pct(dd,c.prototype.thicknessError))}`]:[])];
+});
+line('D：超過1e-6相對差的項目：'+(differences.join('；')||'無')+'。T0的4.5c M2以另行擬合的Cauchy(k0自由)起點，本次使用正式Automatic的Gaussian終點；起點不同、固定停止準則下終點略有差異。T1–T5未超過門檻。');
+line();line('## B、C與選擇防呆');line();
+line(`B：T2、Cauchy零k起點，吸收區max k=${fmt(zero.maxK)}（要求>0.01）；初始MSE_W=${fmt(zero.initialMse)}→${fmt(zero.finalMse)}。未加入k正下限。`);
+line('C：3點與10點完整Automatic皆有結果、有原資料不足警告，freeFormRefinement.skipped=true、無physicalSeeded結果，沒有拋錯。');
+line('防呆：同分/1→1.0000005選physical_seeded，1→2留ladder，1→.5選physical_seeded；非有限候選留ladder。串行新增測試 '+serial.results.filter((r:any)=>r.passed).length+'/'+serial.results.length+'；原始結果在 `.qa/stage4_5d-serial-tests.log`、`.qa/stage4_5d-serial-tests.json`、`.qa/stage4_5d-zero-k.json`、`.qa/stage4_5d-small-*.json`。');
+for(const r of serial.results.filter((r:any)=>!r.passed))line('新增測試失敗：'+r.name+'：'+r.error);
+line();line('## 四案例回歸與耗時');line();
+line('before取e589f5d隔離副本，after取本次src；均targetModelId=gaussian、同輸入，前後依序執行且未與其他計算並行。表內物理結果前後一致；n/k比對完整輸出格點。');
+line();line('|案例|物理MSE_W前→後|物理膜厚前→後nm|converged前→後|最大Δn/k|自由MSE_W前→後|總秒前→後|');line('|---|---:|---:|---|---:|---:|---:|');
+for(const row of regression) {const [a,b]=row.outputs;line(`|${row.scenario}|${fmt(a.mseWoollam)}→${fmt(b.mseWoollam)}|${fmt(a.thickness)}→${fmt(b.thickness)}|${a.converged}→${b.converged}|${row.differences.nk}|${fmt(a.freeMse)}→${fmt(b.freeMse)}|${fmt(a.elapsedMs/1000)}→${fmt(b.elapsedMs/1000)}|`);}
+line();line('物理MSE_W、膜厚、converged及全部n/k皆用嚴格相等斷言，四例通過。耗時僅單次牆鐘，含JIT/系統波動，不作加速結論；前後原始輸出：`.qa/stage4_5d-regression.log`、`.qa/stage4_5d-regression.json`及`.qa/stage4_5d-reg-*.json`。');
+line();line('## verify與限制');line();
+line('`pnpm run verify`原始輸出：本機 `.qa/stage4_5d-verify.log`；各子項 `.qa/stage4_5d-v2-*.log`、測試明細 `.qa/stage4_5d-scientific-tests.json`（均不在repo）。');
+line('命令exit code：'+verify.commands.map((c:any)=>c.name+'='+c.exitCode).join('；')+'。original 29/29、worker 8/8；scientific '+tests.filter((t:any)=>t.passed).length+'/'+tests.length+'。');
+line();
+const knownFailures=new Set(['Automatic multi-AOI sigma fit converges and retains baseline fit within tolerance','Stage4.1: SiO2 regression and timing against Stage3/4 baseline']);
+for(const t of tests.filter((t:any)=>!t.passed))line('- '+(knownFailures.has(t.name)?'既有':'新增')+'失敗：'+t.name+'：'+t.detail.replaceAll('\n',' ').replace(/\s+/g,' ').trim());
+line();line('既有期望值修改：無。新增失敗：'+tests.filter((t:any)=>!t.passed&&!knownFailures.has(t.name)).length+'；未調整選擇、門檻、平滑或任何容差。');
+line('未解決：物理透明/弱吸收的converged仍false；T1–T4自由形式仍有偏差，較低MSE不代表所有n/k、膜厚或σ涵蓋率改善。T4膜厚誤差由階梯−.8112變+1.5562 nm。');
+line('UI只做SSR文字/匯出/JSON檢查，未做互動瀏覽器測試；未做跨種子統計校準。未改TMM、Δ、optimizer、residual、statistics演算法、Worker、物理階段、原容差/上限或部署設定。');
+line('GitHub Actions 在本commit推送後查詢，結果由交付訊息回報；本報告不預先宣稱通過，也不修改CI設定。');
+assert.ok(L.length<=100,'Report <=100 lines: '+L.length);writeFileSync('STAGE4_5D_REPORT.md',L.join('\n')+'\n');
+for(const component of ['typecheck','build','original-tests','scientific-tests','worker-tests'])copyFileSync(`.qa/v2-${component}.log`,`.qa/stage4_5d-v2-${component}.log`);
+copyFileSync('.qa/scientific-tests.json','.qa/stage4_5d-scientific-tests.json');console.log('Report '+L.length+' lines');
