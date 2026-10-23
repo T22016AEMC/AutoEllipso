@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,copyFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {load,guard,settings} from './stage4_5c-support';
+guard();
+const ids=['T0','T1','T2','T3','T4','T5'],methods=['M0','M1','M2'];
+const all=ids.flatMap(id=>methods.map(method=>({id,method,...load(id+'-'+method)})));
+for(const id of ['T2','T3'])all.push({id,method:'M2-mismatch',...load(id+'-M2-mismatch')});
+const fmt=(v:number|null|undefined)=>v==null?'—':Number.isFinite(v)?v.toPrecision(6):String(v);
+const pct=(v:number|null|undefined)=>v==null?'—':(100*v).toFixed(2)+'%';
+const pair=(a:number|null,b:number|null)=>fmt(a)+' / '+fmt(b);
+const L:string[]=[];const line=(s='')=>L.push(s);
+line('# Stage 4.5c：自由形式原型比較');
+line('基準 db7c133；只新增 scripts 與本報告。原始 JSON/log 均在本機 `.qa/stage4_5c-*`，不在 repo。');
+line('判定：目前設定下不宜直接移植任一原型。M2 值得後續受控比較：T1–T4 的成本下降，但誤差與涵蓋率仍不足以據此採用；M1 在 T1/T2/T4 退步，且依賴 Cauchy 厚度起點。沒有改正式行為、斷言、容差、迭代上限或部署設定。');
+line('## 執行前固定設定');
+line('T0–T4 與 4.5b 同 fixture/seed45001；T0 A=1.457,B=.0035,C=.0001,k=0；T1 TL(ε∞1.8,A100,E0=3.5,C1.5,Eg1.5)；T2 Gaussian(ε∞2.2,A2,E0=2.5,σ.3)；T3 Lorentz(ε∞2.2,A3,E0=3.5,γ.5)；T4 Gaussian 再加(A2=1.2,E02=4.5,σ2=.4)。');
+line('全部 Si/100 nm、65/70/75°、190–900 nm/10 nm、σΨ=σΔ=.03°；T5 為 T0 的 n，k 在 ≤700 nm 為0、700–900 nm 線性增至 .02；同亂數序列。T1–T4 另與既有物理擬合資料逐點深比較。');
+line('|方法|固定設定（結果後未調參）|');line('|---|---|');
+line('|M0|重跑正式自由形式至物理階段前返回；沿用4.5b隔離讀取副本，該副本上限48但正式階梯仍≤40。T0–T4 膜厚/MSE_W 與4.5b逐值相同；T5 新跑。|');
+line('|M1|全資料 Cauchy(k=0僅此厚度估計)→d0±10 nm(裁至40–200)，0.5粗掃、最佳粗點±0.5以0.05細掃；每個d、每個λ完整41×31網格(n .5–4,k 0–3)，最多3個網格局部極小作LM初值。|');
+line('|M1分支/平滑|LM後去重距離<1e-5，保留Δχ²≤9候選；DP最小化相鄰Δn/5、Δk/3.5平方和，同成本再比χ²。光學空間SVD以逐波長正式統計σ的倒數加權；σ缺失/貼界用固定權重1並計數；二階差分λN=.25/λK=.6。不是將k設零。|');
+line('|M2|T1–T4讀取4.5已擬合物理結果（非真值）；T0用k0可自由擬合的Cauchy；T5固定Gaussian Automatic。另跑T2←Lorentz、T3←Gaussian。物理輸出1nm曲線取量測格點，以既有SVD投影。|');
+line('|M1/M2最終|均40個等距λ節點、全216點/432殘差、d 40–200、n係數 .5–5.5、k係數0–3.5（無正下限），100次、ftol=1e-5與正式B-spline相同，xtol/gtol使用既有預設；λN=.25/λK=.6，正則化與mean(w²)尺度同正式；SVD rcond=1e-12。|');
+line('正式computeFitStatistics與freeFormCurve計算最終聯合共變異及σ_k，含平滑曲率、膜厚與邊界條件；沒有另寫統計計算。模型/自由度/界限不同，成本只與該方法自身的真值投影見證比較，不能據其排序宣稱全域最佳。');
+line('## 結果與串行牆鐘耗時');
+line('時間為單次牆鐘秒；未與其他計算並行。M0含Cauchy與自由階梯；M1含厚度估計、全部掃描、平滑、最終精修與統計。M2的T1–T4使用既有快取，**不含取得起點的時間，不能當完整流程加速比**；其餘M2含實際起點擬合。');
+line('|案例/方法|MSE_W|膜厚誤差nm|converged/status/次|總秒|σ_k ±2σ涵蓋|最終總成本 / 真值投影成本|');line('|---|---:|---:|---|---:|---:|---:|');
+for(const a of all){const s=a.summary,h=a.capture?.history.find((q:any)=>q.selected),r=a.result??h;line(`|${a.id}/${a.method}|${fmt(s.mseWoollam)}|${fmt(s.thicknessError)}|${s.converged}/${s.status}/${r?.iterations??'—'}|${fmt(a.elapsedMs/1000)}${a.seed?.cached?'†':''}|${pct(a.regions.all.coverage)}|${pair(s.totalCost,s.witnessCost)}|`);}
+line('真值投影只作可行見證：用相同節點SVD投影真值n/k，再裁到各方法原界限；厚度100 nm；不做Ψ/Δ擬合。迭代回傳cost/gradient/step不等同於曲線準確。全部最終k非負且有限；資料成本另行重算與optimizer一致。');
+line('## 分區誤差（數字為 max / RMS；—為該區無資料）');
+line('|案例/方法|吸收區n|吸收區k|近透明n|近透明k|吸收/近透明σ涵蓋|');line('|---|---:|---:|---:|---:|---:|');
+for(const a of all){const x=a.regions.absorbing,y=a.regions.nearTransparent;line(`|${a.id}/${a.method}|${pair(x.nMax,x.nRms)}|${pair(x.kMax,x.kRms)}|${pair(y.nMax,y.nRms)}|${pair(y.kMax,y.kRms)}|${pct(x.coverage)} / ${pct(y.coverage)}|`);}
+line('分區依真值k≥.001/其餘，僅用於評分，不用於界限/起點。每案例72個波長；可用σ均72；σ=0仍保留於涵蓋率分母，不移除邊界波長。這是單組雜訊的波長涵蓋率，無法判定跨種子校準。');
+line('## M1搜尋與分支');
+line('|案例|Cauchy d0 / χ²每殘差|掃描區間含100?|最佳逐點d / χ²|多候選λ/DP改選λ|缺σn/σk權重回退數|');line('|---|---:|---|---:|---:|---:|');
+for(const id of ids){const a=load(id+'-M1'),p=a.seed;line(`|${id}|${pair(p.cauchy.result.finalParams[0],p.cauchy.result.finalWeightedCost)}|${p.scanBracket.map(fmt).join('–')} / ${p.truthInBracket}|${pair(p.selected.thickness,p.selected.chiSquare)}|${p.selected.ambiguous} / ${p.selected.dpChanged}|${p.selected.missingN} / ${p.selected.missingK}|`);}
+line('多候選數僅針對本網格找到且精修後在Δχ²≤9內的解，不代表證明不存在其他分支；DP選的路徑不以最小χ²為唯一準則。每個d的χ²/分支計數與選中點完整參數保存在*-M1-profile.json；沒有使用真值修正d0或掃描區間。');
+line('## M2起點與T5近紅外');
+line('|案例/起點|取得秒|最終精修秒|');line('|---|---:|---:|');
+for(const a of all.filter(a=>a.method.startsWith('M2'))){line(`|${a.id}/${a.method}:${a.seed.model??'Cauchy(k0 free)'}|${a.seed.cached?'既有快取；串行耗時未知':a.seed.acquisitionElapsedMs==null?'計入總秒（未另分時）':fmt(a.seed.acquisitionElapsedMs/1000)}|${fmt(a.refinementElapsedMs/1000)}|`);}
+line('|T5方法|700nm k/σ|800nm k/σ（真值.01）|900nm k/σ（真值.02）|');line('|---|---:|---:|---:|');
+for(const method of methods){const a=load('T5-'+method);line(`|${method}|${[700,800,900].map(w=>{const r=a.rows.find((r:any)=>r.wavelength===w);return pair(r.k,r.kSigma);}).join('|')}|`);}
+line('## 失敗、限制與判斷');
+line('T0：M1/M2的MSE_W較低，但n/k RMS與膜厚誤差較M0增加、σ涵蓋率100%→68.06%，因此未達「不比M0差」。可能與40對24節點的自由度及平滑偏差有關，未隔離因果。T5也有同類成本與誤差取捨；k並未被歸零。');
+line('M1：T1/T2/T4比M0的MSE_W更高；Cauchy估計導致掃描區間不含100 nm。T3有改善但100次max_iter，仍比同基底真值投影成本高；無法判定單獨增加搜尋/改平滑會如何，本階段未嘗試。');
+line('M1的T0/T3/T5即使掃描區間含100，逐點最佳d仍為107.233/96.325/107.252 nm；因此不能把全部失敗歸於Cauchy初值。粗網格/逐點LM/分支策略各自的影響未隔離，無法判定單一根因。');
+line('M2：T1–T4改善但未消除模型偏差與低涵蓋率；T2/T3錯配起點與匹配起點終點接近，僅支持這兩組具體起點。其總成本低於所列投影見證也不能證明全域最小或參數可信。');
+line('移植風險：M2需要物理擬合先完成；較寬n界限、固定40節點與原M0不同，不能把全部改善歸給起點；正則化、投影誤差及點解分支仍影響輸出。不建議直接以本原型取代正式流程；沒有調容差或斷言的建議。');
+line('執行問題：首次T1/M2因既有1nm匯出曲線不等於10nm量測格點而被新腳本檢查中止；修正為按量測格點選取，未改設定/正式斷言；原始失敗log保留。其後只補腳本TypeScript型別，不影響已算出的數值。');
+line('## 工程驗證');
+const summary=JSON.parse(readFileSync('.qa/verification-summary.json','utf8'));
+line('`pnpm run verify`原始輸出：本機 `.qa/stage4_5c-verify-final.log`；各子項原始輸出：`.qa/stage4_5c-v2-*.log`（均不在repo）。');
+const tests=JSON.parse(readFileSync('.qa/scientific-tests.json','utf8'));
+line('實際結果：typecheck 0、build 0、original 29/29、worker 8/8；scientific '+tests.filter((t:any)=>t.passed).length+'/'+tests.length+'（exit 1）；完整命令exit code：'+JSON.stringify(summary.commands)+'。');
+line('既有失敗1：Automatic multi-AOI sigma fit converges and retains baseline fit within tolerance：100.27386919748632 != 99.99715906148896, tolerance 0.001。');
+line('既有失敗2：Stage4.1: SiO2 regression and timing against Stage3/4 baseline：assert.ok(Math.abs(previous.deltaThickness)<1e-3)。未改斷言/期望值。');
+line('DP、常數SVD投影、14組原型完整成本重建有assert自檢（stage4_5c-selfcheck.log）；T0–T4 M0逐值回歸與設定一致性檢查有通過；初次typecheck的3個implicit-any錯誤已補型別，完整重跑結果如上，首次輸出留在stage4_5c-verify.log。');
+line('重現：`pnpm exec tsx scripts/stage4_5c-run.ts prepare`，逐一跑 `T0…T5 M0/M1/M2` 與 `T2/T3 M2-mismatch`（串行），再 `check`、`pnpm run verify`、`pnpm exec tsx scripts/stage4_5c-report.ts`。若缺4.5快取，先用既有 stage4_5-run.ts prepare/T1…T4 重建；本機原始檔不隨repo發送。');
+const old=execFileSync('git',['rev-parse',settings.base+':src'],{encoding:'utf8'}).trim(),now=execFileSync('git',['rev-parse','HEAD:src'],{encoding:'utf8'}).trim();assert.equal(old,now);line(`src tree：${now}，與基準完全相同；未改既有測試。報告不含科學驗證結論；完整逐波長數值/共變異/參數/曲線均見本機JSON。`);
+const formatted=L.flatMap((s,i)=>s.startsWith('#')?[...(i?['']:[]),s,'']: [s]);
+assert.ok(formatted.length<=120,'Report <=120 lines: '+formatted.length);
+writeFileSync('STAGE4_5C_REPORT.md',formatted.join('\n')+'\n');
+for(const component of ['typecheck','build','original-tests','scientific-tests','worker-tests'])copyFileSync(`.qa/v2-${component}.log`,`.qa/stage4_5c-v2-${component}.log`);
+console.log('Report lines='+formatted.length+'; all raw outputs remain local .qa');
