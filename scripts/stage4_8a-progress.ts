@@ -1,0 +1,13 @@
+import {existsSync,readdirSync,readFileSync} from 'node:fs';
+import {prefix,settings,grid,cvGrid,read,mean} from './stage4_8a-run';
+const files=readdirSync('.qa').filter(f=>f.startsWith('stage4_8a-')&&f.endsWith('.json'));
+const load=(f:string)=>JSON.parse(readFileSync('.qa/'+f,'utf8'));
+const autos=files.filter(f=>/^stage4_8a-V\d-4900[123]-automatic\.json$/.test(f)).map(load);
+const full=files.filter(f=>/^stage4_8a-V\d-4900[123]-(40|50|60|80)Ws[\d.]+\.json$/.test(f)).map(load);
+const folds=files.filter(f=>/-fold[01]\.json$/.test(f)).map(load),rules=files.filter(f=>/-rules\.json$/.test(f)).map(load);
+const old=JSON.parse(readFileSync('.qa/stage4_7b-execution.json','utf8')),historicalAuto=old.stageSeconds[1]*1000/21,historicalFit=(old.stageSeconds[2]+old.stageSeconds[3])*1000/133;
+const autoMean=mean(autos.map(r=>r.elapsedMs))??historicalAuto,fullMean=mean(full.map(r=>r.elapsedMs))??historicalFit,foldMean=mean(folds.map(r=>r.elapsedMs))??mean(full.filter(r=>r.setting.count<=50).map(r=>r.elapsedMs))??historicalFit;
+const fullIds=new Set(full.map(r=>`${r.id}-${r.seed}-${r.setting.id}`)),foldIds=new Set(folds.map(r=>`${r.id}-${r.seed}-${r.setting.id}-${r.fold}`));let remainingFull=0,remainingFold=0;
+for(const t of settings.truths)for(const seed of settings.seeds){for(const g of grid)if(!fullIds.has(`${t.id}-${seed}-${g.id}`))remainingFull+=mean(full.filter(r=>r.setting.count===g.count).map(r=>r.elapsedMs))??fullMean;for(const g of cvGrid)for(const fold of [0,1])if(!foldIds.has(`${t.id}-${seed}-${g.id}-${fold}`))remainingFold+=mean(folds.filter(r=>r.setting.count===g.count).map(r=>r.elapsedMs))??foldMean;}
+const eq=existsSync(prefix+'equivalence.json')?read('equivalence'):null,verifyDone=existsSync(prefix+'verify-timing.json'),verifyMs=verifyDone?read('verify-timing').elapsedMs:JSON.parse(readFileSync('.qa/stage4_7b-verify-timing.json','utf8')).elapsedMs;
+console.log(JSON.stringify({stages:[{stage:0,count:eq?.checks.length??0,total:6,seconds:(eq?.elapsedMs??0)/1000},{stage:1,count:autos.length,total:21,seconds:autos.reduce((s,r)=>s+r.elapsedMs/1000,0)},{stage:2,count:full.length,total:420,seconds:full.reduce((s,r)=>s+r.elapsedMs/1000,0)},{stage:3,count:folds.length,total:420,seconds:folds.reduce((s,r)=>s+r.elapsedMs/1000,0)},{stage:4,count:rules.length*6,total:126,seconds:rules.reduce((s,r)=>s+r.scoringMs/1000,0)},{stage:5,count:verifyDone?1:0,total:1,seconds:verifyDone?verifyMs/1000:0}],remainingSeconds:((21-autos.length)*autoMean+remainingFull+remainingFold+(verifyDone?0:verifyMs))/1000,stopped:existsSync(prefix+'stopped.json'),paused:existsSync(prefix+'paused.json')}));

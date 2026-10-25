@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import {copyFileSync,existsSync,readFileSync,writeFileSync} from 'node:fs';
+import {isDeepStrictEqual} from 'node:util';
+import {settings,prefix,grid,read,save,sha,mean,rms} from './stage4_8a-run';
+if(process.argv[2]==='verify'){
+ assert.equal(read('execution').fullFits,420);assert.equal(read('execution').foldFits,420);const timing=read('verify-timing'),load=(name:string)=>JSON.parse(readFileSync('.qa/'+name+'.json','utf8'));
+ for(const name of ['verification-summary','v2-original-tests','scientific-tests','worker-tests'])copyFileSync('.qa/'+name+'.json',prefix+name+'.json');
+ const failures=(rows:any[])=>rows.filter(r=>!r.passed).map(({name,detail})=>({name,detail})),current=failures(load('scientific-tests')),previous=failures(load('stage4_7b-scientific-tests')),count=(a:any[])=>`${a.filter(r=>r.passed).length}/${a.length}`;
+ save('verification',{...timing,commands:load('verification-summary').commands,failures:current,sameAs47b:isDeepStrictEqual(current,previous),newNames:current.filter(r=>!previous.some(p=>p.name===r.name)),changed:current.filter(r=>previous.some(p=>p.name===r.name&&p.detail!==r.detail)),counts:{original:count(load('v2-original-tests')),scientific:count(load('scientific-tests')),worker:count(load('worker-tests'))}});
+ console.log(JSON.stringify({sameAs47b:read('verification').sameAs47b,counts:read('verification').counts}));
+}else{
+ const execution=read('execution'),verification=read('verification'),frozen=read('frozen');assert.deepEqual(read('settings'),settings);assert.equal(sha(readFileSync(prefix+'settings.json')),frozen.settingsSha256);assert.equal(sha(readFileSync(prefix+'frozen-report.md')),frozen.reportSha256);
+ const fmt=(v:any)=>v==null||!Number.isFinite(v)?'NA':v===0?'0':Math.abs(v)<.001||Math.abs(v)>=1e5?v.toExponential(3):v.toFixed(4),records:any[]=[],variation:any[]=[],curves:any[]=[],bestRows:any[]=[];
+ for(const t of settings.truths){
+  const primary=grid.map(g=>{const fit=read(`${t.id}-49001-${g.id}`),e=read(`${t.id}-49001-${g.id}-evaluation`);return {...e,metrics:fit.metrics};}),oracle=primary.reduce((a,b)=>b.score.error<a.score.error?b:a),bestOut=primary.reduce((a,b)=>b.oosW<a.oosW?b:a);bestRows.push({id:t.id,E:oracle.setting.id,Evalue:oracle.score.error,Wout:bestOut.setting.id,WoutValue:bestOut.oosW});
+  for(const seed of settings.seeds){const d=read(`${t.id}-${seed}-rules`),baseline=read(`${t.id}-${seed}-40Ws1-evaluation`);assert.ok(baseline.score);
+   for(const g of grid){const r=read(`${t.id}-${seed}-${g.id}`),e=read(`${t.id}-${seed}-${g.id}-evaluation`),v=read(`${t.id}-${seed}-${g.id}-validation`);curves.push({id:t.id,seed,setting:g,Win:r.metrics.mseWoollam,Wout:e.oosW,gap:e.gap,chiN:r.metrics.weightedMse,chiNout:e.oosChiN,Wval:v.valW,p:r.p,dof:r.dof,status:r.status,converged:r.converged,elapsedMs:r.elapsedMs,score:e.score});}
+   for(const choice of d.rules){const r=read(`${t.id}-${seed}-${choice.selected}`),e=read(`${t.id}-${seed}-${choice.selected}-evaluation`);assert.ok(e.score);const delta=e.score.error-baseline.score.error;
+    records.push({id:t.id,seed,rule:choice.rule,selected:choice.selected,fallback:choice.fallback,elapsedMs:choice.elapsedMs,details:choice,metrics:r.metrics,p:r.p,dof:r.dof,status:r.status,converged:r.converged,aic:r.aic,bic:r.bic,score:e.score,oosW:e.oosW,oosChiN:e.oosChiN,gap:e.gap,delta,deltaClass:Math.abs(delta)<1e-4?'N':Math.abs(delta)>1e-4?'B':'EQ',near:seed===49001?e.score.error<=1.1*oracle.score.error+1e-4:null,bestOut:seed===49001?{setting:bestOut.setting.id,Wout:bestOut.oosW,delta:e.oosW-bestOut.oosW}:null});
+   }
+  }
+  const truth=read(`${t.id}-49001-data`).optics;
+  for(const rule of settings.rules){const rows=records.filter(r=>r.id===t.id&&r.rule===rule),fitted=rows.map(r=>read(`${t.id}-${r.seed}-${r.selected}`).out.curve),fields=Object.fromEntries(['n','k'].map(key=>{const average=truth.map((_:any,i:number)=>mean(fitted.map(c=>c[i][key]))!),sd=average.map((a:number,i:number)=>Math.sqrt(fitted.reduce((s,c)=>s+(c[i][key]-a)**2,0)/2));return [key,{sdRms:rms(sd),bias:rms(average.map((a:number,i:number)=>a-truth[i][key])),meanCurve:average,pointwiseSD:sd}];}));variation.push({id:t.id,rule,selected:rows.map(r=>r.selected),consistent:new Set(rows.map(r=>r.selected)).size===1,...fields});}
+ }
+ assert.equal(records.length,126);assert.equal(curves.length,420);assert.equal(variation.length,42);
+ const baselineMs=mean(records.filter(r=>r.rule==='R0').map(r=>r.elapsedMs))!;
+ const rules=settings.rules.map(rule=>{const all=records.filter(r=>r.rule===rule),primary=all.filter(r=>r.seed===49001),matched=primary.filter(r=>settings.matched.includes(r.id)),near=primary.filter(r=>r.near).length,worse=all.filter(r=>r.delta>1e-4),bad=matched.filter(r=>r.metrics.mseWoollam>1.3||r.oosW>1.3),consistent=variation.filter(v=>v.rule===rule&&v.consistent).length,meanMs=mean(all.map(r=>r.elapsedMs))!,checks=[{id:1,passed:near>=6,value:`${near}/7`},{id:2,passed:worse.length===0,value:`${worse.length}/21`,datasets:worse.map(r=>`${r.id}/${r.seed}`)},{id:3,passed:bad.length===0,value:`${matched.length-bad.length}/5`,failures:bad.map(r=>r.id)},{id:4,passed:consistent>=5,value:`${consistent}/7`},{id:5,passed:meanMs<=15*baselineMs,value:meanMs/baselineMs}];return {rule,near,worse:worse.length,noise:all.filter(r=>r.deltaClass==='N').length,meanDelta:mean(all.map(r=>r.delta)),consistent,meanMs,totalMs:all.reduce((s,r)=>s+r.elapsedMs,0),ratio:meanMs/baselineMs,checks,passed:checks.every(c=>c.passed),fallbacks:all.filter(r=>r.fallback).length};});
+ const comparisons=settings.truths.map(t=>({id:t.id,C2:records.find(r=>r.id===t.id&&r.seed===49001&&r.rule==='C2')!.selected,C3:records.find(r=>r.id===t.id&&r.seed===49001&&r.rule==='C3')!.selected})),agreement=comparisons.filter(c=>c.C2===c.C3).length;
+ const trends=['V3','V4','V6'].map(id=>{const rows=curves.filter(r=>r.id===id&&r.seed===49001);return {id,byM:settings.counts.map(M=>({M,meanGap:mean(rows.filter(r=>r.setting.count===M).map(r=>r.gap))})),byScale:settings.scales.map(s=>({s,meanGap:mean(rows.filter(r=>r.setting.scale===s).map(r=>r.gap))})),range:[Math.min(...rows.map(r=>r.gap)),Math.max(...rows.map(r=>r.gap))],notable:rows.filter(r=>r.gap>.2).length};});
+ const passed=rules.filter(r=>/^C/.test(r.rule)&&r.passed),fastest=passed.length>1?passed.filter(r=>r.meanMs===Math.min(...passed.map(r=>r.meanMs))).map(r=>r.rule):[];
+ const phaseSeconds=[...execution.stageSeconds,verification.elapsedMs/1000];save('complete-summary',{settings,records,variation,curves,bestRows,trends,rules,comparisons,agreement,passed:passed.map(r=>r.rule),fastest,phaseSeconds,verification});
+ const flat=records.map(r=>({truth:r.id,seed:r.seed,rule:r.rule,setting:r.selected,fallback:r.fallback,Win:r.metrics.mseWoollam,Wout:r.oosW,gap:r.gap,chiN:r.metrics.weightedMse,chiNout:r.oosChiN,E:r.score.error,delta:r.delta,deltaClass:r.deltaClass,near:r.near,nMax:r.score.regions.all.nMax,nRMS:r.score.regions.all.nRms,kMax:r.score.regions.all.kMax,kRMS:r.score.regions.all.kRms,dError:r.score.thicknessError,p:r.p,dof:r.dof,seconds:r.elapsedMs/1000}));writeFileSync(prefix+'rules.csv',[Object.keys(flat[0]).join(','),...flat.map(r=>Object.values(r).map(v=>v??'NA').join(','))].join('\n')+'\n');save('overfit-curves',curves);
+ const lines=readFileSync(prefix+'frozen-report.md','utf8').trimEnd().split('\n');
+ lines.push(`設計報告SHA256=${frozen.reportSha256}；六例一致性最大差${fmt(Math.max(...read('equivalence').checks.map((c:any)=>c.maxDifference)))}≤1e-9。`,
+  '49001主表；χ=χ²/Nin，近=相近；* gap>.2；最佳Wout與差只評分。全126規則n/k max/RMS、區域、次種子與逐點在rules.csv/complete-summary.json/evaluation.json。',
+  '|真值/規則|所選|Win/χ|E/ΔE(類)|近|d誤差nm|Wout/gap|最佳Wout設定:W/差|精修秒|','|---|---|---|---|---|---:|---|---|---:|');
+ for(const r of records.filter(r=>r.seed===49001))lines.push(`|${r.id}/${r.rule}|${r.selected}${r.fallback?' fallback':''}|${fmt(r.metrics.mseWoollam)}/${fmt(r.metrics.weightedMse)}|${fmt(r.score.error)}/${fmt(r.delta)}(${r.deltaClass})|${r.near?'Y':'N'}|${fmt(r.score.thicknessError)}|${fmt(r.oosW)}/${fmt(r.gap)}${r.gap>.2?'*':''}|${r.bestOut.setting}:${fmt(r.bestOut.Wout)}/${fmt(r.bestOut.delta)}|${fmt(r.elapsedMs/1000)}|`);
+ lines.push('','跨三種子：每格SD(n/k)；偏差(n/k)；所選一致Y/N，逐點與三設定id存JSON。','|真值|R0|R1c|C1|C2|C3|C4|','|---|---|---|---|---|---|---|');
+ for(const t of settings.truths)lines.push(`|${t.id}|${settings.rules.map(rule=>{const v=variation.find(v=>v.id===t.id&&v.rule===rule)!;return `${fmt(v.n.sdRms)}/${fmt(v.k.sdRms)};${fmt(v.n.bias)}/${fmt(v.k.bias)};${v.consistent?'Y':'N'}`;}).join('|')}|`);
+ lines.push('','C1–C4預定判準：每格通過/未通過及實際數；3需五個匹配族全過。','|規則|1相近|2大差惡化|3 Win/Wout|4一致|5時間倍率|全部|','|---|---|---|---|---|---|---|');
+ for(const r of rules.filter(r=>/^C/.test(r.rule)))lines.push(`|${r.rule}|${r.checks.map(c=>`${c.passed?'通過':'未通過'}(${typeof c.value==='number'?fmt(c.value):c.value}${c.id===3&&c.failures?.length?';'+c.failures.join(','):''})`).join('|')}|${r.passed?'通過':'未通過'}|`);
+ lines.push('','過擬合摘要：M順序40/50/60/80（各平均5個s），s順序1/.3/.1/.03/.01（各平均4個M）；三例按M均增，減s後整體增、V3末段微降；完整20×7主曲線/420列存overfit-curves.json。','|真值|按M平均gap|按s平均gap|gap範圍/>.2數|','|---|---|---|---|');
+ for(const t of trends)lines.push(`|${t.id}|${t.byM.map(r=>fmt(r.meanGap)).join('/')}|${t.byScale.map(r=>fmt(r.meanGap)).join('/')}|${t.range.map(fmt).join('..')}/${t.notable}|`);
+ lines.push('','21資料集總精修：共享單次測量的邏輯成本，C3含全部必要折內與完整refit；N為|ΔE|<1e-4數。','|規則|總秒/平均秒/對R0倍率|N/正Δ>1e-4數|平均ΔE|','|---|---|---|---:|');
+ for(const r of rules)lines.push(`|${r.rule}|${fmt(r.totalMs/1000)}/${fmt(r.meanMs/1000)}/${fmt(r.ratio)}|${r.noise}/${r.worse}|${fmt(r.meanDelta)}|`);
+ const c2Primary=records.filter(r=>r.rule==='C2'&&r.seed===49001),unattainable=bestRows.filter(r=>settings.matched.includes(r.id)&&r.WoutValue>1.3);
+ lines.push('',`階段0一致性${fmt(phaseSeconds[0])}秒；1 Automatic21 ${fmt(phaseSeconds[1])}；2全fit420 ${fmt(phaseSeconds[2])}；3折fit420 ${fmt(phaseSeconds[3])}；4評分126 ${fmt(phaseSeconds[4])}；5 verify ${fmt(phaseSeconds[5])}；總作業${fmt(phaseSeconds.reduce((s,v)=>s+v,0))}秒；中斷/重算0。`,
+  `C3單獨：與C2主種子設定一致${agreement}/7；${comparisons.map(c=>`${c.id}:${c.C3}/${c.C2}`).join('；')}（C3/C2）。`,
+  'C3只可用M40/50，並含完整資料P1初始化洩漏與端點夾值；對嚴格CV能否取代重複量測的判斷為無法判定，不將選解一致視為替代證明。',
+  `全五判準通過：${passed.map(r=>r.rule).join(',')||'無'}；${passed.length>1?'其中耗時最低'+fastest.join(',')+'，只列出不決定採用。':'沒有多個全通過者，不列最低或決定採用。'}C2恰選最低Wout ${c2Primary.filter(r=>r.bestOut.delta===0).length}/7，最大差${fmt(Math.max(...c2Primary.map(r=>r.bestOut.delta)))}（只評分）。`,
+  `${unattainable.map(r=>r.id).join('/')}各20組最低Wout=${unattainable.map(r=>fmt(r.WoutValue)).join('/')}，仍>1.3，本候選集無法通過判準3；具體成因與真實量測適用性無法判定，未改正式程式。`,
+  `完整verify僅一次：exit${verification.exitCode}，original ${verification.counts.original}、scientific ${verification.counts.scientific}、worker ${verification.counts.worker}；名稱/內容同4.7b=${verification.sameAs47b}；新增${verification.newNames.length}、內容變更${verification.changed.length}（各詳列verification.json）。`,
+  ...verification.failures.map((f:any)=>`失敗：${f.name}；${f.detail.replace(/\s+/g,' ').trim()}`));
+ if(existsSync(prefix+'paused.json'))lines.push('中斷/接續範圍詳paused.json；已保存結果依檢查點沿用。');
+ assert.ok(lines.length<=120,`report lines=${lines.length}`);writeFileSync('STAGE4_8A_REPORT.md',lines.join('\n')+'\n');console.log(JSON.stringify({reportLines:lines.length,passed:passed.map(r=>r.rule),fastest,agreement}));
+}
