@@ -12,9 +12,12 @@ import {residualWeights,circularDifferenceDeg,computeResidualMetrics} from './re
 import {FIT_NUMERICS} from './numerics';
 import {effectiveSplineParameters} from './splineRefinement';
 
-export type FreeFormOrigin='ladder'|'physical_seeded';
+export type FreeFormOrigin='ladder'|'physical_seeded'|'ladder_v2';
 export interface FreeFormRefinement {
  origin?:FreeFormOrigin;skipped?:boolean;warning?:string;
+ ladderV2?:import('./freeFormLadder').LadderSelection;
+ selectedSetting?:{count:number;scale:number};
+ comparisonScores?:{ladder:number|null;physical_seeded:number|null;ladder_v2:number|null};
  ladder?:{mseWoollam:number;rawMse:number};
  physicalSeeded?:{mseWoollam:number;rawMse:number;thickness:number;converged:boolean;status:string;iterations:number;elapsedMs:number};
 }
@@ -26,18 +29,24 @@ export function chooseFreeFormOrigin(ladder:number,refined:number):FreeFormOrigi
 
 /** Physical curves are only the initial guess. No penalty attracts the solution to those curves. */
 export async function refineFreeForm(options:{ambient:Ambient;layers:Layer[];substrate:Substrate;primaryLayerIndex:number;
- points:EllipsometryDataPoint[];config:FittingConfig;outputWavelengths?:number[];shouldStop?:()=>boolean;onIteration?:OptimizerOptions['onIteration']}) {
+ points:EllipsometryDataPoint[];config:FittingConfig;outputWavelengths?:number[];shouldStop?:()=>boolean;onIteration?:OptimizerOptions['onIteration'];
+ ladderSetting?:{count:number;scale:number}}) {
  const start=performance.now(),{ambient,substrate,primaryLayerIndex,points,config}=options;
  if(!points.length||!options.layers[primaryLayerIndex])throw new Error('Free-form refinement requires measured data and a film');
  if(options.shouldStop?.())throw new Error('使用者中止擬合');
  const wavelengths=[...new Set(points.map(p=>p.wavelength))].sort((a,b)=>a-b),lo=wavelengths[0],hi=wavelengths.at(-1)!;
  if(!(hi>lo))throw new Error('Free-form refinement requires a wavelength interval');
- const count=40,lambdaN=.25,lambdaK=.6,knots=Array.from({length:count},(_,i)=>lo+(hi-lo)*i/(count-1));
+ const count=options.ladderSetting?.count??40,scale=options.ladderSetting?.scale??1;
+ if(!Number.isInteger(count)||count<4||count>80||![1,.1,.01].includes(scale))throw new Error('Invalid free-form ladder setting');
+ const lambdaN=.25*scale,lambdaK=.6*scale,knots=Array.from({length:count},(_,i)=>lo+(hi-lo)*i/(count-1));
  const layers=structuredClone(options.layers),layer=layers[primaryLayerIndex],model=modelRegistry.get(layer.modelId)!;
  const physicalParams=Object.fromEntries(Object.entries(layer.parameters).map(([k,v])=>[k,v.current]));
  const seed=wavelengths.map(w=>model.calculate(w,physicalParams)),basis=wavelengths.map(w=>cubicBasis(w,knots));
  if(seed.some(q=>![q.n,q.k].every(Number.isFinite)))throw new Error('Physical seed contains non-finite optical constants');
- const n=solveLeastSquaresSvd(basis,seed.map(q=>q.n)).solution,k=solveLeastSquaresSvd(basis,seed.map(q=>q.k)).solution;
+ // Zero equations preserve the diagnostic's wide least-squares projection; legacy callers stay unchanged.
+ const padding=options.ladderSetting?Array.from({length:Math.max(0,count-basis.length)},()=>Array(count).fill(0)):[];
+ const projection=[...basis,...padding];
+ const n=solveLeastSquaresSvd(projection,[...seed.map(q=>q.n),...padding.map(()=>0)]).solution,k=solveLeastSquaresSvd(projection,[...seed.map(q=>q.k),...padding.map(()=>0)]).solution;
  const variables:OptimizationVariable[]=[{id:'thickness',name:'thickness',value:layer.thickness,min:40,max:200},
   ...n.map((value,i)=>({id:'N'+i,name:'N'+i,value:Math.max(.5,Math.min(5.5,value)),min:.5,max:5.5})),
   ...k.map((value,i)=>({id:'K'+i,name:'K'+i,value:Math.max(0,Math.min(3.5,value)),min:0,max:3.5}))];
@@ -67,7 +76,8 @@ export async function refineFreeForm(options:{ambient:Ambient;layers:Layer[];sub
  const parameter=(id:string,value:number,min:number,max:number,fit=false):ParameterValue=>({id,name:id,unit:'',current:value,initial:value,min,max,fit});
  layer.modelId='bspline';layer.thickness=result.finalParams[0];layer.thicknessMin=40;layer.thicknessMax=200;
  layer.thicknessFit=true;layer.thicknessInitial=variables[0].value;
- layer.parameters={_knotCount:parameter('_knotCount',count,4,40)};
+ layer.parameters={_knotCount:parameter('_knotCount',count,4,options.ladderSetting?80:40)};
+ if(options.ladderSetting)layer.parameters._freeFormLadderV2=parameter('_freeFormLadderV2',1,1,1);
  knots.forEach((w,i)=>layer.parameters['_knot'+i]=parameter('_knot'+i,w,lo,hi));
  variables.slice(1).forEach((v,i)=>layer.parameters[v.id]=parameter(v.id,result.finalParams[i+1],v.min,v.max,true));
  const curve=freeFormCurve(options.outputWavelengths??wavelengths,knots,result.finalParams.slice(1,count+1),result.finalParams.slice(count+1),statistics,weighting.mode);

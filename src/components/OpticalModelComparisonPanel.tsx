@@ -8,6 +8,7 @@ export function OpticalModelComparisonPanel({result}:{result:FittingResult}) {
     <summary>自由形式 / 物理模型比較（保留兩組結果）</summary>
     {result.freeFormRefinement&&<p>自由形式來源：{result.freeFormOrigin??'—'}；階梯 MSE (Woollam)：{result.freeFormRefinement.ladder?.mseWoollam.toPrecision(6)??'—'}；物理起點精修 MSE (Woollam)：{result.freeFormRefinement.physicalSeeded?.mseWoollam.toPrecision(6)??'—'}</p>}
     {result.freeFormRefinement?.warning&&<p role="alert" className="text-amber-300">⚠ {result.freeFormRefinement.warning}</p>}
+    {result.freeFormRefinement?.selectedSetting&&<p>自由形式所選節點：{result.freeFormRefinement.selectedSetting.count}；平滑強度 s={result.freeFormRefinement.selectedSetting.scale}</p>}
     {result.freeFormFitAdequacyWarning&&<p role="alert" className="text-amber-300">自由形式：⚠ {result.freeFormFitAdequacyWarning}</p>}
     {result.fitAdequacyWarning&&<p role="alert" className="text-amber-300">物理模型：⚠ {result.fitAdequacyWarning}</p>}
     {comparison.warning&&<p role="alert" className="my-2 text-amber-300">{comparison.warning}</p>}

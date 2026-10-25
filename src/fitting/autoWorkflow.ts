@@ -1,4 +1,5 @@
-import {refineFreeForm,chooseFreeFormOrigin,FreeFormRefinement} from './freeFormRefine';
+import {chooseFreeFormOrigin,FreeFormRefinement} from './freeFormRefine';
+import {runFreeFormLadder,freeFormSteps} from './freeFormLadder';
 import {SPLINE_STAGES,effectiveSplineParameters,splineBic,continueSplineRefinement,bestSplineStage} from './splineRefinement';
 import type {SplineStageResult} from './splineRefinement';
 import type {PeakInitialization} from '../models/peakInitialization';
@@ -1887,26 +1888,49 @@ export async function runAutomatedEllipsometryFit(
   let selectedFreeMetrics=computeResidualMetrics(bsplineEval,config.fitWeighting,psiWeight,deltaWeight,freeFormStatistics?.covariance.ids.length??0);
   const freeFormRefinement:FreeFormRefinement=freeFormWarning?{skipped:true,warning:freeFormWarning}:
     {origin:'ladder',ladder:{mseWoollam:selectedFreeMetrics.mseWoollam,rawMse:selectedFreeMetrics.rawMse}};
+  if(freeFormWarning) {
+    const skipped=await runFreeFormLadder({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,shouldStop},
+      finalMetrics.weightingMode==='sigma'?'sigma':'sigmaHat',()=>{});
+    freeFormRefinement.ladderV2=skipped.selection;
+  }
   if(!freeFormWarning) {
     reportProgress({stage:'stage_free_form_refine',stageName:'自由形式精修',stepNumber:8,progressPercent:96,
       currentThickness:finalThickness,message:'物理模型僅作起點：全資料自由形式精修'});
     try {
-      const refined=await refineFreeForm({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,
-        outputWavelengths:freeWavelengths,shouldStop,onIteration:(iteration,cost,prev,params,raw,reg,weighted)=>{
-          reportProgress({stage:'stage_free_form_refine',stageName:'自由形式精修',stepNumber:8,progressPercent:96,
-            iteration,currentThickness:params[0],currentMse:Math.sqrt((weighted??0)*2*fittingPoints.length/Math.max(1,2*fittingPoints.length-effectiveSplineParameters(
-              params.map((value,i)=>({id:String(i),name:String(i),value,min:i===0?40:i<=40?.5:0,max:i===0?200:i<=40?5.5:3.5})),params))),
-            message:`自由形式精修：迭代 ${iteration}，資料成本 ${(weighted??0).toPrecision(6)}`});
-        }});
-      freeFormRefinement.physicalSeeded={mseWoollam:refined.metrics.mseWoollam,rawMse:refined.metrics.rawMse,
+      // The existing M2 is the identical (40,1) source; reuse it instead of fitting it twice.
+      const fullLadder=freeFormSteps(2*fittingPoints.length)[0].count===40;
+      const sigma=finalMetrics.weightingMode==='sigma',N=2*fittingPoints.length;
+      const ladder=await runFreeFormLadder({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,
+        outputWavelengths:freeWavelengths,shouldStop},sigma?'sigma':'sigmaHat',(step,index,total)=>{
+          reportProgress({stage:'stage_free_form_refine',stageName:'自由形式階梯',stepNumber:8,
+            progressPercent:96+2*(index+1)/total,currentThickness:finalThickness,
+            message:`自由形式階梯 ${index+1}/${total}：M=${step.count}，s=${step.scale}，${step.status}`});
+        });
+      const refined=fullLadder?ladder.baseline:undefined;
+      if(refined)freeFormRefinement.physicalSeeded={mseWoollam:refined.metrics.mseWoollam,rawMse:refined.metrics.rawMse,
         thickness:refined.model.layers[primaryLayerIndex].thickness,converged:refined.result.converged,
         status:refined.result.status,iterations:refined.result.iterations,elapsedMs:refined.elapsedMs};
-      const sigma=finalMetrics.weightingMode==='sigma';
-      freeFormRefinement.origin=chooseFreeFormOrigin(sigma?selectedFreeMetrics.mseWoollam:selectedFreeMetrics.rawMse,
-        sigma?refined.metrics.mseWoollam:refined.metrics.rawMse);
-      if(freeFormRefinement.origin==='physical_seeded') {
-        freeFormOpticalConstants=refined.curve;freeFormStatistics=refined.statistics;
-        freeFormModel=refined.model;freeFormCoefficientBounds=refined.coefficientBounds;selectedFreeMetrics=refined.metrics;
+      freeFormRefinement.ladderV2=ladder.selection;
+      const score=(metrics:typeof selectedFreeMetrics)=>sigma?metrics.mseWoollam:
+        ladder.selection.sigmaHat2===null||metrics.dof<=0?null:Math.sqrt(metrics.rawMse*N/ladder.selection.sigmaHat2/metrics.dof);
+      const oldScore=score(selectedFreeMetrics),seedScore=refined?score(refined.metrics):null,newScore=ladder.output?score(ladder.output.metrics):null;
+      freeFormRefinement.comparisonScores={ladder:oldScore,physical_seeded:seedScore,ladder_v2:newScore};
+      freeFormRefinement.origin=refined?chooseFreeFormOrigin(oldScore??Infinity,seedScore??Infinity):'ladder';
+      let chosen=freeFormRefinement.origin==='physical_seeded'?refined:undefined;
+      freeFormRefinement.selectedSetting=chosen?{count:40,scale:1}:{count:activeKnots.length,scale:1};
+      // Ties with the existing sources retain their established source rule.
+      if(ladder.output&&(ladder.selection.fallback||(newScore!==null&&newScore<Math.min(oldScore??Infinity,seedScore??Infinity)))) {
+        chosen=ladder.output;freeFormRefinement.origin=chosen===refined?'physical_seeded':'ladder_v2';freeFormRefinement.selectedSetting=ladder.selection.selected!;
+      }
+      if(ladder.selection.noAvailableCandidate){
+        freeFormRefinement.warning='無可用候選（小節點階梯基準不合法）；未執行 fallback';
+        freeFormRefinement.skipped=true;freeFormRefinement.origin=undefined;freeFormRefinement.selectedSetting=undefined;
+        freeFormOpticalConstants=undefined;freeFormStatistics=undefined;freeFormModel=undefined;freeFormCoefficientBounds=[];
+      }
+      else if(ladder.selection.sigmaUnavailable)freeFormRefinement.warning='σ̂不可用，退回階梯基準';
+      if(chosen) {
+        freeFormOpticalConstants=chosen.curve;freeFormStatistics=chosen.statistics;
+        freeFormModel=chosen.model;freeFormCoefficientBounds=chosen.coefficientBounds;selectedFreeMetrics=chosen.metrics;
       }
     } catch(error) {
       if(shouldStop?.())throw error;
@@ -2012,7 +2036,7 @@ export async function runAutomatedEllipsometryFit(
     fittingResult: {
       initialization:winningCandidate.initialization,
       statistics,fitAdequacy:physicalAdequacy.fitAdequacy,fitAdequacyWarning:physicalAdequacy.warning,
-      freeFormWarning,freeFormOrigin:freeFormRefinement.origin,freeFormRefinement,
+      freeFormWarning:freeFormWarning??(freeFormRefinement.skipped?freeFormRefinement.warning:undefined),freeFormOrigin:freeFormRefinement.origin,freeFormRefinement,
       freeFormFitAdequacy:freeAdequacy?.fitAdequacy,freeFormFitAdequacyWarning:freeAdequacy?.warning,
       freeFormStatistics,freeFormOpticalConstants,freeFormCoefficientBounds,opticalModelComparison,freeFormModel,
       finalOpticalConstants:physicalComparisonCurve.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),

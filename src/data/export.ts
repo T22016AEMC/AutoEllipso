@@ -246,9 +246,10 @@ export function importProjectJson(jsonContent: string, onLegacyProject?: () => v
       validateTaucLorentzParameters(layer.modelId,Object.fromEntries(Object.entries(layer.parameters??{}).map(([k,v])=>[k,v.current])));
       if('thickness' in layer&&(layer.modelId==='bspline'||layer.modelId==='expert_mixed')) {
         const count=layer.parameters._knotCount?.current??8;
-        if(!Number.isInteger(count)||count<4||count>40)throw new Error('Spline control count must be an integer from 4 to 40');
+        const limit=saved.fittingResult?.freeFormModel?.layers.includes(layer)&&layer.parameters._freeFormLadderV2?.current===1?80:40;
+        if(!Number.isInteger(count)||count<4||count>limit)throw new Error(`Spline control count must be an integer from 4 to ${limit}`);
         const grid=splineGrid(layer);cubicBasis(grid[0],grid);
-        if(layer.parameters._knotCount)layer.parameters._knotCount.max=40;
+        if(layer.parameters._knotCount)layer.parameters._knotCount.max=limit;
       }
     }
   };

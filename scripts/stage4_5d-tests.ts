@@ -26,7 +26,7 @@ export async function stage45dTests(test:Test) {
   writeFileSync(`stage4_5d-${id}.json`,JSON.stringify({comparison,output:out,progress},null,2));console.log('STAGE4_5D '+JSON.stringify(comparison));
   assert.ok(physicalSeeded,'Refinement executed rather than silently keeping ladder');
   assert.ok(r.opticalModelComparison!.freeForm.mseWoollam<=s.ladder!.mseWoollam);
-  assert.equal(r.freeFormOrigin,chooseFreeFormOrigin(s.ladder!.mseWoollam,physicalSeeded.mseWoollam));
+  if(r.freeFormOrigin==='ladder_v2'){assert.ok(s.comparisonScores!.ladder_v2!<Math.min(s.comparisonScores!.ladder!,s.comparisonScores!.physical_seeded!));}else{assert.equal(r.freeFormOrigin,chooseFreeFormOrigin(s.ladder!.mseWoollam,physicalSeeded.mseWoollam));}
   assert.ok(r.freeFormOpticalConstants!.every(q=>Number.isFinite(q.k)&&q.k>=0&&q.freeFormOrigin===r.freeFormOrigin));
   assert.ok(freeThickness>=40&&freeThickness<=200);assert.ok(progress.length>0);
   const csv=opticalConstantsCsv(r.freeFormOpticalConstants!,'free_form'),lines=csv.split('\n');

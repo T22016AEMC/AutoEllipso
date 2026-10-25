@@ -147,9 +147,11 @@ export function computeBsplineSmoothness(
 }
 
 function getEffectiveKnotsAndCount(params:Record<string,number>,prefix:'N'|'K'):{knots:number[];count:number} {
-  let defined=0;while(params[`${prefix}${defined}`]!==undefined&&defined<MAX_BSPLINE_NODES)defined++;
-  const count=params._knotCount>=4?Math.min(MAX_BSPLINE_NODES,Math.round(params._knotCount)):
-    defined>=4&&defined<MAX_BSPLINE_NODES?defined:8;
+  // Only serialized ladder-v2 outputs opt in; Expert definitions and knot generation retain their limit.
+  const limit=params._freeFormLadderV2===1?80:MAX_BSPLINE_NODES;
+  let defined=0;while(params[`${prefix}${defined}`]!==undefined&&defined<limit)defined++;
+  const count=params._knotCount>=4?Math.min(limit,Math.round(params._knotCount)):
+    defined>=4&&defined<limit?defined:8;
   const knots=params._knot0!==undefined?Array.from({length:count},(_,i)=>params[`_knot${i}`]):generateAdaptiveKnots(190,900,count);
   return {knots,count};
 }
