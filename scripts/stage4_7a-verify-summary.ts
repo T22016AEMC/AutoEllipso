@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {copyFileSync,readFileSync} from 'node:fs';
+import {isDeepStrictEqual} from 'node:util';
+import {prefix,read,save} from './stage4_7a-run';
+assert.equal(read('execution').datasets.length,209);
+const timing=read('verify-timing');
+const load=(name:string)=>JSON.parse(readFileSync('.qa/'+name+'.json','utf8'));
+for(const name of ['verification-summary','v2-original-tests','scientific-tests','worker-tests'])copyFileSync('.qa/'+name+'.json',prefix+name+'.json');
+const scientific=load('scientific-tests'),old=load('stage4_6d-scientific-tests');
+const failures=scientific.filter((r:any)=>!r.passed).map(({name,detail}:any)=>({name,detail}));
+const previous=old.filter((r:any)=>!r.passed).map(({name,detail}:any)=>({name,detail}));
+const count=(value:any)=>{const rows=Array.isArray(value)?value:value.results;assert.ok(Array.isArray(rows));return `${rows.filter((r:any)=>r.passed).length}/${rows.length}`;};
+save('verification',{exitCode:timing.exitCode,commands:load('verification-summary').commands,failures,sameAs46d:isDeepStrictEqual(failures,previous),counts:`original ${count(load('v2-original-tests'))}; scientific ${count(scientific)}; worker ${count(load('worker-tests'))}`,elapsedMs:timing.elapsedMs});
+console.log(JSON.stringify(read('verification')));
