@@ -1,0 +1,28 @@
+# Stage UI-3a
+- 基準：已部署 UI-2b `804270c`；本段限外觀與顯示位置。
+- 改動：`src/components/VisualizerPanel.tsx`、`src/components/FinalFitResultModal.tsx`、`src/index.css`、`scripts/ui0-browser-tests.mjs`、本報告。
+- n/k 加入既有分頁列第五項；原四項 `settings.activeTab` 維持原值域，另用本地顯示狀態選 n/k，避免改動專案 JSON。
+- 原固定圖改以 `hidden` 控制；沿用同一 `OpticalConstantsPanel` 並保持掛載，其他四頁不顯示 n/k，層選擇及 k 線性／對數狀態保留。
+- AOI 檢視與參與擬合改為原生 `fieldset disabled`，加 `aria-disabled` 及淡化樣式；離開 n/k 即恢復，選擇不重設。
+- 詳細視窗使用既有權杖：白底、24px 外框、14px 指標卡／診斷／警示、35% primary 遮罩、主色大數字與等寬數值。
+- Progressive Knot Stages 保留原順序與內容；最終採用列增加 accent 邊框，保留「最終採用」文字，避免只靠顏色。
+- 匯出按鈕順序／處理函式不變；n/k 為主按鈕，其餘次要。底列固定於 flex 視窗底部，內容區獨立捲動。
+- 詳細視窗來源搜尋 `slate-/cyan-/amber-/emerald-/black/white/hex` 殘留為 0。
+- 共用 `FitStatisticsPanel.tsx`、`FitAssessmentSummary.tsx`、`OpticalModelComparisonPanel.tsx` 保留原深色 utility 類別；視窗內以既有 `.ui1-surface` 權杖映射覆蓋，原始共用元件未動，避免影響 Expert。
+- 移除 UI-0 `<900px` 規則：`.app-toolbar .fitting-mode-tabs` 獨占一列／置中、其 button 的 flex 與 44px 高度、`.toolbar-auxiliary` 行動規則、`.manual-mode-card` 8px 內距。
+- ui0 腳本移除三組 390px 截圖與手機工具列換行檢查；保留桌面檢查，桌面既有 ≥44px 斷言未放寬，亦未新增 e2e。
+- 以下既有窄螢幕規則保留，位置皆在 `src/index.css`：
+- L16 `<1100px`：`.app-shell/.app-toolbar/.privacy-bar/.workspace/.fitting-status-bar/.mobile-workspace-nav`；L30 `<600px`：輸入／按鈕、`.expert-panel`、`.visualizer-panel`、`.fixed.inset-0.flex.items-center`。
+- L151 `900–1100px`：權杖、`.workspace`、`.visualizer-panel .grid`；L156 `<900px`：權杖、toolbar、workspace、mobile-workspace-nav、visualizer grid、`.ui1-modal`。
+- L168 `<600px`：`.brand-logo/.app-toolbar/.privacy-bar/.fitting-status-bar/.visualizer-panel`；L196：`.parameter-panel .grid-cols-2/.workflow-summary`；L208：`.visualizer-panel svg text`。
+- L250 `<900px`：`.visualizer-panel .plot-grid`（UI-2a）；原 UI-1 通用觸控尺寸不在本次移除範圍。
+- 驗收以既有保存結果顯示，未重新擬合；詳細視窗使用既有 Lorentz SiO₂ 結果，自然包含頂部高相關及 Physical Model Mismatch 警示。
+- 1440px 截圖：`.qa/ui3a/nk-tab.png`、`.qa/ui3a/disabled-controls.png`。
+- 視窗截圖：`.qa/ui3a/modal-upper.png`、`.qa/ui3a/modal-lower.png`、`.qa/ui3a/top-warning.png`。
+- 觀察：無頁面橫向溢出、無瀏覽器錯誤；n/k 層及 log 狀態保留、其他頁隱藏 n/k；文字對比抽查最低 4.62:1。
+- 全視窗文字（含捲動區、數值、按鈕）與 c6aeb38 基準去除空白後逐字及順序一致；該視窗來源於 c6aeb38 至 804270c 無變更。
+- 證據：`.qa/ui3a/observations.json`、`.qa/ui3a/capture.log`、`.qa/ui3a/modal-text.txt`、`.qa/ui3a/baseline-modal-text.txt`、`.qa/ui3a/source-audit.json`。
+- `pnpm run build` 通過：`.qa/ui3a/build.log`；`pnpm run typecheck` 通過：`.qa/ui3a/typecheck.log`。
+- 依要求未跑 verify、科學／UI／e2e 測試；未調整其他選擇器或任何保留的測試斷言。
+- 未越界：Worker、擬合器、TMM、統計、匯出、JSON 型別、n/k 圖內邏輯、Expert 內部、Zoom、套件、字型及色碼均未修改。未開始 UI-3b／UI-4／4.6。
+- 部署佐證：`.qa/ui3a/deployment.json`（Cloudflare build 與正式站 version.json）。

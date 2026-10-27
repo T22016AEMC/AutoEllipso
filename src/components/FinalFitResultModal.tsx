@@ -79,65 +79,65 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
       : defaultPossibleCauses;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div role="dialog" aria-modal="true" aria-label="擬合結果詳細視窗" className="ui1-surface result-modal fixed inset-0 z-50 flex items-center justify-center surface-card backdrop-blur-sm p-4">
+      <div className="result-shell surface-card border border-token rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <StatisticsWarning statistics={fittingResult.statistics}/>
-        <div className="p-5 border-b border-slate-700 flex items-start justify-between">
+        <div className="result-heading p-5 border-b border-token flex items-start justify-between">
           <FitAssessmentSummary result={fittingResult}/>
-          <button onClick={onClose} className="text-slate-400 hover:text-white" aria-label="關閉結果">✕</button>
+          <button onClick={onClose} className="tone-muted tone-primary" aria-label="關閉結果">✕</button>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 space-y-4 overflow-y-auto text-xs text-slate-200 divide-y divide-slate-800">
-          {fittingResult.weightingWarning&&<p role="alert" className="text-amber-300">{fittingResult.weightingWarning}</p>}
-          {fittingResult.converged===false&&<p className="text-amber-300">未收斂</p>}
+        <div className="result-body p-5 space-y-4 overflow-y-auto text-xs tone-text divide-y divide-token">
+          {fittingResult.weightingWarning&&<p role="alert" className="tone-warn">{fittingResult.weightingWarning}</p>}
+          {fittingResult.converged===false&&<p className="tone-warn">未收斂</p>}
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">
+          <div className="result-metrics grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 surface-card rounded-lg border border-token">
+              <span className="text-[10px] tone-muted uppercase font-mono block">
                 MSE (Woollam)
               </span>
               <span
-                className="text-lg font-bold font-mono text-cyan-300"
+                className="text-lg font-bold font-mono tone-primary"
               >
                 {fittingResult.mseWoollam?.toFixed(4)??'—'}
               </span>
-              <span className="text-[10px] text-slate-500 mt-0.5 block">Raw MSE {rawMse.toFixed(4)} deg² · χ²ᵣ {fittingResult.reducedChiSquare?.toFixed(4)??'—'}</span>
+              <span className="text-[10px] tone-muted mt-0.5 block">Raw MSE {rawMse.toFixed(4)} deg² · χ²ᵣ {fittingResult.reducedChiSquare?.toFixed(4)??'—'}</span>
             </div>
 
-            <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">
+            <div className="p-3 surface-card rounded-lg border border-token">
+              <span className="text-[10px] tone-muted uppercase font-mono block">
                 Ψ / Δ RMSE
               </span>
-              <span className="text-sm font-bold font-mono text-cyan-300 block mt-1">
+              <span className="text-sm font-bold font-mono tone-primary block mt-1">
                 {psiRmse !== undefined ? `${psiRmse.toFixed(3)}°` : `${rawRmse.toFixed(3)}°`} /{' '}
                 {deltaRmse !== undefined ? `${deltaRmse.toFixed(3)}°` : `${rawRmse.toFixed(3)}°`}
               </span>
-              <span className="text-[10px] text-slate-500 mt-0.5 block">
+              <span className="text-[10px] tone-muted mt-0.5 block">
                 總 RMSE: {rawRmse.toFixed(4)}°
               </span>
             </div>
 
-            <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">
+            <div className="p-3 surface-card rounded-lg border border-token">
+              <span className="text-[10px] tone-muted uppercase font-mono block">
                 Fitted Thickness d
               </span>
-              <span className="text-lg font-bold font-mono text-cyan-300">
-                {finalThickness.toFixed(2)} nm
+              <span className="text-lg font-bold font-mono tone-primary">
+                {finalThickness.toFixed(2)} <small>nm</small>
               </span>
-              <span className="text-[10px] text-slate-500 mt-0.5 block">薄膜反演最終厚度</span>
+              <span className="text-[10px] tone-muted mt-0.5 block">薄膜反演最終厚度</span>
             </div>
 
-            <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">
+            <div className="p-3 surface-card rounded-lg border border-token">
+              <span className="text-[10px] tone-muted uppercase font-mono block">
                 Multi-Start &amp; TMM
               </span>
-              <span className="text-sm font-bold font-mono text-slate-200 block mt-1">
+              <span className="text-sm font-bold font-mono tone-text block mt-1">
                 {multiStartSummary
                   ? `${multiStartSummary.totalStarts} Starts (#${multiStartSummary.bestStartIndex})`
                   : `${fittingResult.iterations} 次`}
               </span>
-              <span className="text-[10px] text-emerald-400 mt-0.5 block">
+              <span className="text-[10px] tone-ok mt-0.5 block">
                 {fittingResult.freshCalculationVerified ? '✓ Fresh TMM 驗算一致' : '數值收斂'}
               </span>
             </div>
@@ -145,53 +145,53 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
 
           {/* B-spline Diagnostic Card (Strictly separated Raw MSE, Regularization Penalty, Total Objective) */}
           {bsplineDiag && (
-            <div className="pt-4 space-y-2">
+            <div className="result-diagnostic pt-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-200 flex items-center space-x-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-semibold tone-text flex items-center space-x-1.5">
+                  <Cpu className="w-3.5 h-3.5 tone-primary" />
                   <span>
                     {bsplineDiag.skipped?'自由形式已略過（以下為 Cauchy 診斷）':`B-spline 前處理診斷 (${bsplineDiag.activeKnots ?? 8} Knots)`}
                   </span>
                 </span>
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-[10px] font-mono tone-muted">
                   Raw MSE 與平滑正則化分離 · 加權目標 {bsplineDiag.weightedTotalObjective?.toFixed(4)??'—'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg text-center font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2.5 surface-card border border-token rounded-lg text-center font-mono">
                 <div>
-                  <span className="text-[10px] text-slate-500 block">Raw MSE</span>
-                  <span className="text-xs text-cyan-300 font-semibold">
+                  <span className="text-[10px] tone-muted block">Raw MSE</span>
+                  <span className="text-xs tone-primary font-semibold">
                     {bsplineDiag.rawMse.toFixed(4)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">Reg. Penalty</span>
-                  <span className="text-xs text-amber-300 font-semibold">
+                  <span className="text-[10px] tone-muted block">Reg. Penalty</span>
+                  <span className="text-xs tone-warn font-semibold">
                     {(bsplineDiag.regularizationPenalty ?? 0).toFixed(4)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">Raw + Reg. 診斷</span>
-                  <span className="text-xs text-emerald-300 font-semibold">
+                  <span className="text-[10px] tone-muted block">Raw + Reg. 診斷</span>
+                  <span className="text-xs tone-ok font-semibold">
                     {(bsplineDiag.totalObjective ?? bsplineDiag.rawMse).toFixed(4)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">Ψ RMSE</span>
-                  <span className="text-xs text-slate-300">{bsplineDiag.psiRmse.toFixed(3)}°</span>
+                  <span className="text-[10px] tone-muted block">Ψ RMSE</span>
+                  <span className="text-xs tone-text">{bsplineDiag.psiRmse.toFixed(3)}°</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">Δ RMSE</span>
-                  <span className="text-xs text-slate-300">{bsplineDiag.deltaRmse.toFixed(3)}°</span>
+                  <span className="text-[10px] tone-muted block">Δ RMSE</span>
+                  <span className="text-xs tone-text">{bsplineDiag.deltaRmse.toFixed(3)}°</span>
                 </div>
               </div>
               {bsplineDiag.knotRefinementHistory && bsplineDiag.knotRefinementHistory.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-slate-400">
-                  <span className="text-slate-500">Progressive Knot Stages:</span>
+                <div className="knot-history flex flex-wrap items-center gap-1.5 text-[10px] font-mono tone-muted">
+                  <span className="tone-muted">Progressive Knot Stages:</span>
                   {bsplineDiag.knotRefinementHistory.map((st, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300"
+                      className={`knot-row px-2 py-0.5 rounded surface-card border border-token tone-text ${st.selected?'result-knot-selected':''}`}
                     >
                       {st.knots} knots: {st.skipped?'跳過：'+st.skipReason:'BIC='+st.bic?.toFixed(3)+' · ΔBIC='+(st.deltaBic?.toFixed(3)??'—')+' · M_eff='+st.effectiveParameters+' · '+st.status+(st.selected?' · 最終採用':'')} · Raw MSE={st.rawMse?.toFixed(4)??'—'}, Reg={st.regularizationPenalty?.toFixed(4)??'—'}, d={st.thicknessNm?.toFixed(2)??'—'}nm
                     </span>
@@ -204,12 +204,12 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
           {/* Physical Model Mismatch Alert */}
           {isPhysicalModelMismatch && (
             <div className="pt-4">
-              <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-500/50 space-y-1">
-                <div className="flex items-center space-x-2 text-amber-300 font-semibold">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <div className="result-warning p-3 rounded-lg warning-surface border border-token space-y-1">
+                <div className="flex items-center space-x-2 tone-warn font-semibold">
+                  <AlertTriangle className="w-4 h-4 tone-warn" />
                   <span>Physical Model Mismatch 警示</span>
                 </div>
-                <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                <p className="text-[11px] tone-warn leading-relaxed">
                   {fittingResult.opticalModelComparison?.warning}
                 </p>
               </div>
@@ -219,13 +219,13 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
           <OpticalModelComparisonPanel result={fittingResult}/>
           {/* Fitted Parameters Summary Table */}
           <div className="pt-4 space-y-2">
-            <span className="font-semibold text-slate-200 block">
+            <span className="font-semibold tone-text block">
               最終擬合參數清單 ({fittingResult.parameters.length} 項參數)
             </span>
-            <div className="max-h-48 overflow-y-auto border border-slate-800 rounded-lg">
+            <div className="max-h-48 overflow-y-auto border border-token rounded-lg">
               <FitStatisticsPanel result={fittingResult}/>
               <table className="w-full text-left font-mono text-[11px]">
-                <thead className="bg-slate-800/90 text-slate-400 sticky top-0">
+                <thead className="surface-card tone-muted sticky top-0">
                   <tr>
                     <th className="p-2">參數名稱</th>
                     <th className="p-2">初始值</th>
@@ -234,26 +234,26 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                     <th className="p-2 text-right">變化量 Δ</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 bg-slate-900/60">
+                <tbody className="divide-y divide-token surface-card">
                   {fittingResult.parameters.map((p, idx) => {
                     const diff = p.finalValue - p.initialValue;
                     return (
-                      <tr key={idx} className="hover:bg-slate-800/40">
-                        <td className="p-2 font-sans font-medium text-slate-200">
+                      <tr key={idx} className="result-hover">
+                        <td className="p-2 font-sans font-medium tone-text">
                           {p.paramName}
                         </td>
-                        <td className="p-2 text-slate-400">
+                        <td className="p-2 tone-muted">
                           {p.initialValue.toFixed(4)} {p.unit}
                         </td>
-                        <td className="p-2 text-cyan-300 font-bold">
+                        <td className="p-2 tone-primary font-bold">
                           <ParameterEstimate result={fittingResult} parameter={p}/>
                         </td>
-                        <td className="p-2 text-slate-500">
+                        <td className="p-2 tone-muted">
                           [{p.min}, {p.max}]
                         </td>
                         <td
                           className={`p-2 text-right font-semibold ${
-                            diff > 0 ? 'text-emerald-400' : diff < 0 ? 'text-amber-400' : 'text-slate-400'
+                            diff > 0 ? 'tone-ok' : diff < 0 ? 'tone-warn' : 'tone-muted'
                           }`}
                         >
                           {diff >= 0 ? '+' : ''}
@@ -269,31 +269,31 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
         </div>
 
         {/* Footer Actions: 3 specific AutoEllipso exports */}
-        <div className="px-5 py-3.5 bg-slate-800/80 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2">
+        <div className="result-footer px-5 py-3.5 surface-card border-t border-token flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <button
               onClick={onExportNk}
-              className="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 flex items-center space-x-1.5 shadow-sm transition-colors"
+              className="result-primary px-3 py-1.5 rounded-md text-xs font-semibold surface-card result-hover tone-primary border border-token flex items-center space-x-1.5 shadow-sm transition-colors"
               title="匯出 AutoEllipso_optical_constants.csv (Wavelength, n, k)"
             >
-              <Download className="w-3.5 h-3.5 text-cyan-400" />
+              <Download className="w-3.5 h-3.5 tone-primary" />
               <span>匯出 n/k</span>
             </button>
 
-            <span className="text-[10px] text-slate-300">{defaultOpticalExport(fittingResult).label}</span>
+            <span className="font-mono text-[10px] tone-muted">{defaultOpticalExport(fittingResult).label}</span>
             <button
               onClick={onExportFullReport}
-              className="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 flex items-center space-x-1.5 shadow-sm transition-colors"
+              className="px-3 py-1.5 rounded-md text-xs font-semibold surface-card result-hover tone-ok border border-token flex items-center space-x-1.5 shadow-sm transition-colors"
               title="匯出 AutoEllipso_fitted_curve.csv (Wavelength, AOI, Psi/Delta Exp, Calc, Residual)"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <Download className="w-3.5 h-3.5 tone-ok" />
               <span>匯出光譜曲線</span>
             </button>
 
             {onExportParametersJson && (
               <button
                 onClick={onExportParametersJson}
-                className="px-3 py-1.5 rounded-md text-xs font-semibold bg-cyan-700 hover:bg-cyan-600 text-white flex items-center space-x-1.5 shadow-sm transition-colors"
+                className="px-3 py-1.5 rounded-md text-xs font-semibold surface-card result-hover tone-text flex items-center space-x-1.5 shadow-sm transition-colors"
                 title="匯出 AutoEllipso_fitted_parameters.json"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -304,7 +304,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
 
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-700 transition-colors"
+            className="px-4 py-1.5 rounded-md text-xs font-medium tone-text result-hover transition-colors"
           >
             關閉檢視
           </button>

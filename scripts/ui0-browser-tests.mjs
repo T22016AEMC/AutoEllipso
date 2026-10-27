@@ -40,7 +40,7 @@ try {
   assert.equal(await page.locator('.expert-panel').innerText().then(t=>/AutoEllipso V/.test(t)),false);
   for(const tab of [manual,auto]){await tab.click();assert.ok(await page.getByRole('button',{name:'Download Validation Report',exact:true}).isVisible());assert.ok(await page.getByRole('button',{name:'清除本分頁資料',exact:true}).isVisible());}
  });
- for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await screenshot(`automatic-empty-${width}`);}
+ for(const width of [1440]){await page.setViewportSize({width,height:1000});await screenshot(`automatic-empty-${width}`);}
  await page.setViewportSize({width:1440,height:1000});await page.locator('#btn-new-project').click();await page.getByRole('button',{name:/100 nm SiO₂.*多角度/}).click();await wait();
  await check('Automatic Worker survives mode switches, shared progress remains visible and output is fresh',async()=>{
   await page.evaluate(()=>{document.getElementById('btn-auto-fit').click();document.getElementById('manual-mode-tab').click();});assert.equal(await manual.getAttribute('aria-selected'),'true');
@@ -54,7 +54,7 @@ try {
   await manual.click();await auto.click();assert.deepEqual(await saved(),before);assert.equal(await page.locator('footer').innerText(),status);assert.equal(await page.getByRole('status',{name:'自動擬合進度',exact:true}).innerText(),workflow);
   assert.equal(await page.locator('.view-controls').getByRole('button',{name:'65°',exact:true}).getAttribute('aria-pressed'),'true');
  });
- for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await screenshot(`automatic-fitted-${width}`);}
+ for(const width of [1440]){await page.setViewportSize({width,height:1000});await screenshot(`automatic-fitted-${width}`);}
  await page.setViewportSize({width:1440,height:1000});await manual.click();
  await check('Manual thickness Undo/Redo, candidates, current Stage and display AOI survive switching',async()=>{
   await page.getByRole('button',{name:'Stage 2: B-spline / Peak Editor',exact:true}).click();await page.getByRole('combobox',{name:'Display AOI',exact:true}).selectOption('75');
@@ -64,10 +64,10 @@ try {
   await page.getByRole('button',{name:'Undo',exact:true}).click();await wait();assert.equal(Number(await input.inputValue()),before);await page.getByRole('button',{name:'Redo',exact:true}).click();await wait();assert.equal(Number(await input.inputValue()),before+.25);
   const p=await saved();assert.equal(p.expert.stage,2);assert.ok(p.expert.candidates.some(c=>c.name==='UI0 retained'));assert.equal('mode' in p,false);assert.equal('manualVisited' in p,false);
  });
- for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await screenshot(`manual-${width}`);}
- await check('Toolbar order and phone wrapping with >=44px mode targets',async()=>{
-  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});const r=await page.locator('.toolbar-fitting-controls').evaluate(e=>{const rect=s=>{const r=e.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right};};return {tabs:rect('.fitting-mode-tabs'),settings:rect('#btn-fitting-strategy'),library:rect('#btn-model-library'),tests:rect('#btn-unit-tests'),right:e.getBoundingClientRect().right};});
-   assert.ok(r.tests.x>r.library.x);assert.ok(Math.abs(r.tests.right-r.right)<2);if(width<900)assert.ok(r.tabs.y+r.tabs.height<=r.settings.y);else assert.ok(r.tabs.x+r.tabs.width<=r.settings.x);assert.ok((await auto.boundingBox()).height>=44);assert.ok((await manual.boundingBox()).height>=44);fs.writeFileSync(`${out}/toolbar-${width}.json`,JSON.stringify(r));}
+ for(const width of [1440]){await page.setViewportSize({width,height:1000});await screenshot(`manual-${width}`);}
+ await check('Toolbar desktop order with existing target sizes',async()=>{
+  for(const width of [1440]){await page.setViewportSize({width,height:1000});const r=await page.locator('.toolbar-fitting-controls').evaluate(e=>{const rect=s=>{const r=e.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right};};return {tabs:rect('.fitting-mode-tabs'),settings:rect('#btn-fitting-strategy'),library:rect('#btn-model-library'),tests:rect('#btn-unit-tests'),right:e.getBoundingClientRect().right};});
+   assert.ok(r.tests.x>r.library.x);assert.ok(Math.abs(r.tests.right-r.right)<2);assert.ok(r.tabs.x+r.tabs.width<=r.settings.x);assert.ok((await auto.boundingBox()).height>=44);assert.ok((await manual.boundingBox()).height>=44);fs.writeFileSync(`${out}/toolbar-${width}.json`,JSON.stringify(r));}
  });
  await check('Expert Worker survives switching back to automatic and keeps locked parameters',async()=>{
   await page.setViewportSize({width:1440,height:1000});const fixture=JSON.parse(fs.readFileSync('.qa/worker-fixtures.json','utf8')).spline;

@@ -266,12 +266,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .manual-mode-card { padding: var(--card-padding); border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--card); box-shadow: var(--card-shadow); }
 .manual-mode-card > .expert-panel { position: static; height: auto; min-height: 0; max-width: 100%; border-radius: var(--radius-control); }
 .automatic-mode-panel .workspace { min-width: 0; }
-@media (max-width: 899px) {
-  .app-toolbar .fitting-mode-tabs { flex: 1 0 100%; justify-content: center; }
-  .app-toolbar .fitting-mode-tabs button { flex: 1; min-height: 44px; }
-  .app-toolbar .toolbar-auxiliary { margin-left: auto; }
-  .manual-mode-card { padding: 8px; }
-}
 
 /* UI-2b reuses plot-card/plot-grid/plot-canvas; no viewport-specific styling. */
 .nk-section { margin-top: var(--card-gap); }
@@ -285,3 +279,40 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .visualizer-panel .nk-scale button[aria-pressed="true"] { color: var(--primary); background: var(--card); }
 .nk-empty { position: absolute; top: 40%; width: 100%; text-align: center; color: var(--text-muted); }
 .nk-card > div:first-child { min-height: 32px; }
+
+/* UI-3a: view-only n/k tab and result-modal light theme. */
+.visualizer-panel [hidden] { display: none; }
+.visualizer-panel fieldset.view-control-group { min-width: 0; margin: 0; }
+.visualizer-panel .view-control-group[aria-disabled="true"] { opacity: .5; }
+.optical-tab-content .nk-section { margin-top: 0; }
+.result-modal.ui1-surface { background: color-mix(in srgb, var(--primary) 35%, transparent); }
+.result-modal .result-shell { background: var(--card); color: var(--text); border-color: var(--card-border); border-radius: var(--radius-card); box-shadow: var(--card-shadow); }
+.result-modal .surface-card { background: var(--card); }
+.result-modal .tone-text { color: var(--text); }
+.result-modal .tone-muted { color: var(--text-muted); }
+.result-modal .tone-primary { color: var(--primary); }
+.result-modal .tone-warn { color: var(--warn); }
+.result-modal .tone-ok { color: var(--ok); }
+.result-modal .border-token, .result-modal .divide-token > * { border-color: var(--card-border); }
+.result-modal .result-hover:hover { background: var(--info-bg); }
+.result-modal .result-heading { flex-shrink: 0; }
+.result-modal .result-heading button { min-height: 52px; min-width: 52px; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius-control); color: var(--text-muted); }
+.result-modal .result-body { min-height: 0; overflow-y: auto; }
+.result-modal .result-metrics > div { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius-control); }
+.result-modal .result-metrics .font-bold { color: var(--primary); font: bold 24px var(--font-data); }
+.result-modal .result-metrics .text-sm { font-size: 16px; }
+.result-modal .result-metrics small { font-size: 12px; }
+.result-modal .result-diagnostic { padding: 20px; border-radius: var(--radius-control); background: var(--info-bg); }
+.result-modal .knot-history { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.result-modal .knot-history .knot-row { padding: 10px 12px; border-radius: var(--radius-control); background: var(--info-bg); color: var(--text-muted); font-family: var(--font-data); }
+.result-modal .knot-history .result-knot-selected { border-color: var(--accent); border-left-width: 4px; color: var(--primary); font-weight: 600; }
+.result-modal .result-warning, .result-modal .warning-surface, .result-modal [role="alert"] { background: var(--warn-bg); border: 1px solid var(--warn); color: var(--warn); border-radius: var(--radius-control); }
+.result-modal [role="alert"]:empty { border: 0; padding: 0; background: transparent; }
+.result-modal .result-warning .tone-warn { color: var(--warn); }
+.result-modal [class*="border-amber-"] { border-color: var(--warn); }
+.result-modal > .result-shell > [role="alert"] { margin: 16px 20px 0; flex-shrink: 0; }
+.result-modal .result-footer { flex-shrink: 0; background: var(--card); border-color: var(--card-border); gap: 12px; }
+.result-modal .result-footer > div { gap: 12px; }
+.result-modal .result-footer button { min-height: 52px; padding: 12px 16px; border: 1px solid var(--card-border); border-radius: var(--radius-control); background: var(--card); color: var(--primary); }
+.result-modal .result-footer .result-primary { background: var(--primary); border-color: var(--primary); color: var(--card); }
+.result-modal .result-footer .result-primary svg { color: var(--card); }

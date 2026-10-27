@@ -52,6 +52,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
   perAoiMetrics,
 }) => {
   const panelRef = useRef<HTMLElement>(null);
+  const [opticalTab, setOpticalTab] = useState(false);
   // Keep labels and measured points readable in CSS pixels without touching plot data/scales.
   useEffect(() => {
     const charts = panelRef.current?.querySelectorAll<SVGSVGElement>('.plot-canvas svg');
@@ -65,7 +66,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
     charts?.forEach(svg => observer.observe(svg));
     resize();
     return () => observer.disconnect();
-  }, [settings.activeTab, settings.showResiduals]);
+  }, [settings.activeTab, settings.showResiduals, opticalTab]);
 
   const [hoverData, setHoverData] = useState<{
     wavelength: number;
@@ -533,7 +534,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         <div className="view-controls flex flex-wrap items-center gap-2 text-xs">
           {/* Quick-Switch AOI View Buttons */}
           {angles.length > 1 && (
-            <div className="view-control-group flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded p-1">
+            <fieldset disabled={opticalTab} aria-disabled={opticalTab} className="view-control-group flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded p-1">
               <span className="text-slate-400 px-1 text-[11px] flex items-center space-x-1">
                 <Filter className="w-3 h-3 text-slate-500" />
                 <span>檢視:</span>
@@ -571,12 +572,12 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                   </button>
                 );
               })}
-            </div>
+            </fieldset>
           )}
 
           {/* Fit Targets Multi-AOI Selection */}
           {angles.length > 1 && onToggleFitAoi && (
-            <div className="view-control-group fit-target-controls flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded px-2 py-1">
+            <fieldset disabled={opticalTab} aria-disabled={opticalTab} className="view-control-group fit-target-controls flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded px-2 py-1">
               <span className="text-[11px] text-slate-400 font-medium">參與擬合:</span>
               {angles.map((a) => {
                 const isFitActive = !activeFitAois || activeFitAois.includes(a);
@@ -624,7 +625,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                   {!activeFitAois || activeFitAois.length === angles.length ? '單選首個' : '全選'}
                 </button>
               )}
-            </div>
+            </fieldset>
           )}
 
           {/* Series Toggles */}
@@ -662,13 +663,13 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
           </div>
         </div>
 
-        {/* Tabs: Both, Psi, Delta, Residuals */}
+        {/* Existing spectrum tabs plus a view-only optical-constants tab. */}
         <div className="plot-tabs flex items-center space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
           <button
-            aria-pressed={settings.activeTab === 'both'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'both' })}
+            aria-pressed={!opticalTab && settings.activeTab === 'both'}
+            onClick={() => {setOpticalTab(false);onUpdateSettings({ ...settings, activeTab: 'both' });}}
             className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'both'
+              !opticalTab && settings.activeTab === 'both'
                 ? 'bg-cyan-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
@@ -676,10 +677,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             Ψ & Δ 總覽圖
           </button>
           <button
-            aria-pressed={settings.activeTab === 'psi'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'psi' })}
+            aria-pressed={!opticalTab && settings.activeTab === 'psi'}
+            onClick={() => {setOpticalTab(false);onUpdateSettings({ ...settings, activeTab: 'psi' });}}
             className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'psi'
+              !opticalTab && settings.activeTab === 'psi'
                 ? 'bg-cyan-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
@@ -687,10 +688,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             僅檢視 Ψ
           </button>
           <button
-            aria-pressed={settings.activeTab === 'delta'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'delta' })}
+            aria-pressed={!opticalTab && settings.activeTab === 'delta'}
+            onClick={() => {setOpticalTab(false);onUpdateSettings({ ...settings, activeTab: 'delta' });}}
             className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'delta'
+              !opticalTab && settings.activeTab === 'delta'
                 ? 'bg-cyan-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
@@ -698,15 +699,19 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             僅檢視 Δ
           </button>
           <button
-            aria-pressed={settings.activeTab === 'residuals'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'residuals' })}
+            aria-pressed={!opticalTab && settings.activeTab === 'residuals'}
+            onClick={() => {setOpticalTab(false);onUpdateSettings({ ...settings, activeTab: 'residuals' });}}
             className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'residuals'
+              !opticalTab && settings.activeTab === 'residuals'
                 ? 'bg-cyan-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             殘差分佈 (R_Ψ, R_Δ)
+          </button>
+          <button aria-pressed={opticalTab} onClick={()=>setOpticalTab(true)}
+            className={`px-3 py-1 rounded font-medium transition-colors ${opticalTab?'bg-cyan-600 text-white shadow-sm':'text-slate-400 hover:text-slate-200'}`}>
+            n/k 曲線
           </button>
         </div>
 
@@ -719,7 +724,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
       </div>
 
       {/* Crosshair Readout Bar */}
-      {hoverData && (
+      {!opticalTab && hoverData && (
         <div className="mb-2 px-3 py-1.5 bg-slate-900/90 border border-cyan-800/40 rounded-md text-xs font-mono flex items-center justify-between text-slate-300 shadow-sm shrink-0">
           <div className="flex items-center space-x-4">
             <span className="text-cyan-400 font-bold">
@@ -759,7 +764,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
       )}
 
       {/* Grid of Plots based on active tab */}
-      <div className="flex-1 flex flex-col gap-3 overflow-hidden">
+      <div hidden={opticalTab} className="flex-1 flex flex-col gap-3 overflow-hidden">
         {settings.activeTab === 'both' && (
           <>
             <div className="plot-grid flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
@@ -804,7 +809,9 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
           </div>
         )}
       </div>
-      <OpticalConstantsPanel project={opticalProject} busy={opticalBusy}/>
+      <div hidden={!opticalTab} className="optical-tab-content">
+        <OpticalConstantsPanel project={opticalProject} busy={opticalBusy}/>
+      </div>
     </main>
   );
 };
