@@ -1,3 +1,5 @@
+import {OpticalConstantsPanel} from './OpticalConstantsPanel';
+import type {EllipsometryProject} from '../types/ellipsometry';
 /**
  * Visualizer Panel (Center Panel)
  * Renders scientific spectroscopic graphs for:
@@ -25,6 +27,8 @@ import {
 } from '../types/ellipsometry';
 
 interface VisualizerPanelProps {
+  opticalProject: EllipsometryProject;
+  opticalBusy: boolean;
   points: EllipsometryDataPoint[];
   angles: number[];
   settings: VisualizationSettings;
@@ -36,6 +40,8 @@ interface VisualizerPanelProps {
 }
 
 export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
+  opticalProject,
+  opticalBusy,
   points,
   angles,
   settings,
@@ -798,6 +804,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
           </div>
         )}
       </div>
+      <OpticalConstantsPanel project={opticalProject} busy={opticalBusy}/>
     </main>
   );
 };

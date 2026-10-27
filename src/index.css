@@ -272,3 +272,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .app-toolbar .toolbar-auxiliary { margin-left: auto; }
   .manual-mode-card { padding: 8px; }
 }
+
+/* UI-2b reuses plot-card/plot-grid/plot-canvas; no viewport-specific styling. */
+.nk-section { margin-top: var(--card-gap); }
+.nk-layer { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.nk-legend { position: absolute; top: 8px; right: 8px; padding: 4px 8px; background: var(--card); border-radius: var(--radius-control); font-size: 11px; color: var(--text-muted); pointer-events: none; }
+.nk-legend > div { display: flex; align-items: center; gap: 6px; }
+.nk-legend span { display: inline-block; width: 20px; border-top-width: 2px; }
+.nk-tooltip { position: absolute; left: 16%; bottom: 24px; padding: 12px; border: 1px solid var(--card-border); border-radius: var(--radius-control); background: var(--info-bg); color: var(--text); font-size: 12px; pointer-events: none; }
+.nk-scale { display: flex; gap: 4px; padding: 2px; background: var(--info-bg); border-radius: var(--radius-pill); }
+.visualizer-panel .nk-scale button { min-height: 28px; height: 28px; padding: 0 8px; font-size: 11px; }
+.visualizer-panel .nk-scale button[aria-pressed="true"] { color: var(--primary); background: var(--card); }
+.nk-empty { position: absolute; top: 40%; width: 100%; text-align: center; color: var(--text-muted); }
+.nk-card > div:first-child { min-height: 32px; }

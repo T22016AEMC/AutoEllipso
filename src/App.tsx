@@ -700,6 +700,8 @@ export default function App() {
         />
 
         <VisualizerPanel
+          opticalProject={project}
+          opticalBusy={isFitting || compute.busy}
           points={project.experimentData?.points || []}
           angles={project.experimentData?.angles || [70.0]}
           settings={project.visualizationSettings}
