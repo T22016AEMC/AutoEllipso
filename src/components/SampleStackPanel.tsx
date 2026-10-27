@@ -66,7 +66,7 @@ export const SampleStackPanel: React.FC<SampleStackPanelProps> = ({
   };
 
   return (
-    <aside id="stack-panel" className="stack-panel w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-full select-none shrink-0">
+    <aside id="stack-panel" className="ui1-surface stack-panel w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-full select-none shrink-0">
       {/* 1. Header & Sample Structure Toggle */}
       <div className="p-3 border-b border-slate-800 space-y-2.5">
         <div className="flex items-center justify-between">
@@ -93,6 +93,7 @@ export const SampleStackPanel: React.FC<SampleStackPanelProps> = ({
         {/* Structure Mode Switcher (Single Layer vs Multi-Layer) */}
         <div className="bg-slate-950 p-1 rounded-lg border border-slate-800 flex items-center text-xs">
           <button
+            aria-pressed={isSingleLayer}
             onClick={() => onToggleSampleStructure?.('single_layer')}
             className={`flex-1 py-1.5 px-2 rounded-md font-medium flex items-center justify-center space-x-1.5 transition-all ${
               isSingleLayer
@@ -108,6 +109,7 @@ export const SampleStackPanel: React.FC<SampleStackPanelProps> = ({
             </span>
           </button>
           <button
+            aria-pressed={!isSingleLayer}
             onClick={() => onToggleSampleStructure?.('multi_layer')}
             className={`flex-1 py-1.5 px-2 rounded-md font-medium flex items-center justify-center space-x-1.5 transition-all ${
               !isSingleLayer

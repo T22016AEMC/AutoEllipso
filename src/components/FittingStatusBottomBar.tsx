@@ -50,7 +50,7 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
 
   return (
     <>
-      <footer className="fitting-status-bar h-10 bg-slate-900 border-t border-slate-800 px-4 flex items-center justify-between select-none shrink-0 text-xs z-10">
+      <footer className="ui1-surface fitting-status-bar h-10 bg-slate-900 border-t border-slate-800 px-4 flex items-center justify-between select-none shrink-0 text-xs z-10">
         {/* Left: Optimizer status badge */}
         <div className="flex items-center space-x-3 overflow-hidden">
           {isFitting ? (

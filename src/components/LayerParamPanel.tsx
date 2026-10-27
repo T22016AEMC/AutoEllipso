@@ -33,7 +33,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
   // If Ambient is selected
   if (selectedTarget === 'ambient') {
     return (
-      <aside id="parameter-panel" className="parameter-panel w-80 bg-slate-900 border-l border-slate-800 flex flex-col h-full select-none shrink-0 overflow-y-auto">
+      <aside id="parameter-panel" className="ui1-surface parameter-panel w-80 bg-slate-900 border-l border-slate-800 flex flex-col h-full select-none shrink-0 overflow-y-auto">
         <div className="p-3 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sliders className="w-4 h-4 text-cyan-400" />
@@ -123,7 +123,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
     };
 
     return (
-      <aside id="parameter-panel" className="parameter-panel w-84 bg-slate-900 border-l border-slate-800 flex flex-col h-full select-none shrink-0 overflow-y-auto">
+      <aside id="parameter-panel" className="ui1-surface parameter-panel w-84 bg-slate-900 border-l border-slate-800 flex flex-col h-full select-none shrink-0 overflow-y-auto">
         <div className="p-3 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sliders className="w-4 h-4 text-cyan-400" />
@@ -225,7 +225,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
   // Active layer selection
   const currentLayer = layers.find((l) => l.id === selectedTarget) || layers[0];
   if (!currentLayer) {
-    return <aside id="parameter-panel" className="parameter-panel w-84 bg-slate-900 border-l border-slate-800 p-4 text-xs text-slate-400">尚未選取任何薄膜層</aside>;
+    return <aside id="parameter-panel" className="ui1-surface parameter-panel w-84 bg-slate-900 border-l border-slate-800 p-4 text-xs text-slate-400">尚未選取任何薄膜層</aside>;
   }
 
   const layerModels = modelRegistry.getLayerModels();
@@ -260,7 +260,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
   };
 
   return (
-    <aside id="parameter-panel" className="parameter-panel w-84 bg-slate-900 border-l border-slate-800 flex flex-col h-full select-none shrink-0 overflow-y-auto">
+    <aside id="parameter-panel" className="ui1-surface parameter-panel w-84 bg-slate-900 border-l border-slate-800 flex flex-col h-full select-none shrink-0 overflow-y-auto">
       {/* Header */}
       <div className="p-3 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-2">

@@ -539,7 +539,7 @@ export default function App() {
 
       {/* Automated Closed-Loop Workflow Stage Indicator */}
       {(isFitting || workflowProgress) && (
-        <div className="bg-slate-900 border-b border-cyan-900/50 px-4 py-2 flex flex-col xl:flex-row items-center justify-between text-xs font-mono shrink-0 shadow-inner gap-2">
+        <div className="ui1-surface workflow-summary bg-slate-900 border-b border-cyan-900/50 px-4 py-2 flex flex-col xl:flex-row items-center justify-between text-xs font-mono shrink-0 shadow-inner gap-2">
           {/* Left: Stage Name & Message */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="flex items-center space-x-1.5 font-bold text-cyan-400 bg-slate-800/80 px-2 py-0.5 rounded border border-cyan-900/60">
@@ -634,9 +634,9 @@ export default function App() {
         </div>
       )}
 
-      <nav className="mobile-workspace-nav" aria-label="Workspace sections"><a href="#spectra-panel">Ψ/Δ 圖表</a><a href="#stack-panel">膜層</a><a href="#parameter-panel">參數</a></nav>
+      <nav className="ui1-surface mobile-workspace-nav" aria-label="Workspace sections"><a href="#spectra-panel">Ψ/Δ 圖表</a><a href="#stack-panel">膜層</a><a href="#parameter-panel">參數</a></nav>
       {/* Main Workspace: Left Stack Panel + Center Visualizer + Right Parameter Panel */}
-      <div className="privacy-bar flex flex-wrap gap-3 items-center px-4 py-1 bg-slate-900 text-slate-200 text-sm">
+      <div className="ui1-surface privacy-bar flex flex-wrap gap-3 items-center px-4 py-1 bg-slate-900 text-slate-200 text-sm">
         <button className="px-3 py-1 border border-cyan-600 rounded text-cyan-300" disabled={isFitting} onClick={()=>setExpertOpen(true)}>Expert Fitting Mode</button>
         <span className="text-xs">V{APP_VERSION} · {BUILD_COMMIT.slice(0,8)} · 資料只在本分頁記憶體；未儲存、不上傳。</span>
         <button className="px-2 py-1 border border-slate-600 rounded" disabled={compute.busy} onClick={handleValidationReport}>Download Validation Report</button>

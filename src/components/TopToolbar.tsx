@@ -66,24 +66,14 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
   const isAggressive = (project.fittingConfig.fittingStrategy ?? 'aggressive') === 'aggressive';
 
   return (
-    <header className="app-toolbar h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between select-none shrink-0 z-20">
+    <header className="ui1-surface app-toolbar h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between select-none shrink-0 z-20">
       {/* Left: App Title and Project Indicator */}
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center font-bold text-white shadow-sm text-sm">
-            ΨΔ
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-slate-100 leading-tight tracking-wide flex items-center space-x-1.5">
-              <span className="text-cyan-400">AutoEllipso V{APP_VERSION} <small className="text-slate-400 font-mono">{BUILD_COMMIT.slice(0,7)}</small></span>
-              <span className="text-slate-500 text-[11px] font-normal hidden sm:inline">|</span>
-              <span className="text-slate-400 text-[11px] font-normal hidden sm:inline">
-                薄膜光學常數與膜厚自動反演
-              </span>
-            </h1>
-            <p className="text-[11px] text-slate-400 font-mono truncate max-w-xs">
-              {project.name}
-            </p>
+          <div className="brand">
+            <h1><img src="/logo/autoellipso-logo.png" alt="AutoEllipso" className="brand-logo" /></h1>
+            <p className="brand-version">V{APP_VERSION} · {BUILD_COMMIT.slice(0,7)}</p>
+            <p className="brand-project">{project.name}</p>
           </div>
         </div>
 

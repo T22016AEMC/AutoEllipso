@@ -89,17 +89,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
   const viewSpan=(baseMax-baseMin)/zoomScale;
   const wlMin=(baseMin+baseMax-viewSpan)/2,wlMax=wlMin+viewSpan;
 
-  // Dynamic high-contrast palette for arbitrary angles of incidence (never hardcoded to 65, 70, 75)
-  const DYNAMIC_PALETTE = [
-    { exp: '#38bdf8', calc: '#0284c7', res: '#38bdf8' }, // Sky Blue
-    { exp: '#f59e0b', calc: '#d97706', res: '#f59e0b' }, // Amber
-    { exp: '#10b981', calc: '#059669', res: '#10b981' }, // Emerald
-    { exp: '#a855f7', calc: '#7c3aed', res: '#a855f7' }, // Purple
-    { exp: '#ec4899', calc: '#db2777', res: '#ec4899' }, // Pink
-    { exp: '#06b6d4', calc: '#0891b2', res: '#06b6d4' }, // Cyan
-    { exp: '#f97316', calc: '#ea580c', res: '#f97316' }, // Orange
-    { exp: '#84cc16', calc: '#65a30d', res: '#84cc16' }, // Lime
-  ];
+  // Shared UI tokens; dash patterns distinguish incidence angles without relying on color.
+  const DYNAMIC_PALETTE = Array.from({ length: 8 }, () => ({
+    exp: 'var(--measurement)', calc: 'var(--accent)', res: 'var(--residual)',
+  }));
 
   const getColorForAngle = (aoi: number) => {
     const idx = distinctAngles.indexOf(aoi);
@@ -231,8 +224,8 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
               y={padding.top}
               width={innerWidth}
               height={innerHeight}
-              fill="#090d16"
-              stroke="#1e293b"
+              fill="var(--card)"
+              stroke="var(--card-border)"
             />
 
             {/* Zero line for residuals */}
@@ -242,7 +235,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                 y1={scaleY(0, yMin, yMax)}
                 x2={padding.left + innerWidth}
                 y2={scaleY(0, yMin, yMax)}
-                stroke="#475569"
+                stroke="var(--text-muted)"
                 strokeWidth="1.5"
                 strokeDasharray="4 2"
               />
@@ -258,14 +251,14 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                     y1={y}
                     x2={padding.left + innerWidth}
                     y2={y}
-                    stroke="#1e293b"
+                    stroke="var(--card-border)"
                     strokeDasharray="3 3"
                   />
                   <text
                     x={padding.left - 8}
                     y={y + 3}
                     textAnchor="end"
-                    fill="#64748b"
+                    fill="var(--text-muted)"
                     fontSize="10"
                     fontFamily="monospace"
                   >
@@ -285,14 +278,14 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                     y1={padding.top}
                     x2={x}
                     y2={padding.top + innerHeight}
-                    stroke="#1e293b"
+                    stroke="var(--card-border)"
                     strokeDasharray="3 3"
                   />
                   <text
                     x={x}
                     y={padding.top + innerHeight + 16}
                     textAnchor="middle"
-                    fill="#64748b"
+                    fill="var(--text-muted)"
                     fontSize="10"
                     fontFamily="monospace"
                   >
@@ -307,7 +300,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
               x={padding.left + innerWidth / 2}
               y={height - 4}
               textAnchor="middle"
-              fill="#94a3b8"
+              fill="var(--text-muted)"
               fontSize="11"
               fontWeight="500"
             >
@@ -319,7 +312,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
               x={16}
               y={padding.top + innerHeight / 2}
               textAnchor="middle"
-              fill="#94a3b8"
+              fill="var(--text-muted)"
               fontSize="11"
               fontWeight="500"
             >
@@ -350,7 +343,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                       <path
                         d={calcPath}
                         fill="none"
-                        stroke={color.calc}
+                        stroke={color.calc} strokeDasharray={[undefined, "6 3", "2 3", "8 3 2 3"][distinctAngles.indexOf(aoi) % 4]}
                         strokeWidth="2.0"
                       />
                     )}
@@ -365,7 +358,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                             cy={y}
                             r="2.5"
                             fill={color.exp}
-                            stroke="#090d16"
+                            stroke="var(--card)"
                             strokeWidth="0.8"
                           />
                         );
@@ -391,7 +384,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                       <path
                         d={calcPath}
                         fill="none"
-                        stroke={color.calc}
+                        stroke={color.calc} strokeDasharray={[undefined, "6 3", "2 3", "8 3 2 3"][distinctAngles.indexOf(aoi) % 4]}
                         strokeWidth="2.0"
                       />
                     )}
@@ -406,7 +399,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                             cy={y}
                             r="2.5"
                             fill={color.exp}
-                            stroke="#090d16"
+                            stroke="var(--card)"
                             strokeWidth="0.8"
                           />
                         );
@@ -501,7 +494,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                 y1={padding.top}
                 x2={scaleX(hoverData.wavelength)}
                 y2={padding.top + innerHeight}
-                stroke="#38bdf8"
+                stroke="var(--accent)"
                 strokeWidth="1"
                 strokeDasharray="2 2"
               />
@@ -513,7 +506,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
   };
 
   return (
-    <main id="spectra-panel" className="visualizer-panel flex-1 flex flex-col bg-slate-950 p-3 overflow-hidden select-none min-w-0">
+    <main id="spectra-panel" className="ui1-surface visualizer-panel flex-1 flex flex-col bg-slate-950 p-3 overflow-hidden select-none min-w-0">
       <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
         <button aria-label="Zoom wavelength in" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.min(8,z*1.5))}>Zoom in</button>
         <button aria-label="Zoom wavelength out" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.max(1,z/1.5))}>Zoom out</button>
@@ -525,6 +518,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         {/* Tabs: Both, Psi, Delta, Residuals */}
         <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
           <button
+            aria-pressed={settings.activeTab === 'both'}
             onClick={() => onUpdateSettings({ ...settings, activeTab: 'both' })}
             className={`px-3 py-1 rounded font-medium transition-colors ${
               settings.activeTab === 'both'
@@ -535,6 +529,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             Ψ & Δ 總覽圖
           </button>
           <button
+            aria-pressed={settings.activeTab === 'psi'}
             onClick={() => onUpdateSettings({ ...settings, activeTab: 'psi' })}
             className={`px-3 py-1 rounded font-medium transition-colors ${
               settings.activeTab === 'psi'
@@ -545,6 +540,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             僅檢視 Ψ
           </button>
           <button
+            aria-pressed={settings.activeTab === 'delta'}
             onClick={() => onUpdateSettings({ ...settings, activeTab: 'delta' })}
             className={`px-3 py-1 rounded font-medium transition-colors ${
               settings.activeTab === 'delta'
@@ -555,6 +551,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             僅檢視 Δ
           </button>
           <button
+            aria-pressed={settings.activeTab === 'residuals'}
             onClick={() => onUpdateSettings({ ...settings, activeTab: 'residuals' })}
             className={`px-3 py-1 rounded font-medium transition-colors ${
               settings.activeTab === 'residuals'
@@ -636,7 +633,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                     />
                     <span
                       className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: isFitActive ? col.exp : '#475569' }}
+                      style={{ backgroundColor: isFitActive ? col.exp : 'var(--text-muted)' }}
                     />
                     <span>{a}°</span>
                     {aoiMetric && (
