@@ -1,0 +1,25 @@
+# Stage UI-3b
+- 基準：UI-3a `bfc828b`，已確認 Cloudflare 部署成功。
+- 改動檔案：`src/components/ExpertFittingPanel.tsx`、`src/index.css`、本報告。
+- Expert 加入既有 `.ui1-surface`；沿用 UI-1 權杖，內部白底、32px 內距、區塊間距 24px，外層 UI-0 卡片保留。
+- Stage 0–5 採一致次要按鈕；目前 Stage 加 accent 邊框、淡底、粗體、底線與 `aria-current="step"`，按鈕處理不變。
+- Run Stage／Continue Fitting 為 primary 主按鈕；其他操作為白底細框，Stop Fit 採 danger；disabled 灰底灰字。模型標籤以 accent 邊框、primary 文字確保對比。
+- 狀態列使用語意色資訊框；MSE 區採 info-bg，大數字粗體等寬；警告沿用 warn 淡底。
+- 厚度、基板、參數、Peak Builder 使用白底圓角區塊；輸入框／勾選框／focus 沿用 UI-1。Film 選單加寬以顯示名稱。
+- Undo／Redo／候選解與初始化按鈕保留原位置及順序；表格無垂直格線、保留極淡水平線。
+- 圖卡白底、24px 圓角；座標文字 text-muted、軸線 card-border；measured 使用 measurement 細點，兩張 Ψ／Δ 的 TMM 均用 accent。
+- n/k、ε1/ε2、殘差以 accent／primary 及實／虛線區分。控制點／峰值把手形狀、座標、拖曳事件不變；hover 粗框、按住白心粗框、鎖定灰色虛線框。
+- 原有圖表資料、範圍、刻度計算、抽樣條件、說明文字與全部欄位皆保留，未加入圖表新運算。
+- `ExpertFittingPanel.tsx` 深色 utility／hex 色碼殘留 0；搜尋結果：`.qa/ui3b/source-audit.json`、`.qa/ui3b/color-audit.txt`。
+- 刻意保留共用 `FitStatisticsPanel.tsx`、`OpticalModelComparisonPanel.tsx`、`FitAssessmentSummary.tsx` 的舊 utility 名稱，以 `.ui1-surface` 映射至既有權杖，避免修改其他呼叫處。
+- `src/index.css:14` 全域舊 focus 亮青後備及非 Expert 舊規則仍在；Expert 的 focus 已由較高優先權 UI-1 權杖覆蓋。本段未新增／修改窄螢幕規則。
+- 原始碼比對：只排除樣式、顏色及顯示狀態屬性後，文字、結構、運算、事件、欄位及順序一致；證據 `.qa/ui3b/source-audit.json`。
+- 1440px 截圖：`.qa/ui3b/manual-top.png`、`.qa/ui3b/parameters-initialization.png`。
+- 圖表／Peak Builder：`.qa/ui3b/spectra-optical-controls.png`、`.qa/ui3b/peak-builder-candidates.png`。
+- 展開方式：Stage 2 → Initialize Physical Peak Builder → Peak type 選 Gaussian → Add Peak；Save Candidate 顯示候選解還原按鈕。
+- 操作抽查 N3：1.7 → 拖曳 1.9950259504647092 → Undo 1.7 → Redo 1.9950259504647092；鎖定後輸入停用且控制點為虛線框，再解鎖正常。
+- 桌面觀察：無頁面橫向溢出／瀏覽器錯誤；有效文字對比抽查最低 4.62:1；`.qa/ui3b/observations.json`、`.qa/ui3b/capture.log`。
+- `pnpm run build` 通過：`.qa/ui3b/build.log`；`pnpm run typecheck` 通過：`.qa/ui3b/typecheck.log`。
+- 依要求未跑 verify／既有 UI／e2e 測試；未新增測試、未放寬斷言、未修選擇器。
+- 未越界：未改 Worker、擬合器、TMM、統計、匯出、Stage 0–5 邏輯、專案 JSON、按鈕行為、套件、字型或新增色碼；未開始 UI-4／4.6。
+- 部署佐證：`.qa/ui3b/deployment.json`（Cloudflare build 與正式站 version.json）。

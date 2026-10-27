@@ -5,7 +5,7 @@ html,body,#root{margin:0;min-height:100%;width:100%;}
 *{box-sizing:border-box;}
 .app-shell{height:100dvh;}
 .workspace,.visualizer-panel{min-width:0;}
-.expert-panel{height:100dvh;overscroll-behavior:contain;background:#020617;}
+.expert-panel{height:100dvh;overscroll-behavior:contain;background:var(--card);}
 .expert-forward-status{min-height:48px;margin:0;padding:4px 0;}
 .expert-panel input,.expert-panel select,.expert-panel button{max-width:100%;}
 .expert-panel [aria-label="Interactive optical editor"]{min-height:200px;}
@@ -316,3 +316,55 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .result-modal .result-footer button { min-height: 52px; padding: 12px 16px; border: 1px solid var(--card-border); border-radius: var(--radius-control); background: var(--card); color: var(--primary); }
 .result-modal .result-footer .result-primary { background: var(--primary); border-color: var(--primary); color: var(--card); }
 .result-modal .result-footer .result-primary svg { color: var(--card); }
+
+/* UI-3b: presentation only; the Expert event handlers and model state are unchanged. */
+.expert-panel.ui1-surface { padding: 32px; background: var(--card); color: var(--text); font-family: var(--font-ui); }
+.expert-panel .expert-content { display: flex; flex-direction: column; gap: 24px; }
+.expert-panel .expert-content > * { margin-block: 0; }
+.expert-panel .expert-card { background: var(--card); }
+.expert-panel .expert-muted { color: var(--text-muted); }
+.expert-panel .expert-text { color: var(--text); }
+.expert-panel .expert-accent { color: var(--accent); }
+.expert-panel .expert-border { border-color: var(--card-border); }
+.expert-panel .expert-button { min-height: 52px; padding: 12px 16px; color: var(--primary); background: var(--card); border: 1px solid var(--input-border); border-radius: var(--radius-control); }
+.expert-panel .expert-button:hover { background: var(--info-bg); }
+.expert-panel .expert-primary { background: var(--primary); color: var(--card); border-color: var(--primary); font-weight: 600; }
+.expert-panel .expert-primary:hover { background: var(--text); }
+.expert-panel .expert-stop { color: var(--danger); border-color: var(--danger); }
+.expert-panel .expert-stop:hover { background: var(--danger-bg); }
+.expert-panel button:disabled, .expert-panel input:disabled, .expert-panel select:disabled { background: var(--info-bg); color: var(--text-muted); border-color: var(--card-border); opacity: 1; cursor: default; }
+.expert-panel .expert-stages { gap: 8px; }
+.expert-panel .expert-stages .expert-stage-current { background: var(--info-bg); border-color: var(--accent); color: var(--primary); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.expert-panel .expert-model { padding: 6px 12px; border: 1px solid var(--accent); border-radius: var(--radius-pill); color: var(--primary); background: var(--info-bg); font-size: 12px; font-weight: 600; }
+.expert-panel .expert-info, .expert-panel .expert-metrics { padding: 20px; background: var(--info-bg); border: 1px solid var(--card-border); border-radius: var(--radius-control); }
+.expert-panel .expert-metrics { color: var(--primary); font-family: var(--font-data); font-weight: 600; align-items: center; }
+.expert-panel .expert-metrics b { font-size: 24px; font-weight: 700; }
+.expert-panel .expert-metrics small { color: var(--text-muted); font-size: 12px; font-weight: 400; }
+.expert-panel .expert-forward-status, .expert-panel p[role="status"] { padding: 20px; border: 1px solid var(--card-border); border-radius: var(--radius-control); background: var(--info-bg); color: var(--text-muted); }
+.expert-panel .expert-warn { color: var(--warn); }
+.expert-panel [role="alert"], .expert-panel .expert-forward-status.expert-warn { padding: 20px; border: 1px solid var(--warn); border-radius: var(--radius-control); background: var(--warn-bg); color: var(--warn); }
+.expert-panel .expert-forward-status.expert-ok { color: var(--ok); background: var(--ok-bg); border-color: var(--ok); }
+.expert-panel .expert-error, .expert-panel [role="alert"].expert-error { color: var(--danger); background: var(--danger-bg); border-color: var(--danger); }
+.expert-panel [role="alert"]:empty { display: none; }
+.expert-panel .expert-section, .expert-panel .expert-parameters, .expert-panel .expert-peaks, .expert-panel .expert-peaks > .expert-border, .expert-panel .expert-content > .expert-border, .expert-panel details { padding: 20px; border: 1px solid var(--card-border); border-radius: var(--radius-control); background: var(--card); }
+.expert-panel label { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.expert-panel input, .expert-panel select, .expert-panel table { font-family: var(--font-data); }
+.expert-panel input:focus, .expert-panel select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+.expert-panel .expert-chart { padding: 24px; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--card); box-shadow: var(--card-shadow); }
+.expert-panel .expert-chart > div:first-child { color: var(--primary); font-weight: 600; }
+.expert-panel .expert-chart > p { color: var(--text-muted); }
+.expert-panel svg text { font-family: var(--font-data); font-size: 18px; }
+.expert-panel svg polyline { vector-effect: non-scaling-stroke; }
+.expert-panel svg polyline[data-series="k"], .expert-panel svg polyline[data-series="K"], .expert-panel svg polyline[data-series="ε2"], .expert-panel svg polyline[data-series="Δ"] { stroke-dasharray: 6 4; }
+.expert-panel svg [data-locked] { stroke: var(--card); stroke-width: 2px; }
+.expert-panel svg [data-locked="true"] { fill: var(--text-muted); stroke: var(--text); stroke-width: 3px; stroke-dasharray: 2 2; cursor: default; }
+.expert-panel svg rect[data-testid^="peak-"][data-locked="false"] { stroke: var(--primary); stroke-width: 2px; }
+.expert-panel svg [data-locked="false"]:hover { stroke: var(--primary); stroke-width: 4px; }
+.expert-panel svg [data-locked="false"]:active { fill: var(--card); stroke: var(--accent); stroke-width: 5px; }
+.expert-panel th { padding: 12px 8px; font-size: 12px; color: var(--text-muted); }
+.expert-panel td { padding: 8px; border-inline: 0; border-bottom: 1px solid var(--card-border); }
+.expert-panel .expert-parameter-entry { padding: 12px; border: 0; border-bottom: 1px solid var(--card-border); }
+.expert-panel .expert-content > .expert-metrics { background: var(--info-bg); }
+.expert-panel svg { user-select: none; }
+.expert-panel svg text { fill: var(--text-muted); }
+.expert-panel .expert-actions select { width: auto; min-width: 160px; }
