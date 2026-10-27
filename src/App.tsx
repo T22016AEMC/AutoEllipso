@@ -668,17 +668,6 @@ export default function App() {
           onMoveLayerDown={handleMoveLayerDown}
         />
 
-        <VisualizerPanel
-          points={project.experimentData?.points || []}
-          angles={project.experimentData?.angles || [70.0]}
-          settings={project.visualizationSettings}
-          onUpdateSettings={handleUpdateSettings}
-          activeFitAois={project.fittingConfig.activeFitAois}
-          onToggleFitAoi={handleToggleFitAoi}
-          onSelectAllFitAois={handleSelectAllFitAois}
-          perAoiMetrics={residualMetrics.perAoi}
-        />
-
         <LayerParamPanel
           selectedTarget={selectedTarget}
           ambient={project.ambient}
@@ -688,6 +677,17 @@ export default function App() {
           onUpdateLayer={handleUpdateLayer}
           onUpdateSubstrate={handleUpdateSubstrate}
           onManualCalculate={handleManualCalculate}
+        />
+
+        <VisualizerPanel
+          points={project.experimentData?.points || []}
+          angles={project.experimentData?.angles || [70.0]}
+          settings={project.visualizationSettings}
+          onUpdateSettings={handleUpdateSettings}
+          activeFitAois={project.fittingConfig.activeFitAois}
+          onToggleFitAoi={handleToggleFitAoi}
+          onSelectAllFitAois={handleSelectAllFitAois}
+          perAoiMetrics={residualMetrics.perAoi}
         />
       </div>
 

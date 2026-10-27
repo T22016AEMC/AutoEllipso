@@ -8,7 +8,7 @@
  *
  * Supports interactive crosshair readout, angle filtering, series toggling, and zoom controls.
  */
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Maximize2,
   Minimize2,
@@ -45,6 +45,22 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
   onSelectAllFitAois,
   perAoiMetrics,
 }) => {
+  const panelRef = useRef<HTMLElement>(null);
+  // Keep labels and measured points readable in CSS pixels without touching plot data/scales.
+  useEffect(() => {
+    const charts = panelRef.current?.querySelectorAll<SVGSVGElement>('.plot-canvas svg');
+    const resize = () => charts?.forEach(svg => {
+      const scale = svg.getScreenCTM()?.a;
+      if (!scale) return;
+      svg.style.setProperty('--plot-label-size', `${11 / scale}px`);
+      svg.style.setProperty('--plot-point-radius', `${2 / scale}px`);
+    });
+    const observer = new ResizeObserver(resize);
+    charts?.forEach(svg => observer.observe(svg));
+    resize();
+    return () => observer.disconnect();
+  }, [settings.activeTab, settings.showResiduals]);
+
   const [hoverData, setHoverData] = useState<{
     wavelength: number;
     aoi: number;
@@ -107,7 +123,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
   // SVG Chart Dimensions
   const width = 640;
   const height = 240;
-  const padding = { top: 20, right: 30, bottom: 35, left: 55 };
+  const padding = { top: 20, right: 40, bottom: 45, left: 100 };
   const innerWidth = width - padding.left - padding.right;
   const innerHeight = height - padding.top - padding.bottom;
 
@@ -186,7 +202,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
     };
 
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col flex-1 shadow-sm">
+      <div className="plot-card bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col flex-1 shadow-sm">
         {/* Plot Title & Sub-legend */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
@@ -211,7 +227,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         </div>
 
         {/* SVG Plot */}
-        <div className="relative flex-1 min-h-[180px]">
+        <div className="plot-canvas relative flex-1 min-h-[180px]">
           <svg
             viewBox={`0 0 ${width} ${height}`}
             className="w-full h-full cursor-crosshair overflow-visible select-none"
@@ -316,7 +332,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
               fontSize="11"
               fontWeight="500"
             >
-              {yLabel}
+              {dataKind.startsWith('residual') ? '殘差 (°)' : dataKind === 'psi' ? 'Ψ (°)' : 'Δ (°)'}
             </text>
 
             {/* Data Series Traces */}
@@ -506,73 +522,18 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
   };
 
   return (
-    <main id="spectra-panel" className="ui1-surface visualizer-panel flex-1 flex flex-col bg-slate-950 p-3 overflow-hidden select-none min-w-0">
-      <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
-        <button aria-label="Zoom wavelength in" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.min(8,z*1.5))}>Zoom in</button>
-        <button aria-label="Zoom wavelength out" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.max(1,z/1.5))}>Zoom out</button>
-        <button aria-label="Reset wavelength zoom" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(1)}>Reset zoom</button>
-        <span>{wlMin.toFixed(1)}–{wlMax.toFixed(1)} nm · {zoomScale.toFixed(2)}× display only</span>
-      </div>
-      {/* Visualizer Top Bar Controls */}
-      <div className="flex items-center justify-between pb-3 shrink-0">
-        {/* Tabs: Both, Psi, Delta, Residuals */}
-        <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
-          <button
-            aria-pressed={settings.activeTab === 'both'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'both' })}
-            className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'both'
-                ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Ψ & Δ 總覽圖
-          </button>
-          <button
-            aria-pressed={settings.activeTab === 'psi'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'psi' })}
-            className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'psi'
-                ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            僅檢視 Ψ
-          </button>
-          <button
-            aria-pressed={settings.activeTab === 'delta'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'delta' })}
-            className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'delta'
-                ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            僅檢視 Δ
-          </button>
-          <button
-            aria-pressed={settings.activeTab === 'residuals'}
-            onClick={() => onUpdateSettings({ ...settings, activeTab: 'residuals' })}
-            className={`px-3 py-1 rounded font-medium transition-colors ${
-              settings.activeTab === 'residuals'
-                ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            殘差分佈 (R_Ψ, R_Δ)
-          </button>
-        </div>
-
+    <main ref={panelRef} id="spectra-panel" className="ui1-surface visualizer-panel flex-1 flex flex-col bg-slate-950 p-3 overflow-hidden select-none min-w-0">
         {/* Filters & Toggles */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className="view-controls flex flex-wrap items-center gap-2 text-xs">
           {/* Quick-Switch AOI View Buttons */}
           {angles.length > 1 && (
-            <div className="flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded p-1">
+            <div className="view-control-group flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded p-1">
               <span className="text-slate-400 px-1 text-[11px] flex items-center space-x-1">
                 <Filter className="w-3 h-3 text-slate-500" />
                 <span>檢視:</span>
               </span>
               <button
+                aria-pressed={settings.selectedAoi === 'all'}
                 onClick={() => onUpdateSettings({ ...settings, selectedAoi: 'all' })}
                 className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
                   settings.selectedAoi === 'all'
@@ -588,6 +549,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                 return (
                   <button
                     key={a}
+                    aria-pressed={isSelected}
                     onClick={() => onUpdateSettings({ ...settings, selectedAoi: a })}
                     className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition-colors flex items-center space-x-1 ${
                       isSelected
@@ -608,7 +570,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
           {/* Fit Targets Multi-AOI Selection */}
           {angles.length > 1 && onToggleFitAoi && (
-            <div className="flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded px-2 py-1">
+            <div className="view-control-group fit-target-controls flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded px-2 py-1">
               <span className="text-[11px] text-slate-400 font-medium">參與擬合:</span>
               {angles.map((a) => {
                 const isFitActive = !activeFitAois || activeFitAois.includes(a);
@@ -660,7 +622,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
           )}
 
           {/* Series Toggles */}
-          <div className="flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded p-1">
+          <div className="view-control-group flex items-center space-x-1 bg-slate-900 border border-slate-800 rounded p-1">
             <button
               onClick={() =>
                 onUpdateSettings({
@@ -693,6 +655,61 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Tabs: Both, Psi, Delta, Residuals */}
+        <div className="plot-tabs flex items-center space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+          <button
+            aria-pressed={settings.activeTab === 'both'}
+            onClick={() => onUpdateSettings({ ...settings, activeTab: 'both' })}
+            className={`px-3 py-1 rounded font-medium transition-colors ${
+              settings.activeTab === 'both'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Ψ & Δ 總覽圖
+          </button>
+          <button
+            aria-pressed={settings.activeTab === 'psi'}
+            onClick={() => onUpdateSettings({ ...settings, activeTab: 'psi' })}
+            className={`px-3 py-1 rounded font-medium transition-colors ${
+              settings.activeTab === 'psi'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            僅檢視 Ψ
+          </button>
+          <button
+            aria-pressed={settings.activeTab === 'delta'}
+            onClick={() => onUpdateSettings({ ...settings, activeTab: 'delta' })}
+            className={`px-3 py-1 rounded font-medium transition-colors ${
+              settings.activeTab === 'delta'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            僅檢視 Δ
+          </button>
+          <button
+            aria-pressed={settings.activeTab === 'residuals'}
+            onClick={() => onUpdateSettings({ ...settings, activeTab: 'residuals' })}
+            className={`px-3 py-1 rounded font-medium transition-colors ${
+              settings.activeTab === 'residuals'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            殘差分佈 (R_Ψ, R_Δ)
+          </button>
+        </div>
+
+
+      <div className="plot-zoom flex flex-wrap items-center gap-2 text-xs mb-2">
+        <button aria-label="Zoom wavelength in" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.min(8,z*1.5))}>Zoom in</button>
+        <button aria-label="Zoom wavelength out" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.max(1,z/1.5))}>Zoom out</button>
+        <button aria-label="Reset wavelength zoom" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(1)}>Reset zoom</button>
+        <span>{wlMin.toFixed(1)}–{wlMax.toFixed(1)} nm · {zoomScale.toFixed(2)}× display only</span>
       </div>
 
       {/* Crosshair Readout Bar */}
@@ -739,12 +756,12 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
       <div className="flex-1 flex flex-col gap-3 overflow-hidden">
         {settings.activeTab === 'both' && (
           <>
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
+            <div className="plot-grid flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
               {renderPlot('Ψ (Psi) 光譜響應曲線', 'Ψ 振幅角 (度 °)', 0, 90, 'psi')}
               {renderPlot('Δ (Delta) 相位差光譜', 'Δ 相位角 (度 °)', 0, 360, 'delta')}
             </div>
             {settings.showResiduals && (
-              <div className="h-44 grid grid-cols-1 md:grid-cols-2 gap-3 shrink-0">
+              <div className="plot-grid h-44 grid grid-cols-1 md:grid-cols-2 gap-3 shrink-0">
                 {renderPlot('Ψ 擬合殘差 (Calc - Exp)', '殘差 ΔΨ (°)', -3, 3, 'residual_psi')}
                 {renderPlot('Δ 擬合殘差 (Calc - Exp)', '殘差 ΔΔ (°)', -10, 10, 'residual_delta')}
               </div>
@@ -753,10 +770,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         )}
 
         {settings.activeTab === 'psi' && (
-          <div className="flex-1 flex flex-col gap-3 min-h-0">
+          <div className="plot-grid flex-1 flex flex-col gap-3 min-h-0">
             {renderPlot('Ψ (Psi) 光譜響應曲線', 'Ψ 振幅角 (度 °)', 0, 90, 'psi')}
             {settings.showResiduals && (
-              <div className="h-44 shrink-0">
+              <div className="plot-grid h-44 shrink-0">
                 {renderPlot('Ψ 擬合殘差 (Calc - Exp)', '殘差 ΔΨ (°)', -3, 3, 'residual_psi')}
               </div>
             )}
@@ -764,10 +781,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         )}
 
         {settings.activeTab === 'delta' && (
-          <div className="flex-1 flex flex-col gap-3 min-h-0">
+          <div className="plot-grid flex-1 flex flex-col gap-3 min-h-0">
             {renderPlot('Δ (Delta) 相位差光譜', 'Δ 相位角 (度 °)', 0, 360, 'delta')}
             {settings.showResiduals && (
-              <div className="h-44 shrink-0">
+              <div className="plot-grid h-44 shrink-0">
                 {renderPlot('Δ 擬合殘差 (Calc - Exp)', '殘差 ΔΔ (°)', -10, 10, 'residual_delta')}
               </div>
             )}
@@ -775,7 +792,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         )}
 
         {settings.activeTab === 'residuals' && (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
+          <div className="plot-grid flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
             {renderPlot('Ψ 殘差分佈 (R_Ψ)', '殘差 ΔΨ (°)', -5, 5, 'residual_psi')}
             {renderPlot('Δ 殘差分佈 (R_Δ)', '殘差 ΔΔ (°)', -20, 20, 'residual_delta')}
           </div>

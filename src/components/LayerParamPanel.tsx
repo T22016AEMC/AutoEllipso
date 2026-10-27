@@ -4,7 +4,7 @@
  * Provides controls for Current, Initial, Min, Max, and Fit ON/OFF status.
  */
 import React from 'react';
-import { Sliders, HelpCircle, Check, Info } from 'lucide-react';
+import { Sliders, HelpCircle, Check, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { Layer, Ambient, Substrate, ParameterValue } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
 import { materialRegistry } from '../materialRegistry/materialRegistry';
@@ -30,6 +30,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
   onUpdateSubstrate,
   onManualCalculate,
 }) => {
+  const [parametersExpanded, setParametersExpanded] = React.useState(false);
   // If Ambient is selected
   if (selectedTarget === 'ambient') {
     return (
@@ -374,6 +375,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
               <span className="text-[10px] text-cyan-400 font-medium">使用者選定目標</span>
             </div>
             <select
+              aria-label="最終物理光學模型"
               value={currentLayer.modelId}
               onChange={(e) => handleModelChange(e.target.value)}
               className="w-full bg-slate-900 border border-cyan-700/70 text-cyan-200 font-medium rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-cyan-400 shadow-inner"
@@ -492,15 +494,15 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
           </div>
         </div>
 
-        {/* 2. DYNAMIC OPTICAL MODEL PARAMETERS */}
-        <div className="pt-2 border-t border-slate-800 space-y-3">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+        {/* This disclosure is local UI state; model changes do not reset it. */}
+        <div className="model-parameters pt-2 border-t border-slate-800 space-y-3">
+          <button type="button" className="parameter-disclosure" aria-expanded={parametersExpanded}
+            aria-controls="model-parameter-fields" onClick={() => setParametersExpanded(value => !value)}>
             <span>色散模型參數 (Model Parameters)</span>
-            <span className="text-slate-500 font-mono font-normal">
-              {Object.keys(currentLayer.parameters).length} 個參數
-            </span>
-          </div>
-
+            <span className="font-mono">{Object.keys(currentLayer.parameters).length} 個參數</span>
+            {parametersExpanded ? <ChevronUp aria-hidden="true" size={18}/> : <ChevronDown aria-hidden="true" size={18}/>}
+          </button>
+          <div id="model-parameter-fields" className="model-parameter-fields" hidden={!parametersExpanded}>
           {Object.values(currentLayer.parameters).map((param) => {
             const def = currentModel?.parameters.find((p) => p.id === param.id);
 
@@ -638,6 +640,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
               </div>
             );
           })}
+          </div>
         </div>
 
         {/* Re-calculate button */}

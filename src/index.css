@@ -119,8 +119,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   width: 100%; height: auto; max-width: none; overflow: visible; border: 1px solid var(--card-border);
   border-radius: var(--radius-card); padding: var(--card-padding); box-shadow: var(--card-shadow);
 }
-.workspace > .visualizer-panel { grid-column: 2; grid-row: 1 / span 2; min-height: 900px; }
-.workspace > .parameter-panel { grid-column: 1; }
+.workspace > .visualizer-panel { grid-column: 1 / -1; grid-row: auto; min-height: 0; }
+.workspace > .parameter-panel { grid-column: 2; }
 .stack-panel > div, .parameter-panel > div { padding: 0; border: 0; margin-bottom: 24px; }
 .stack-panel > div:last-child, .parameter-panel > div:last-child { margin-bottom: 0; }
 .stack-panel .bg-slate-950 { border-radius: var(--radius-pill); padding: 4px; flex-wrap: wrap; gap: 4px; }
@@ -158,7 +158,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .app-toolbar { padding-top: 24px; }
   .workspace { grid-template-columns: minmax(0, 1fr); }
   .workspace > .visualizer-panel, .workspace > .parameter-panel { grid-column: auto; grid-row: auto; }
-  .workspace > .visualizer-panel { min-height: 900px; }
+  .workspace > .visualizer-panel { min-height: 0; }
   .mobile-workspace-nav { display: flex; background: var(--info-bg); border-radius: var(--radius-pill); flex-wrap: wrap; gap: 16px; padding: 8px 20px; }
   .mobile-workspace-nav a { min-height: 44px; display: flex; align-items: center; }
   .visualizer-panel .grid { grid-template-columns: 1fr; }
@@ -189,13 +189,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .parameter-panel input { min-width: 0; }
 .parameter-panel .grid > div { min-width: 0; }
 @media (min-width: 900px) {
-  .workspace > .visualizer-panel { grid-row: 1; }
-  .workspace > .parameter-panel { grid-column: 1 / -1; }
   .parameter-panel > .space-y-4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
   .parameter-panel > .space-y-4 > * { margin: 0; }
-  .parameter-panel > .space-y-4 > .border-t { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; border: 0; }
-  .parameter-panel > .space-y-4 > .border-t > * { margin: 0; }
-  .parameter-panel > .space-y-4 > .border-t > div:first-child { grid-column: 1 / -1; }
+  .parameter-panel > .space-y-4 > .model-parameters { grid-column: 1 / -1; }
 }
 @media (max-width: 600px) {
   .parameter-panel .grid-cols-2 { grid-template-columns: 1fr; }
@@ -216,3 +212,44 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .ui1-modal > div > .overflow-y-auto { min-height: 0; }
 .ui1-modal > div > .items-center { flex-shrink: 0; }
 .app-toolbar #btn-unit-tests { background: var(--card); border-color: var(--input-border); color: var(--primary); }
+
+/* Stage UI-2a: setup precedes results; retain UI-1 tokens and execution controls. */
+.parameter-disclosure {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0;
+  text-align: left; color: var(--primary); font-weight: 600;
+}
+.parameter-disclosure > span:first-child { flex: 1; }
+.parameter-disclosure > .font-mono { color: var(--text-muted); font-size: 12px; }
+.parameter-disclosure svg { flex-shrink: 0; }
+.model-parameter-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px; }
+.model-parameter-fields[hidden] { display: none; }
+.model-parameter-fields > div { min-width: 0; }
+.visualizer-panel .view-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.visualizer-panel .view-controls .view-control-group {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  max-width: 100%; min-height: 44px; padding: 0 8px; border-radius: var(--radius-control);
+}
+.visualizer-panel .view-control-group > * { flex-shrink: 0; margin: 0; }
+.visualizer-panel .view-control-group button, .visualizer-panel .view-control-group label {
+  display: inline-flex; flex-wrap: nowrap; align-items: center; justify-content: center;
+  min-height: 44px; height: 44px; padding: 0 4px; white-space: nowrap; gap: 4px;
+}
+.visualizer-panel .view-control-group label span { white-space: nowrap; }
+.visualizer-panel .view-control-group button { border-radius: var(--radius-pill); }
+.visualizer-panel .plot-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; align-self: flex-start; max-width: 100%; margin-bottom: 16px; border-radius: var(--radius-control); }
+.visualizer-panel > .flex-1 { flex: none; }
+.visualizer-panel .plot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; height: auto; min-height: 0; flex: none; }
+.visualizer-panel .plot-card { width: 100%; aspect-ratio: 16 / 10; flex: none; min-width: 0; min-height: 0; }
+.visualizer-panel .plot-card > div:first-child { flex: none; align-items: flex-start; gap: 8px; }
+.visualizer-panel .plot-card span { font-size: 11px; }
+.visualizer-panel .plot-card .font-semibold { font-size: 12px; }
+.visualizer-panel .plot-canvas { min-height: 0; min-width: 0; }
+.visualizer-panel .plot-canvas svg { display: block; width: 100%; height: 100%; min-height: 0; }
+.visualizer-panel .plot-canvas svg text { font-size: var(--plot-label-size, 28px); }
+.visualizer-panel .plot-canvas svg circle { r: var(--plot-point-radius, 2.5px); }
+@media (max-width: 899px) {
+  .visualizer-panel .plot-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.visualizer-panel .view-controls svg { min-height: 0; width: 14px; height: 14px; flex-shrink: 0; }
+.visualizer-panel .plot-tabs.bg-slate-900 { border-radius: var(--radius-control); }
