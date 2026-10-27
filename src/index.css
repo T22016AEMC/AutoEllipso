@@ -253,3 +253,22 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 
 .visualizer-panel .view-controls svg { min-height: 0; width: 14px; height: 14px; flex-shrink: 0; }
 .visualizer-panel .plot-tabs.bg-slate-900 { border-radius: var(--radius-control); }
+
+/* Stage UI-0: shared navigation and persistent mode panels, using UI-1 tokens. */
+.mode-panel { min-width: 0; }
+.mode-panel[hidden] { display: none; }
+.app-toolbar .toolbar-fitting-controls { width: 100%; gap: 12px; }
+.fitting-mode-tabs { display: inline-flex; flex-wrap: nowrap; gap: 4px; padding: 4px; background: var(--info-bg); border-radius: var(--radius-pill); }
+.app-toolbar .fitting-mode-tabs button { border-radius: var(--radius-pill); color: var(--text-muted); white-space: nowrap; }
+.app-toolbar .fitting-mode-tabs button[aria-selected="true"] { color: var(--primary); background: var(--card); box-shadow: var(--card-shadow); }
+.app-toolbar #btn-fitting-strategy { background: var(--card); color: var(--primary); border-color: var(--input-border); }
+.app-toolbar .toolbar-auxiliary { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-left: auto; }
+.manual-mode-card { padding: var(--card-padding); border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--card); box-shadow: var(--card-shadow); }
+.manual-mode-card > .expert-panel { position: static; height: auto; min-height: 0; max-width: 100%; border-radius: var(--radius-control); }
+.automatic-mode-panel .workspace { min-width: 0; }
+@media (max-width: 899px) {
+  .app-toolbar .fitting-mode-tabs { flex: 1 0 100%; justify-content: center; }
+  .app-toolbar .fitting-mode-tabs button { flex: 1; min-height: 44px; }
+  .app-toolbar .toolbar-auxiliary { margin-left: auto; }
+  .manual-mode-card { padding: 8px; }
+}

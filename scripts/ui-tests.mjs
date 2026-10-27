@@ -17,12 +17,12 @@ async function fill(label,value){await page.getByRole('spinbutton',{name:label,e
 async function check(name,fn){await fn();checks.push({name,passed:true});}
 try {
   await page.goto(process.env.AUTOELLIPSO_URL||url);
-  await page.getByRole('button',{name:'Expert Fitting Mode',exact:true}).click();
+  await page.getByRole('tab',{name:'手動擬合',exact:true}).click();
   await check('Stage 2 editable spline and real live TMM',async()=>{
     await page.getByRole('button',{name:'Stage 2: B-spline / Peak Editor',exact:true}).click();
     await page.getByRole('button',{name:'Initialize n/k B-spline from Current Model',exact:true}).click();
     const before=await val('N3');await fill('N3',before+.2);assert.ok(Math.abs(await val('N3')-before-.2)<1e-8);
-    const text=await page.getByRole('dialog').innerText();assert.match(text,/Raw MSE:/);assert.doesNotMatch(text,/NaN/);
+    const text=await page.getByRole('tabpanel',{name:'手動擬合',exact:true}).innerText();assert.match(text,/Raw MSE:/);assert.doesNotMatch(text,/NaN/);
   });
   await check('Undo and redo exact manual coefficient',async()=>{
     const edited=await val('N3');await page.getByRole('button',{name:'Undo',exact:true}).click();assert.ok(Math.abs(await val('N3')-(edited-.2))<1e-8);

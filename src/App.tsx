@@ -74,7 +74,14 @@ export default function App() {
   const [testsModalOpen, setTestsModalOpen] = useState(false);
   const [strategyModalOpen, setStrategyModalOpen] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
-  const [expertOpen, setExpertOpen] = useState(false);
+  const [mode, setMode] = useState<'automatic' | 'manual'>('automatic');
+  const [manualVisited, setManualVisited] = useState(false);
+  const [manualStage, setManualStage] = useState<number | null>(null);
+  const [manualProgress, setManualProgress] = useState<{start:number;totalStarts:number;iteration:number;currentMse:number;bestMse:number} | null>(null);
+  const changeMode = (next: 'automatic' | 'manual') => {
+    if (next === 'manual') setManualVisited(true);
+    setMode(next);
+  };
   const manualForwardError=compute.error;
 
   // Optimizer running state
@@ -522,6 +529,8 @@ export default function App() {
       <TopToolbar
         project={project}
         isFitting={isFitting || compute.busy}
+        mode={mode}
+        onModeChange={changeMode}
         onNewProject={handleNewProject}
         onOpenProject={handleOpenProjectClick}
         onSaveProject={handleSaveProject}
@@ -529,7 +538,6 @@ export default function App() {
         onExportResults={handleExportFittedCurve}
         onExportNk={handleExportNk}
         onExportParametersJson={handleExportParametersJson}
-        onManualCalculate={handleManualCalculate}
         onAutoFit={handleAutoFit}
         onStopFit={handleStopFit}
         onOpenModelLibrary={() => setModelLibraryOpen(true)}
@@ -539,7 +547,7 @@ export default function App() {
 
       {/* Automated Closed-Loop Workflow Stage Indicator */}
       {(isFitting || workflowProgress) && (
-        <div className="ui1-surface workflow-summary bg-slate-900 border-b border-cyan-900/50 px-4 py-2 flex flex-col xl:flex-row items-center justify-between text-xs font-mono shrink-0 shadow-inner gap-2">
+        <div role="status" aria-label="自動擬合進度" className="ui1-surface workflow-summary bg-slate-900 border-b border-cyan-900/50 px-4 py-2 flex flex-col xl:flex-row items-center justify-between text-xs font-mono shrink-0 shadow-inner gap-2">
           {/* Left: Stage Name & Message */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="flex items-center space-x-1.5 font-bold text-cyan-400 bg-slate-800/80 px-2 py-0.5 rounded border border-cyan-900/60">
@@ -634,19 +642,31 @@ export default function App() {
         </div>
       )}
 
-      <nav className="ui1-surface mobile-workspace-nav" aria-label="Workspace sections"><a href="#spectra-panel">Ψ/Δ 圖表</a><a href="#stack-panel">膜層</a><a href="#parameter-panel">參數</a></nav>
+
       {/* Main Workspace: Left Stack Panel + Center Visualizer + Right Parameter Panel */}
       <div className="ui1-surface privacy-bar flex flex-wrap gap-3 items-center px-4 py-1 bg-slate-900 text-slate-200 text-sm">
-        <button className="px-3 py-1 border border-cyan-600 rounded text-cyan-300" disabled={isFitting} onClick={()=>setExpertOpen(true)}>Expert Fitting Mode</button>
         <span className="text-xs">V{APP_VERSION} · {BUILD_COMMIT.slice(0,8)} · 資料只在本分頁記憶體；未儲存、不上傳。</span>
         <button className="px-2 py-1 border border-slate-600 rounded" disabled={compute.busy} onClick={handleValidationReport}>Download Validation Report</button>
-        <button className="px-2 py-1 border border-slate-600 rounded" onClick={()=>{compute.cancel();importSequence.current++;setExpertOpen(false);setProject(createBlankProject());setSelectedTarget('ambient');location.hash='empty';location.reload();}}>清除本分頁資料</button>
+        <button className="px-2 py-1 border border-slate-600 rounded" onClick={()=>{compute.cancel();importSequence.current++;setMode('automatic');setProject(createBlankProject());setSelectedTarget('ambient');location.hash='empty';location.reload();}}>清除本分頁資料</button>
         {compute.forwardPending && <span role="status" className="text-amber-300">完整 TMM 重算中；目前 Ψ/Δ 曲線為上一輪。</span>}
         {manualForwardError && <span role="alert" className="text-red-400">{manualForwardError}</span>}
       </div>
-      {expertOpen && <React.Suspense fallback={<p className="text-cyan-300">Loading Expert Fitting…</p>}><ExpertFittingPanel project={project} onChange={setProject} onClose={()=>setExpertOpen(false)} disabled={isFitting}
-        forwardPending={compute.forwardPending} forwardError={compute.error} onRecalculate={()=>compute.refresh(0)} onCancel={compute.cancel}
-        onRunStage={async(stage,index,onProgress)=>{await compute.run('expert',stage,index,p=>{if('start' in p)onProgress(p);});}}/></React.Suspense>}
+      {manualStage !== null && <div className="ui1-surface workflow-summary" role="status" aria-label="手動擬合進度">
+        手動擬合 · Stage {manualStage} · {manualProgress
+          ? `Start ${manualProgress.start}/${manualProgress.totalStarts} · Iteration ${manualProgress.iteration} · Current MSE (Woollam) ${manualProgress.currentMse.toPrecision(7)} · Best MSE (Woollam) ${manualProgress.bestMse.toPrecision(7)}`
+          : '準備中…'}
+      </div>}
+      <section id="manual-mode-panel" className="mode-panel manual-mode-card" role="tabpanel" aria-labelledby="manual-mode-tab" hidden={mode !== 'manual'}>
+        {manualVisited && <React.Suspense fallback={<p>Loading Expert Fitting…</p>}><ExpertFittingPanel project={project} onChange={setProject} disabled={isFitting}
+          forwardPending={compute.forwardPending} forwardError={compute.error} onRecalculate={()=>compute.refresh(0)} onCancel={compute.cancel}
+          onRunStage={async(stage,index,onProgress)=>{
+            setManualStage(stage);
+            try {await compute.run('expert',stage,index,p=>{if('start' in p){onProgress(p);setManualProgress(p);}});}
+            finally {setManualStage(null);setManualProgress(null);}
+          }}/></React.Suspense>}
+      </section>
+      <section id="automatic-mode-panel" className="mode-panel" role="tabpanel" aria-labelledby="automatic-mode-tab" hidden={mode !== 'automatic'}>
+      <nav className="ui1-surface mobile-workspace-nav" aria-label="Workspace sections"><a href="#spectra-panel">Ψ/Δ 圖表</a><a href="#stack-panel">膜層</a><a href="#parameter-panel">參數</a></nav>
       <div className="workspace flex-1 flex overflow-hidden min-h-0">
         <SampleStackPanel
           sampleStructure={project.fittingConfig.sampleStructure ?? 'single_layer'}
@@ -690,6 +710,8 @@ export default function App() {
           perAoiMetrics={residualMetrics.perAoi}
         />
       </div>
+
+      </section>
 
       {/* Bottom Status & Optimizer Metrics Bar */}
       <FittingStatusBottomBar

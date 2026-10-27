@@ -14,7 +14,6 @@ import {
   FilePlus,
   Upload,
   Download,
-  Play,
   Zap,
   Square,
   BookOpen,
@@ -29,6 +28,8 @@ import { EllipsometryProject } from '../types/ellipsometry';
 interface TopToolbarProps {
   project: EllipsometryProject;
   isFitting: boolean;
+  mode: 'automatic' | 'manual';
+  onModeChange: (mode: 'automatic' | 'manual') => void;
   onNewProject: (template: 'sio2_multi' | 'sio2' | 'tio2' | 'blank') => void;
   onOpenProject: () => void;
   onSaveProject: () => void;
@@ -36,7 +37,6 @@ interface TopToolbarProps {
   onExportResults: () => void;
   onExportNk: () => void;
   onExportParametersJson: () => void;
-  onManualCalculate: () => void;
   onAutoFit: () => void;
   onStopFit: () => void;
   onOpenModelLibrary: () => void;
@@ -47,6 +47,8 @@ interface TopToolbarProps {
 export const TopToolbar: React.FC<TopToolbarProps> = ({
   project,
   isFitting,
+  mode,
+  onModeChange,
   onNewProject,
   onOpenProject,
   onSaveProject,
@@ -54,7 +56,6 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
   onExportResults,
   onExportNk,
   onExportParametersJson,
-  onManualCalculate,
   onAutoFit,
   onStopFit,
   onOpenModelLibrary,
@@ -258,19 +259,23 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
         </div>
       </div>
 
-      {/* Center/Right: Calculation Triggers */}
-      <div className="flex items-center space-x-2">
-        {/* Manual Calculate Button */}
-        <button
-          id="btn-manual-calculate"
-          onClick={onManualCalculate}
-          disabled={isFitting}
-          className="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-100 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 disabled:opacity-50 flex items-center space-x-1.5 shadow-sm transition-all"
-          title="以當前參數手動重新計算理論光譜 (TMM 解算)"
-        >
-          <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
-          <span>手動計算</span>
-        </button>
+      {/* Shared navigation stays available while either worker job is running. */}
+      <div className="toolbar-fitting-controls flex items-center space-x-2">
+        <div className="fitting-mode-tabs" role="tablist" aria-label="擬合模式"
+          onKeyDown={event => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const next = mode === 'automatic' ? 'manual' : 'automatic';
+            onModeChange(next);
+            document.getElementById(`${next}-mode-tab`)?.focus();
+          }}>
+          <button type="button" id="automatic-mode-tab" role="tab" aria-selected={mode === 'automatic'}
+            aria-controls="automatic-mode-panel" tabIndex={mode === 'automatic' ? 0 : -1}
+            onClick={() => onModeChange('automatic')}>自動擬合</button>
+          <button type="button" id="manual-mode-tab" role="tab" aria-selected={mode === 'manual'}
+            aria-controls="manual-mode-panel" tabIndex={mode === 'manual' ? 0 : -1}
+            onClick={() => onModeChange('manual')}>手動擬合</button>
+        </div>
 
         {/* Strategy & Options Button */}
         <button
@@ -296,7 +301,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
         </button>
 
         {/* Auto Fit / Stop Buttons */}
-        {!isFitting ? (
+        {mode === 'automatic' && (!isFitting ? (
           <button
             id="btn-auto-fit"
             onClick={onAutoFit}
@@ -308,7 +313,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
             title="啟動 AutoEllipso 嚴格擬合流程 (Cauchy → B-spline → Joint Physical Optimizer)"
           >
             <Zap className="w-3.5 h-3.5 fill-current" />
-            <span>{isAggressive ? '啟動 AutoEllipso 強制擬合' : '啟動 AutoEllipso 擬合'}</span>
+            <span>啟動 AutoEllipso 擬合</span>
           </button>
         ) : (
           <button
@@ -320,10 +325,9 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
             <Square className="w-3.5 h-3.5 fill-current" />
             <span>中止擬合</span>
           </button>
-        )}
+        ))}
 
-        <div className="h-6 w-px bg-slate-800 mx-1 hidden sm:block" />
-
+        <div className="toolbar-auxiliary">
         {/* Auxiliary Modals */}
         <button
           id="btn-model-library"
@@ -333,7 +337,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
           title="瀏覽材料光學常數資料庫 (Si, SiO2, TiO2, Au...)"
         >
           <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-          <span className="hidden md:inline">光學資料庫</span>
+          <span>光學資料庫</span>
         </button>
 
         <button
@@ -345,6 +349,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
         >
           <span>單元測試</span>
         </button>
+        </div>
       </div>
     </header>
   );

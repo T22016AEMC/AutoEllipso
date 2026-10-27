@@ -58,7 +58,7 @@ try{
  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#btn-save-project').click()]);
  const saved=JSON.parse(fs.readFileSync(await download.path(),'utf8'));assert.equal(saved.experimentData.points.length,5);assert.equal(saved.experimentData.points[0].psiExp,30.1234567);
  checks.push({name:'CSV mapping/import and project JSON precision',passed:true});
- await page.getByRole('button',{name:'Expert Fitting Mode',exact:true}).click();await page.getByRole('button',{name:'Close Expert',exact:true}).waitFor();await page.screenshot({path:`${out}/expert-smoke.png`});await page.getByRole('button',{name:'Close Expert',exact:true}).click();checks.push({name:'Deferred Expert opens and closes',passed:true});
+ await page.getByRole('tab',{name:'手動擬合',exact:true}).click();await page.getByRole('region',{name:'Expert fitting controls',exact:true}).waitFor();await page.screenshot({path:`${out}/expert-smoke.png`});await page.getByRole('tab',{name:'自動擬合',exact:true}).click();checks.push({name:'Deferred Expert opens and closes',passed:true});
  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:checks.length,url}));
 }finally{fs.writeFileSync(`${out}/ui-results.json`,JSON.stringify({url,checks,errors},null,2));await browser.close();await new Promise(resolve=>server.httpServer.close(resolve));}
 

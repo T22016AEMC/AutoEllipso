@@ -650,7 +650,7 @@ export const LayerParamPanel: React.FC<LayerParamPanelProps> = ({
             className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 rounded font-medium text-xs shadow flex items-center justify-center space-x-1.5 transition-colors"
           >
             <Check className="w-3.5 h-3.5 text-emerald-400" />
-            <span>套用變更並手動計算</span>
+            <span>套用變更並重算 TMM</span>
           </button>
         </div>
       </div>

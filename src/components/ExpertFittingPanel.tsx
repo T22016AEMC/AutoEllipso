@@ -4,13 +4,12 @@ import {OpticalModelComparisonPanel} from './OpticalModelComparisonPanel';
 import React, { useRef, useState } from 'react';
 import { EllipsometryProject, Layer, ParameterValue } from '../types/ellipsometry';
 import { modelRegistry } from '../modelRegistry/registry';
-import { APP_VERSION,BUILD_COMMIT } from '../version';
 import { peakTypes } from '../models/expertMixed';
 import { computeMultiAoiResidualMetrics } from '../fitting/residual';
 import { addPeak, changeSplineGrid, clone, deletePeak, ExpertProgress, freshForward, initializeMixed,
   initializeSpline, runExpertStage, session, snapshot, splineGrid, stageNames, values, validateExpert } from '../fitting/expertWorkflow';
 
-interface Props {project:EllipsometryProject;onChange:(p:EllipsometryProject)=>void;onClose:()=>void;disabled:boolean;forwardPending:boolean;forwardError:string;onRecalculate:()=>void;onCancel:()=>void;onRunStage:(stage:number,index:number,onProgress:(p:ExpertProgress)=>void)=>Promise<void>}
+interface Props {project:EllipsometryProject;onChange:(p:EllipsometryProject)=>void;disabled:boolean;forwardPending:boolean;forwardError:string;onRecalculate:()=>void;onCancel:()=>void;onRunStage:(stage:number,index:number,onProgress:(p:ExpertProgress)=>void)=>Promise<void>}
 const btn='px-2 py-1 rounded border border-slate-600 bg-slate-800 hover:bg-slate-700 disabled:opacity-40';
 const input='w-24 p-1 rounded bg-slate-900 border border-slate-600';
 function capture(svg:SVGSVGElement,id:number){try{svg.setPointerCapture(id);}catch{/* A cancelled or synthetic pointer may no longer be active. */}}
@@ -32,7 +31,7 @@ function Curves({series,title}:{title:string;series:{name:string;color:string;po
         <polyline key={s.name} points={s.points.map(pos).join(' ')} fill="none" stroke={s.color} strokeWidth="1.8"/>)}
     </svg></div>;
 }
-export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPending,forwardError,onRecalculate,onCancel,onRunStage}:Props) {
+export function ExpertFittingPanel({project,onChange,disabled,forwardPending,forwardError,onRecalculate,onCancel,onRunStage}:Props) {
   const [index,setIndex]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(''),[progress,setProgress]=useState<ExpertProgress|null>(null);
   const [undo,setUndo]=useState<EllipsometryProject[]>([]),[redo,setRedo]=useState<EllipsometryProject[]>([]),[candidateName,setCandidateName]=useState('Manual candidate');
   const [kind,setKind]=useState(0),[viewAoi,setViewAoi]=useState(project.experimentData?.points[0]?.aoi??70);
@@ -92,10 +91,9 @@ export function ExpertFittingPanel({project,onChange,onClose,disabled,forwardPen
   }
   function end(){if(drag.current){remember(drag.current.initial);drag.current=null;onRecalculate();}}
   const aois=Array.from(new Set(allPoints.map(p=>p.aoi))).sort((a,b)=>a-b);
-  return <div className="expert-panel fixed inset-0 z-50 bg-slate-950/95 text-slate-100 overflow-auto p-4" role="dialog" aria-label="Expert Fitting Mode">
+  return <div className="expert-panel bg-slate-950/95 text-slate-100 overflow-auto p-4" role="region" aria-label="Expert fitting controls">
     <div className="max-w-[1500px] mx-auto space-y-3 text-sm">
-      <div className="flex flex-wrap justify-between gap-2"><h2 className="text-xl font-bold">AutoEllipso V{APP_VERSION} <small className="text-slate-400 font-mono">{BUILD_COMMIT.slice(0,7)}</small> · Expert Fitting</h2>
-        <button className={btn} disabled={busy} onClick={onClose}>Close Expert</button></div>
+      <h2 className="text-xl font-bold">Expert Fitting</h2>
       <p className="text-slate-400">Each stage runs on the current saved parameters. Stage 1 explicitly initializes Cauchy; Stage 3 projects a numerical spline to a physical seed. Mixed peaks retain their types, bounds and locks.</p>
       <div className="flex flex-wrap gap-2">{stageNames.map((name,i)=><button key={name} className={btn+(s.stage===i?' border-cyan-400 text-cyan-300':'')} disabled={locked} onClick={()=>onChange({...project,expert:{...s,stage:i}})}>Stage {i}: {name}</button>)}</div>
       <div className="flex flex-wrap items-center gap-2">

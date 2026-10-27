@@ -45,8 +45,8 @@ for(const engine of engines) {
   const failedRequests=[];page.on('requestfailed',r=>failedRequests.push({url:r.url(),failure:r.failure(),type:r.resourceType()}));
   await check(engine,'Production HTTPS, version and deep-link refresh',async()=>{
     const response=await page.goto(url+'/validation/direct-link');assert.equal(response.status(),200);assert.ok(response.headers()['content-security-policy'].includes("connect-src 'none'"));
-    await page.getByRole('button',{name:'Expert Fitting Mode',exact:true}).waitFor();await waitForward(page);assert.ok((await page.locator('h1').innerText()).includes('2.1.0'));
-    await page.reload();await page.getByRole('button',{name:'Expert Fitting Mode',exact:true}).waitFor();await waitForward(page);assert.equal(new URL(page.url()).protocol,tls?'https:':'http:');
+    await page.getByRole('tab',{name:'手動擬合',exact:true}).waitFor();await waitForward(page);assert.ok((await page.locator('h1').innerText()).includes('2.1.0'));
+    await page.reload();await page.getByRole('tab',{name:'手動擬合',exact:true}).waitFor();await waitForward(page);assert.equal(new URL(page.url()).protocol,tls?'https:':'http:');
   });
   await check(engine,'Real module-worker Forward equals core TMM point-for-point',async()=>{
     const out=await callWorker(page,'forward',fixtures.spline);assert.equal(out.type,'result');
@@ -76,12 +76,12 @@ for(const engine of engines) {
   await check(engine,'UI Cancel stays responsive and manual edits remain current',async()=>{
     await page.locator('#btn-auto-fit').click();const started=Date.now();await page.locator('#btn-stop-fit').click();
     await page.locator('#btn-auto-fit').waitFor({state:'visible'});await page.waitForFunction(()=>!document.getElementById('btn-auto-fit').disabled,null,{timeout:5000});assert.ok(Date.now()-started<5000);
-    await page.getByRole('button',{name:'Expert Fitting Mode',exact:true}).click();await page.getByRole('button',{name:'Stage 2: B-spline / Peak Editor',exact:true}).click();await page.getByRole('button',{name:'Initialize n/k B-spline from Current Model',exact:true}).click();
+    await page.getByRole('tab',{name:'手動擬合',exact:true}).click();await page.getByRole('button',{name:'Stage 2: B-spline / Peak Editor',exact:true}).click();await page.getByRole('button',{name:'Initialize n/k B-spline from Current Model',exact:true}).click();
     await waitForward(page);const n=await value(page,'N3');await fill(page,'N3',n+.11);await waitForward(page);assert.ok(Math.abs(await value(page,'N3')-n-.11)<1e-12);
-    await page.getByRole('button',{name:'Close Expert',exact:true}).click();
+    await page.getByRole('tab',{name:'自動擬合',exact:true}).click();
   });
   await check(engine,'Duplicate start and new input invalidate the obsolete UI job',async()=>{
-    const close=page.getByRole('button',{name:'Close Expert',exact:true});if(await close.isVisible())await close.click();
+    const close=page.getByRole('tab',{name:'自動擬合',exact:true});if(await close.isVisible())await close.click();
     const replacement=structuredClone(fixtures.project);replacement.layers[0].thickness=77.777;replacement.layers[0].thicknessInitial=77.777;
     await page.locator('#btn-auto-fit').evaluate(button=>{button.click();button.click();});
     await page.locator('input[type="file"][accept=".json"]').setInputFiles({name:'replacement.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(replacement))});
@@ -89,7 +89,7 @@ for(const engine of engines) {
     const saved=await saveProject(page);assert.equal(saved.layers[0].thickness,77.777);assert.equal(saved.layers[0].modelId,'cauchy');
   });
   await check(engine,'CSV browser import and Validation Report / CSV / project download',async()=>{
-    const close=page.getByRole('button',{name:'Close Expert',exact:true});if(await close.isVisible())await close.click();
+    const close=page.getByRole('tab',{name:'自動擬合',exact:true});if(await close.isVisible())await close.click();
     await page.locator('#btn-import-csv').click();await page.locator('input[type="file"]').last().setInputFiles({name:'measurement-private.csv',mimeType:'text/csv',buffer:Buffer.from('Wavelength,Psi,Delta\n450,30.1234567,155.1234567\n500,31.1234567,158.1234567\n550,32.1234567,160.1234567\n600,33.1234567,165.1234567\n650,34.1234567,170.1234567')});
     await page.getByRole('button',{name:/確認並匯入光譜數據/}).click();await waitForward(page);
     const [d]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download Validation Report',exact:true}).click()]);const report=JSON.parse(readQaFileSync(await d.path(),'utf8'));
@@ -112,11 +112,11 @@ for(const engine of engines) {
     await check(engine,`Responsive ${device.name}: all scientific controls and touch-style pointer edit`,async()=>{
       const mobile=await browser.newContext({viewport:{width:device.width,height:device.height},hasTouch:true,ignoreHTTPSErrors:true}),p=await mobile.newPage();
       const mobileErrors=[];p.on('pageerror',e=>mobileErrors.push(String(e)));await p.goto(url);await waitForward(p);
-      assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));await p.getByRole('button',{name:'Expert Fitting Mode',exact:true}).click();
+      assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));await p.getByRole('tab',{name:'手動擬合',exact:true}).click();
       await p.getByRole('button',{name:'Stage 2: B-spline / Peak Editor',exact:true}).click();await p.getByRole('button',{name:'Initialize n/k B-spline from Current Model',exact:true}).click();await waitForward(p);
       const control=p.getByTestId('control-N3');
       try {await control.waitFor({state:'attached',timeout:5000});}
-      catch(e){await p.screenshot({path:`.qa/test-results/${engine}-${device.name}-failure.png`,fullPage:false});console.log('MOBILE STATE '+engine+' '+JSON.stringify({text:(await p.getByRole('dialog').innerText()).slice(0,2800),inputs:await p.getByRole('spinbutton').evaluateAll(xs=>xs.map(x=>({label:x.getAttribute('aria-label'),value:x.value})).slice(0,12))}));throw e;}
+      catch(e){await p.screenshot({path:`.qa/test-results/${engine}-${device.name}-failure.png`,fullPage:false});console.log('MOBILE STATE '+engine+' '+JSON.stringify({text:(await p.getByRole('tabpanel',{name:'手動擬合',exact:true}).innerText()).slice(0,2800),inputs:await p.getByRole('spinbutton').evaluateAll(xs=>xs.map(x=>({label:x.getAttribute('aria-label'),value:x.value})).slice(0,12))}));throw e;}
       await control.scrollIntoViewIfNeeded();const before=await value(p,'N3');
       if(engine==='edge') {
         const box=await control.boundingBox(),cdp=await mobile.newCDPSession(p),x=box.x+box.width/2,y=box.y+box.height/2;
