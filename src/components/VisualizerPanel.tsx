@@ -1,4 +1,6 @@
 import {OpticalConstantsPanel} from './OpticalConstantsPanel';
+import {clampDisplayRange, displayAutoAxis, formatDisplayTick} from './resultPlotView';
+import type {AxisRange, AutoAxis, PlotDisplay, PlotId} from './resultPlotView';
 import type {EllipsometryProject} from '../types/ellipsometry';
 /**
  * Visualizer Panel (Center Panel)
@@ -10,23 +12,15 @@ import type {EllipsometryProject} from '../types/ellipsometry';
  *
  * Supports interactive crosshair readout, angle filtering, series toggling, and zoom controls.
  */
-import React, { useState, useRef, useMemo, useEffect } from 'react';
-import {
-  Maximize2,
-  Minimize2,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Eye,
-  EyeOff,
-  Filter,
-} from 'lucide-react';
+import React, { useState, useRef, useMemo, useEffect, useCallback, useId } from 'react';
+import { Filter } from 'lucide-react';
 import {
   EllipsometryDataPoint,
   VisualizationSettings,
 } from '../types/ellipsometry';
 
 interface VisualizerPanelProps {
+  viewRevision: number;
   opticalProject: EllipsometryProject;
   opticalBusy: boolean;
   points: EllipsometryDataPoint[];
@@ -40,6 +34,7 @@ interface VisualizerPanelProps {
 }
 
 export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
+  viewRevision,
   opticalProject,
   opticalBusy,
   points,
@@ -53,6 +48,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 }) => {
   const panelRef = useRef<HTMLElement>(null);
   const [opticalTab, setOpticalTab] = useState(false);
+  const clipPrefix = useId();
   // Keep labels and measured points readable in CSS pixels without touching plot data/scales.
   useEffect(() => {
     const charts = panelRef.current?.querySelectorAll<SVGSVGElement>('.plot-canvas svg');
@@ -79,38 +75,81 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
     deltaRes?: number;
   } | null>(null);
 
-  const [zoomScale, setZoomScale] = useState<number>(1.0);
-
   // Filter points based on selected angle
   const filteredPoints = useMemo(() => {
     if (settings.selectedAoi === 'all') return points;
     return points.filter((p) => p.aoi === settings.selectedAoi);
   }, [points, settings.selectedAoi]);
 
-  // Compute extents
+  // Full bounds ignore AOI and fitting selections; all filtering below is display-only.
   const { wlMin:baseMin, wlMax:baseMax, distinctAngles } = useMemo(() => {
-    if (filteredPoints.length === 0) {
+    if (points.length === 0) {
       return { wlMin: 300, wlMax: 800, distinctAngles: [] };
     }
     let minW = Infinity;
     let maxW = -Infinity;
     const aSet = new Set<number>();
 
-    filteredPoints.forEach((p) => {
+    points.forEach((p) => {
+      if(!Number.isFinite(p.wavelength))return;
       if (p.wavelength < minW) minW = p.wavelength;
       if (p.wavelength > maxW) maxW = p.wavelength;
-      aSet.add(p.aoi);
     });
+    filteredPoints.forEach(p=>aSet.add(p.aoi));
 
     return {
-      wlMin: Math.max(100, minW),
-      wlMax: Math.max(minW + 10, maxW),
+      wlMin: Number.isFinite(minW)?minW:300,
+      wlMax: Number.isFinite(maxW)?maxW:800,
       distinctAngles: Array.from(aSet).sort((a, b) => a - b),
     };
-  }, [filteredPoints]);
+  }, [points,filteredPoints]);
 
-  const viewSpan=(baseMax-baseMin)/zoomScale;
-  const wlMin=(baseMin+baseMax-viewSpan)/2,wlMax=wlMin+viewSpan;
+  const dataKey=JSON.stringify([viewRevision,opticalProject.id,opticalProject.experimentData?.filename,opticalProject.experimentData?.importedAt]);
+  const [selection,setSelection]=useState<{key:string;range:AxisRange}|null>(null);
+  const xRange=useMemo<AxisRange>(()=>clampDisplayRange(selection?.key===dataKey?selection.range:[baseMin,baseMax],[baseMin,baseMax]),[selection,dataKey,baseMin,baseMax]);
+  const [wlMin,wlMax]=xRange;
+  const [start,setStart]=useState(String(baseMin)),[end,setEnd]=useState(String(baseMax)),[rangeError,setRangeError]=useState('');
+  const [manualY,setManualY]=useState<Partial<Record<PlotId,AxisRange>>>({});
+  const [activePlot,setActivePlot]=useState<PlotId>('psi');
+  const [kLog,setKLog]=useState(false);
+  const [opticalAxes,setOpticalAxes]=useState<Partial<Record<PlotId,AutoAxis>>>({});
+  useEffect(()=>{setSelection(null);setManualY({});setRangeError('');setHoverData(null);},[dataKey]);
+  useEffect(()=>{setSelection(old=>{
+    if(!old||old.key!==dataKey)return old;
+    const bounded=clampDisplayRange(old.range,[baseMin,baseMax]);
+    return bounded[0]===old.range[0]&&bounded[1]===old.range[1]?old:{...old,range:bounded};
+  });},[baseMin,baseMax,dataKey]);
+  useEffect(()=>{setStart(String(wlMin));setEnd(String(wlMax));setHoverData(null);},[wlMin,wlMax,dataKey]);
+  const displayPoints=useMemo(()=>filteredPoints.filter(p=>p.wavelength>=wlMin&&p.wavelength<=wlMax),[filteredPoints,wlMin,wlMax]);
+  const spectrumAxes=useMemo(()=>{
+    const axes:Partial<Record<PlotId,AutoAxis>>={};
+    for(const id of ['psi','delta','residual_psi','residual_delta'] as const){
+      const values=displayPoints.flatMap(p=>id==='psi'?[...(settings.showExperimental?[p.psiExp]:[]),...(settings.showCalculated?[p.psiCalc]:[])]:id==='delta'?[...(settings.showExperimental?[p.deltaExp]:[]),...(settings.showCalculated?[p.deltaCalc]:[])]:[id==='residual_psi'?p.psiResidual:p.deltaResidual]).filter((v):v is number=>v!==undefined);
+      axes[id]=displayAutoAxis(values,id==='psi'?[0,90]:id==='delta'?[0,360]:[-1,1]);
+    }
+    return axes;
+  },[displayPoints,settings.showExperimental,settings.showCalculated]);
+  const onAutoRange=useCallback((id:PlotId,axis:AutoAxis)=>setOpticalAxes(old=>old[id]?.range[0]===axis.range[0]&&old[id]?.range[1]===axis.range[1]&&old[id]?.minimumSpan===axis.minimumSpan?old:{...old,[id]:axis}),[]);
+  const visiblePlots:PlotId[]=opticalTab?['n',kLog?'k_log':'k']:settings.activeTab==='psi'?['psi',...(settings.showResiduals?['residual_psi' as const]:[])]:settings.activeTab==='delta'?['delta',...(settings.showResiduals?['residual_delta' as const]:[])]:settings.activeTab==='residuals'?['residual_psi','residual_delta']:['psi','delta',...(settings.showResiduals?['residual_psi' as const,'residual_delta' as const]:[])];
+  const currentPlot=visiblePlots.includes(activePlot)?activePlot:visiblePlots[0];
+  const activeAxis=({...spectrumAxes,...opticalAxes})[currentPlot];
+  const view:PlotDisplay={xRange,activePlot:currentPlot,manualY,onActivate:setActivePlot,onAutoRange,kLog,onKLogChange:setKLog};
+  function applyRange(){
+    const a=Number(start),b=Number(end);
+    if(!start.trim()||!end.trim()||!Number.isFinite(a)||!Number.isFinite(b)){setRangeError('起始與結束波長必須為數字。');return;}
+    if(a>=b){setRangeError('起始 λ 必須小於結束 λ。');return;}
+    const bounded:AxisRange=[Math.max(baseMin,Math.min(baseMax,a)),Math.max(baseMin,Math.min(baseMax,b))];
+    setStart(String(bounded[0]));setEnd(String(bounded[1]));
+    const count=points.filter(p=>p.wavelength>=bounded[0]&&p.wavelength<=bounded[1]).length;
+    if(bounded[0]>=bounded[1]||count<5){setRangeError('範圍內至少需要 5 個資料點；已保留上一個有效範圍。');return;}
+    setSelection({key:dataKey,range:bounded});setRangeError('');setHoverData(null);
+  }
+  function zoomY(factor:number){
+    if(!activeAxis)return;
+    const range=manualY[currentPlot]??activeAxis.range,center=(range[0]+range[1])/2;
+    const span=Math.max(activeAxis.minimumSpan,Math.min((activeAxis.range[1]-activeAxis.range[0])*20,(range[1]-range[0])*factor));
+    setManualY(old=>({...old,[currentPlot]:[center-span/2,center+span/2]}));
+  }
 
   // Shared UI tokens; dash patterns distinguish incidence angles without relying on color.
   const DYNAMIC_PALETTE = Array.from({ length: 8 }, () => ({
@@ -136,22 +175,21 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
   // Scale functions
   const scaleX = (wl: number) => {
-    return padding.left + ((wl - wlMin) / (wlMax - wlMin)) * innerWidth;
+    return padding.left + ((wl - wlMin) / (wlMax - wlMin||1)) * innerWidth;
   };
 
   const scaleY = (val: number, yMin: number, yMax: number) => {
-    const clamped = Math.max(yMin, Math.min(yMax, val));
-    return padding.top + innerHeight - ((clamped - yMin) / (yMax - yMin)) * innerHeight;
+    return padding.top + innerHeight - ((val - yMin) / (yMax - yMin)) * innerHeight;
   };
 
   // Render Single Scientific Plot (Psi, Delta, or Residual)
   const renderPlot = (
     title: string,
     yLabel: string,
-    yMin: number,
-    yMax: number,
     dataKind: 'psi' | 'delta' | 'residual_psi' | 'residual_delta'
   ) => {
+    const [yMin,yMax]=manualY[dataKind]??spectrumAxes[dataKind]!.range;
+    const clipId=`${clipPrefix}-${dataKind}`;
     // Generate horizontal gridlines
     const yTicksCount = 5;
     const yStep = (yMax - yMin) / yTicksCount;
@@ -164,8 +202,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
     // Group points by AOI for clean line tracing
     const pointsByAngle: Record<number, EllipsometryDataPoint[]> = {};
-    filteredPoints.forEach((p) => {
-      if(p.wavelength<wlMin||p.wavelength>wlMax)return;
+    displayPoints.forEach((p) => {
       if (!pointsByAngle[p.aoi]) pointsByAngle[p.aoi] = [];
       pointsByAngle[p.aoi].push(p);
     });
@@ -185,7 +222,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
       let closest: EllipsometryDataPoint | null = null;
       let minDistance = Infinity;
 
-      filteredPoints.forEach((p) => {
+      displayPoints.forEach((p) => {
         const dist = Math.abs(p.wavelength - targetWl);
         if (dist < minDistance) {
           minDistance = dist;
@@ -209,7 +246,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
     };
 
     return (
-      <div className="plot-card bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col flex-1 shadow-sm">
+      <div role="group" aria-label={title} tabIndex={0} data-plot-id={dataKind} data-active={currentPlot===dataKind} data-y-mode={manualY[dataKind]?'manual':'auto'} data-y-min={yMin} data-y-max={yMax} className="plot-card bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col flex-1 shadow-sm" onPointerDownCapture={()=>setActivePlot(dataKind)} onFocusCapture={()=>setActivePlot(dataKind)}>
         {/* Plot Title & Sub-legend */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
@@ -218,6 +255,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
           </div>
 
           <div className="flex items-center space-x-3 text-[11px]">
+            <span className="plot-y-mode">{manualY[dataKind]?'Y 手動':'Y 自動'}</span>
             {distinctAngles.map((aoi) => {
               const c = getColorForAngle(aoi);
               return (
@@ -241,6 +279,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             onPointerMove={handleMouseMove}
             onPointerLeave={() => setHoverData(null)}
           >
+            <defs><clipPath id={clipId}><rect x={padding.left} y={padding.top} width={innerWidth} height={innerHeight}/></clipPath></defs>
             {/* Background Grid */}
             <rect
               x={padding.left}
@@ -285,7 +324,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                     fontSize="10"
                     fontFamily="monospace"
                   >
-                    {val.toFixed(val % 1 === 0 ? 0 : 1)}
+                    {formatDisplayTick(val,yStep)}
                   </text>
                 </g>
               );
@@ -343,6 +382,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             </text>
 
             {/* Data Series Traces */}
+            <g clipPath={`url(#${clipId})`}>
             {Object.entries(pointsByAngle).map(([aoiStr, pts]) => {
               const aoi = parseFloat(aoiStr);
               const color = getColorForAngle(aoi);
@@ -522,6 +562,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                 strokeDasharray="2 2"
               />
             )}
+            </g>
           </svg>
         </div>
       </div>
@@ -717,11 +758,18 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
 
       <div className="plot-zoom flex flex-wrap items-center gap-2 text-xs mb-2">
-        <button aria-label="Zoom wavelength in" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.min(8,z*1.5))}>Zoom in</button>
-        <button aria-label="Zoom wavelength out" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(z=>Math.max(1,z/1.5))}>Zoom out</button>
-        <button aria-label="Reset wavelength zoom" className="px-2 py-1 border border-slate-700 rounded" onClick={()=>setZoomScale(1)}>Reset zoom</button>
-        <span>{wlMin.toFixed(1)}–{wlMax.toFixed(1)} nm · {zoomScale.toFixed(2)}× display only</span>
+        <span>波長範圍 (nm)</span>
+        <label className="range-input"><span className="range-field-label">起始 λ</span><input type="number" step="any" aria-label="起始 λ" value={start} onChange={e=>setStart(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();applyRange();}}} aria-invalid={!!rangeError} aria-describedby={rangeError?'plot-range-error':undefined}/><span className="range-unit">nm</span></label>
+        <label className="range-input"><span className="range-field-label">結束 λ</span><input type="number" step="any" aria-label="結束 λ" value={end} onChange={e=>setEnd(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();applyRange();}}} aria-invalid={!!rangeError} aria-describedby={rangeError?'plot-range-error':undefined}/><span className="range-unit">nm</span></label>
+        <button onClick={applyRange}>套用</button>
+        <button onClick={()=>{setSelection(null);setStart(String(baseMin));setEnd(String(baseMax));setRangeError('');setHoverData(null);}}>全範圍</button>
+        <span className="y-controls-label">Y 軸</span>
+        <button disabled={!activeAxis} onClick={()=>zoomY(1/1.5)}>放大 Y</button>
+        <button disabled={!activeAxis} onClick={()=>zoomY(1.5)}>縮小 Y</button>
+        <button onClick={()=>setManualY(old=>{const next={...old};delete next[currentPlot];return next;})}>Y 自動</button>
+        <span className="plot-range-status">顯示 {wlMin}–{wlMax} nm・僅影響顯示</span>
       </div>
+      {rangeError&&<p id="plot-range-error" role="alert" className="plot-range-error">{rangeError}</p>}
 
       {/* Crosshair Readout Bar */}
       {!opticalTab && hoverData && (
@@ -768,13 +816,13 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         {settings.activeTab === 'both' && (
           <>
             <div className="plot-grid flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
-              {renderPlot('Ψ (Psi) 光譜響應曲線', 'Ψ 振幅角 (度 °)', 0, 90, 'psi')}
-              {renderPlot('Δ (Delta) 相位差光譜', 'Δ 相位角 (度 °)', 0, 360, 'delta')}
+              {renderPlot('Ψ (Psi) 光譜響應曲線', 'Ψ 振幅角 (度 °)', 'psi')}
+              {renderPlot('Δ (Delta) 相位差光譜', 'Δ 相位角 (度 °)', 'delta')}
             </div>
             {settings.showResiduals && (
               <div className="plot-grid h-44 grid grid-cols-1 md:grid-cols-2 gap-3 shrink-0">
-                {renderPlot('Ψ 擬合殘差 (Calc - Exp)', '殘差 ΔΨ (°)', -3, 3, 'residual_psi')}
-                {renderPlot('Δ 擬合殘差 (Calc - Exp)', '殘差 ΔΔ (°)', -10, 10, 'residual_delta')}
+                {renderPlot('Ψ 擬合殘差 (Calc - Exp)', '殘差 ΔΨ (°)', 'residual_psi')}
+                {renderPlot('Δ 擬合殘差 (Calc - Exp)', '殘差 ΔΔ (°)', 'residual_delta')}
               </div>
             )}
           </>
@@ -782,10 +830,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
         {settings.activeTab === 'psi' && (
           <div className="plot-grid flex-1 flex flex-col gap-3 min-h-0">
-            {renderPlot('Ψ (Psi) 光譜響應曲線', 'Ψ 振幅角 (度 °)', 0, 90, 'psi')}
+            {renderPlot('Ψ (Psi) 光譜響應曲線', 'Ψ 振幅角 (度 °)', 'psi')}
             {settings.showResiduals && (
               <div className="plot-grid h-44 shrink-0">
-                {renderPlot('Ψ 擬合殘差 (Calc - Exp)', '殘差 ΔΨ (°)', -3, 3, 'residual_psi')}
+                {renderPlot('Ψ 擬合殘差 (Calc - Exp)', '殘差 ΔΨ (°)', 'residual_psi')}
               </div>
             )}
           </div>
@@ -793,10 +841,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
         {settings.activeTab === 'delta' && (
           <div className="plot-grid flex-1 flex flex-col gap-3 min-h-0">
-            {renderPlot('Δ (Delta) 相位差光譜', 'Δ 相位角 (度 °)', 0, 360, 'delta')}
+            {renderPlot('Δ (Delta) 相位差光譜', 'Δ 相位角 (度 °)', 'delta')}
             {settings.showResiduals && (
               <div className="plot-grid h-44 shrink-0">
-                {renderPlot('Δ 擬合殘差 (Calc - Exp)', '殘差 ΔΔ (°)', -10, 10, 'residual_delta')}
+                {renderPlot('Δ 擬合殘差 (Calc - Exp)', '殘差 ΔΔ (°)', 'residual_delta')}
               </div>
             )}
           </div>
@@ -804,13 +852,13 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
         {settings.activeTab === 'residuals' && (
           <div className="plot-grid flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0">
-            {renderPlot('Ψ 殘差分佈 (R_Ψ)', '殘差 ΔΨ (°)', -5, 5, 'residual_psi')}
-            {renderPlot('Δ 殘差分佈 (R_Δ)', '殘差 ΔΔ (°)', -20, 20, 'residual_delta')}
+            {renderPlot('Ψ 殘差分佈 (R_Ψ)', '殘差 ΔΨ (°)', 'residual_psi')}
+            {renderPlot('Δ 殘差分佈 (R_Δ)', '殘差 ΔΔ (°)', 'residual_delta')}
           </div>
         )}
       </div>
       <div hidden={!opticalTab} className="optical-tab-content">
-        <OpticalConstantsPanel project={opticalProject} busy={opticalBusy}/>
+        <OpticalConstantsPanel project={opticalProject} busy={opticalBusy} view={view}/>
       </div>
     </main>
   );

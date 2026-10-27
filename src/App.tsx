@@ -61,6 +61,7 @@ export default function App() {
   const compute = useBrowserCompute(() => location.hash==='#empty'?createBlankProject():createSiO2OnSiProject());
   const { project, setProject } = compute;
   const importSequence = useRef(0);
+  const [resultViewRevision, setResultViewRevision] = useState(0);
   const automaticBusy = useRef(false);
 
   // Currently selected layer/ambient/substrate in the sample stack
@@ -269,6 +270,7 @@ export default function App() {
   // Project Templates
   const handleNewProject = (template: 'sio2_multi' | 'sio2' | 'tio2' | 'blank') => {
     importSequence.current++;
+    setResultViewRevision(v=>v+1);
     if (template === 'sio2_multi') {
       const p = createMultiAoiSiO2OnSiProject();
       setProject(p);
@@ -313,6 +315,7 @@ export default function App() {
         const loadedProj = importProjectJson(content, () => { legacyProject = true; });
         // Forward evaluation is performed in the dedicated browser worker.
         setProject(loadedProj);
+        setResultViewRevision(v=>v+1);
         setSelectedTarget(loadedProj.layers[0]?.id || 'ambient');
         setPipelineData(null);setWorkflowProgress(null);setFinalOpticalConstants([]);setLiveCost(0);setPrevCost(null);setParamHistory({});setResultModalOpen(false);
         if (legacyProject) {
@@ -340,6 +343,7 @@ export default function App() {
   // Handle experimental CSV import
   const handleImportCsvSuccess = (dataset: ExperimentDataset) => {
     importSequence.current++;
+    setResultViewRevision(v=>v+1);
     const calculatedPoints=dataset.points;
 
     setProject((prev) => ({
@@ -700,6 +704,7 @@ export default function App() {
         />
 
         <VisualizerPanel
+          viewRevision={resultViewRevision}
           opticalProject={project}
           opticalBusy={isFitting || compute.busy}
           points={project.experimentData?.points || []}

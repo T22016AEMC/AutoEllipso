@@ -368,3 +368,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .expert-panel svg { user-select: none; }
 .expert-panel svg text { fill: var(--text-muted); }
 .expert-panel .expert-actions select { width: auto; min-width: 160px; }
+
+/* UI-4: local result-display controls, independent of fitting and export ranges. */
+.visualizer-panel .plot-zoom { gap: 12px; align-items: center; }
+.visualizer-panel .plot-zoom button { padding: 12px 16px; background: var(--card); color: var(--primary); border: 1px solid var(--input-border); border-radius: var(--radius-control); }
+.visualizer-panel .plot-zoom button:hover { background: var(--info-bg); }
+.visualizer-panel .plot-zoom .range-input { display: inline-flex; align-items: center; position: relative; }
+.visualizer-panel .plot-zoom .range-input input { width: 126px; padding: 22px 32px 8px 12px; font-family: var(--font-data); appearance: textfield; }
+.visualizer-panel .plot-zoom input::-webkit-inner-spin-button, .visualizer-panel .plot-zoom input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.visualizer-panel .range-input > span { position: absolute; color: var(--text-muted); pointer-events: none; font-size: 11px; }
+.visualizer-panel .range-unit { right: 12px; }
+.visualizer-panel .range-field-label { left: 12px; top: 5px; }
+.visualizer-panel .y-controls-label { margin-left: 8px; }
+.visualizer-panel .plot-range-status { margin-left: auto; color: var(--text-muted); font-family: var(--font-data); }
+.visualizer-panel .plot-range-error { margin: 0 0 16px; border: 1px solid var(--warn); }
+.visualizer-panel .plot-card[data-active="true"] { border-color: var(--accent); }
+.visualizer-panel .plot-y-mode { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: var(--radius-pill); color: var(--text-muted); background: var(--info-bg); font-family: var(--font-data); white-space: nowrap; }
+.visualizer-panel .plot-title-actions { display: flex; align-items: center; gap: 8px; }

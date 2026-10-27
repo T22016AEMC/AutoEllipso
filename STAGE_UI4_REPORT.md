@@ -1,0 +1,26 @@
+# Stage UI-4
+- 基準：已部署 UI-3b `903cb32`。
+- 改動：`src/components/VisualizerPanel.tsx`、`src/components/OpticalConstantsPanel.tsx`、新增 `src/components/resultPlotView.ts`、`src/App.tsx`、`src/index.css`、本報告。
+- 原縮放列原位替換為波長範圍、套用／全範圍、獨立 Y 軸控制及顯示狀態；沿用 UI-1 權杖、系統字型與按鈕／輸入框樣式，未新增套件或窄螢幕規則。
+- 狀態均在 `VisualizerPanel` 的 React state：selection、manualY、activePlot、kLog；不進入 project／visualizationSettings JSON。
+- App 僅增加本地 resultViewRevision，於新專案、專案讀取完成、CSV 匯入完成通知顯示重設；原匯入與計算流程保留。
+- 起迄預設取所有量測資料的波長全範圍，與 AOI／參與擬合選擇無關。套用按鈕或 Enter 才生效，失焦不套用。
+- 驗證有限數字、起始 < 結束；超界夾回並更新輸入；少於 5 個量測資料點拒絕套用，保留有效範圍並顯示帶 aria 關聯的行內警示。
+- 全部結果分頁共用 X 顯示範圍；只過濾繪圖副本，游標搜尋範圍內最近點，X 刻度重新計算，資料線／點／十字線使用 SVG clipPath。
+- 自動 Y 依顯示範圍與可見資料重新求顯示界限，兩端各留 5%；不改資料數值或殘差算法。刻度文字精度隨顯示間距調整。
+- 最後點選／聚焦圖卡為作用中，無對應可見圖時選第一張；accent 細框及標題列「Y 自動／Y 手動」標示狀態。
+- Ψ、Δ、兩張殘差、n、k 各自保存手動 Y；k 線性與 log 座標各保存獨立顯示界限，避免混用座標單位。
+- 放大／縮小以中心為準乘 1/1.5／1.5；最小跨度為資料跨度 1/50，最大為自動跨度 20 倍；常數／空資料使用非零顯示界限。
+- 改 X 不重設手動 Y，自動圖依新範圍更新；切分頁、AOI、參與擬合保留。新資料／新專案重設全範圍及全部自動 Y。
+- 結果刷新保留範圍，資料界限改變時夾回並保存夾回值；未變更層選擇、圖例或 n/k 讀值精度。
+- 1440px 截圖：`.qa/ui4/default-full-range.png`、`.qa/ui4/range-300-900.png`、`.qa/ui4/delta-manual-psi-auto.png`。
+- 人工操作觀察：反向／不足 5 點／空輸入均行內報錯且圖不變；失焦不套用、Enter 套用、全範圍及鍵盤 Space／Enter 可操作。
+- 確認 Δ 單獨縮放，Ψ 仍自動；n/k、兩張殘差、單獨 Ψ／Δ 範圍一致；手動 Y 跨範圍保留，縮放上下限穩定。
+- 相同專案重新載入後全範圍、全部 Y 自動；結果刷新用相同既有結果的 UI 重播確認保留，未重新執行擬合。
+- 純顯示操作 Worker 訊息為空，前後下載專案 JSON 逐位元一致（含原始資料、結果、MSE 等及匯出輸入）；匯出來源程式未改。
+- 證據：`.qa/ui4/observations.json`、`.qa/ui4/capture.log`、`.qa/ui4/project-before-display-changes.json`、`.qa/ui4/project-after-display-changes.json`、`.qa/ui4/source-audit.json`。
+- 桌面無橫向溢出，無瀏覽器錯誤；原始碼比對確認 App 只增加 UI 重設通知，Expert、詳細視窗、compute hook、匯出與 JSON 型別一致。
+- `pnpm run build` 通過：`.qa/ui4/build.log`；`pnpm run typecheck` 通過：`.qa/ui4/typecheck.log`。
+- 依要求未跑 verify／既有 UI／e2e／科學測試；未新增 e2e、未修改任何測試／選擇器／斷言。
+- 未越界：Worker、擬合器、TMM、統計、匯出、專案 JSON 格式與量測／擬合資料未改。未改 Expert 縮放，未做 4.6，未開始其他工作。
+- 部署佐證：`.qa/ui4/deployment.json`（Cloudflare build 與正式站 version.json）。
