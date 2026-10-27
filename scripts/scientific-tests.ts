@@ -369,6 +369,7 @@ await stage43Tests(test);
 await stage44aTests(test);
 await stage44cTests(test);
 await stage45dTests(test);
+await (await import('./stage4_9c1-tests')).stage49c1Tests(test);
 writeFileSync('scientific-tests.json',JSON.stringify(results,null,2));
 console.log(JSON.stringify({total:results.length,passed:results.filter(r=>r.passed).length,failures:results.filter(r=>!r.passed)},null,2));
 if(results.some(r=>!r.passed))process.exitCode=1;

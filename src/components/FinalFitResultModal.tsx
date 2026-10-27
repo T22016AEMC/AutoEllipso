@@ -1,10 +1,12 @@
+import {FitAssessmentSummary} from './FitAssessmentSummary';
+import {defaultOpticalExport} from '../fitting/fitPresentation';
 import {FitStatisticsPanel,StatisticsWarning,ParameterEstimate} from './FitStatisticsPanel';
 import {OpticalModelComparisonPanel} from './OpticalModelComparisonPanel';
 /**
  * AutoEllipso — Final Fitting Results & Diagnostics Modal
  *
  * Implements:
- * - Unfalsified outcome presentation: TARGET ACHIEVED vs TARGET NOT ACHIEVED
+ * - Fit adequacy from existing statistics, independently of optimizer convergence
  * - B-spline Diagnostic Summary (Raw MSE, RMSE, Psi RMSE, Delta RMSE)
  * - Physical Model Mismatch Alert
  * - Fresh Forward Recalculation verification badge
@@ -45,7 +47,6 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
   onExportNk,
   onExportFullReport,
   onExportParametersJson,
-  targetMse = 10.0,
 }) => {
   if (!isOpen) return null;
 
@@ -53,7 +54,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
   const rawRmse = fittingResult.rawRmse ?? fittingResult.finalRmse;
   const psiRmse = fittingResult.psiRmse;
   const deltaRmse = fittingResult.deltaRmse;
-  const isTargetAchieved = rawMse < targetMse;
+
 
   // Extract fitted thickness
   const thicknessParam = fittingResult.parameters.find(
@@ -63,7 +64,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
 
   const bsplineDiag = fittingResult.bsplineDiagnostic;
   const multiStartSummary = fittingResult.multiStartSummary;
-  const isPhysicalModelMismatch = fittingResult.physicalModelMismatch;
+  const isPhysicalModelMismatch = !!fittingResult.opticalModelComparison?.warning;
 
   const defaultPossibleCauses = [
     '光學色散模型不匹配 (Optical model mismatch) - 膜層可能具有未涵蓋的帶尾吸收或複雜晶態',
@@ -81,51 +82,9 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <StatisticsWarning statistics={fittingResult.statistics}/>
-        {/* Top Status Banner */}
-        <div
-          className={`p-5 border-b flex items-start justify-between ${
-            isTargetAchieved
-              ? 'bg-emerald-950/40 border-emerald-700/60'
-              : 'bg-rose-950/40 border-rose-700/60'
-          }`}
-        >
-          <div className="flex items-start space-x-3">
-            {isTargetAchieved ? (
-              <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shrink-0">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-            ) : (
-              <div className="p-2 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 shrink-0">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-            )}
-            <div>
-              <div className="flex items-center space-x-2">
-                <span
-                  className={`text-base font-extrabold tracking-wide ${
-                    isTargetAchieved ? 'text-emerald-300' : 'text-rose-300'
-                  }`}
-                >
-                  {isTargetAchieved ? 'TARGET ACHIEVED (目標達成)' : 'TARGET NOT ACHIEVED (未達標)'}
-                </span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-700">
-                  Target MSE: &lt; {targetMse.toFixed(1)}
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 mt-1">
-                {isTargetAchieved
-                  ? `真實正向驗算通過！Raw MSE: ${rawMse.toFixed(4)} 達成嚴格物理門檻。`
-                  : `最終 Raw MSE: ${rawMse.toFixed(4)} ≥ ${targetMse.toFixed(1)}。已完成完整光譜回算；收斂狀態依旗標判讀，請參閱下方診斷分析。`}
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 text-sm"
-          >
-            ✕
-          </button>
+        <div className="p-5 border-b border-slate-700 flex items-start justify-between">
+          <FitAssessmentSummary result={fittingResult}/>
+          <button onClick={onClose} className="text-slate-400 hover:text-white" aria-label="關閉結果">✕</button>
         </div>
 
         {/* Content Body */}
@@ -139,9 +98,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                 MSE (Woollam)
               </span>
               <span
-                className={`text-lg font-bold font-mono ${
-                  isTargetAchieved ? 'text-emerald-400' : 'text-rose-400'
-                }`}
+                className="text-lg font-bold font-mono text-cyan-300"
               >
                 {fittingResult.mseWoollam?.toFixed(4)??'—'}
               </span>
@@ -253,8 +210,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
                   <span>Physical Model Mismatch 警示</span>
                 </div>
                 <p className="text-[11px] text-amber-200/90 leading-relaxed">
-                  B-spline 數值光學常數能精準吻合實驗光譜，但選定之物理模型在當前振盪子設定下未能充份再現光學常數。
-                  建議在【擬合設定】中提升振盪子複雜度 (+1 oscillator) 或切換為 Tauc-Lorentz / Multi-Oscillator 模型。
+                  {fittingResult.opticalModelComparison?.warning}
                 </p>
               </div>
             </div>
@@ -324,6 +280,7 @@ export const FinalFitResultModal: React.FC<FinalFitResultModalProps> = ({
               <span>匯出 n/k</span>
             </button>
 
+            <span className="text-[10px] text-slate-300">{defaultOpticalExport(fittingResult).label}</span>
             <button
               onClick={onExportFullReport}
               className="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 flex items-center space-x-1.5 shadow-sm transition-colors"

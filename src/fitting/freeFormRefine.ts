@@ -12,6 +12,9 @@ import {residualWeights,circularDifferenceDeg,computeResidualMetrics} from './re
 import {FIT_NUMERICS} from './numerics';
 import {effectiveSplineParameters} from './splineRefinement';
 
+// Optical coefficient bounds are unchanged; thickness bounds belong to the caller.
+const N_MIN=.5,N_MAX=5.5,K_MIN=0,K_MAX=3.5;
+
 export type FreeFormOrigin='ladder'|'physical_seeded'|'ladder_v2';
 export interface FreeFormRefinement {
  origin?:FreeFormOrigin;skipped?:boolean;warning?:string;
@@ -30,7 +33,7 @@ export function chooseFreeFormOrigin(ladder:number,refined:number):FreeFormOrigi
 /** Physical curves are only the initial guess. No penalty attracts the solution to those curves. */
 export async function refineFreeForm(options:{ambient:Ambient;layers:Layer[];substrate:Substrate;primaryLayerIndex:number;
  points:EllipsometryDataPoint[];config:FittingConfig;outputWavelengths?:number[];shouldStop?:()=>boolean;onIteration?:OptimizerOptions['onIteration'];
- ladderSetting?:{count:number;scale:number}}) {
+ ladderSetting?:{count:number;scale:number};thicknessBounds?:{min:number;max:number}}) {
  const start=performance.now(),{ambient,substrate,primaryLayerIndex,points,config}=options;
  if(!points.length||!options.layers[primaryLayerIndex])throw new Error('Free-form refinement requires measured data and a film');
  if(options.shouldStop?.())throw new Error('使用者中止擬合');
@@ -40,6 +43,8 @@ export async function refineFreeForm(options:{ambient:Ambient;layers:Layer[];sub
  if(!Number.isInteger(count)||count<4||count>80||![1,.1,.01].includes(scale))throw new Error('Invalid free-form ladder setting');
  const lambdaN=.25*scale,lambdaK=.6*scale,knots=Array.from({length:count},(_,i)=>lo+(hi-lo)*i/(count-1));
  const layers=structuredClone(options.layers),layer=layers[primaryLayerIndex],model=modelRegistry.get(layer.modelId)!;
+ const {min:tMin,max:tMax}=options.thicknessBounds??{min:40,max:200};
+ if(!Number.isFinite(tMin)||!Number.isFinite(tMax)||tMin>tMax)throw new Error('Invalid free-form thickness bounds');
  const physicalParams=Object.fromEntries(Object.entries(layer.parameters).map(([k,v])=>[k,v.current]));
  const seed=wavelengths.map(w=>model.calculate(w,physicalParams)),basis=wavelengths.map(w=>cubicBasis(w,knots));
  if(seed.some(q=>![q.n,q.k].every(Number.isFinite)))throw new Error('Physical seed contains non-finite optical constants');
@@ -47,9 +52,9 @@ export async function refineFreeForm(options:{ambient:Ambient;layers:Layer[];sub
  const padding=options.ladderSetting?Array.from({length:Math.max(0,count-basis.length)},()=>Array(count).fill(0)):[];
  const projection=[...basis,...padding];
  const n=solveLeastSquaresSvd(projection,[...seed.map(q=>q.n),...padding.map(()=>0)]).solution,k=solveLeastSquaresSvd(projection,[...seed.map(q=>q.k),...padding.map(()=>0)]).solution;
- const variables:OptimizationVariable[]=[{id:'thickness',name:'thickness',value:layer.thickness,min:40,max:200},
-  ...n.map((value,i)=>({id:'N'+i,name:'N'+i,value:Math.max(.5,Math.min(5.5,value)),min:.5,max:5.5})),
-  ...k.map((value,i)=>({id:'K'+i,name:'K'+i,value:Math.max(0,Math.min(3.5,value)),min:0,max:3.5}))];
+ const variables:OptimizationVariable[]=[{id:'thickness',name:'thickness',value:Math.max(tMin,Math.min(tMax,layer.thickness)),min:tMin,max:tMax},
+  ...n.map((value,i)=>({id:'N'+i,name:'N'+i,value:Math.max(N_MIN,Math.min(N_MAX,value)),min:N_MIN,max:N_MAX})),
+  ...k.map((value,i)=>({id:'K'+i,name:'K'+i,value:Math.max(K_MIN,Math.min(K_MAX,value)),min:K_MIN,max:K_MAX}))];
  const ambientN=new Complex(ambient.n,ambient.k);
  const groups=wavelengths.map((w,j)=>({w,base:layers.map(l=>({thicknessNm:l.thickness,N:evaluateLayerOpticalConstants(l,w)})),
   substrate:evaluateSubstrateOpticalConstants(substrate,w),basis:basis[j],points:points.filter(p=>p.wavelength===w)}));
@@ -74,7 +79,7 @@ export async function refineFreeForm(options:{ambient:Ambient;layers:Layer[];sub
  const statistics=computeFitStatistics(variables.map(v=>({...v,splineCoefficient:/^[NK]\d+$/.test(v.id)})),result.finalParams,residual,
   {weights:weighting.weights,regularizationResidualsFn:regularization});
  const parameter=(id:string,value:number,min:number,max:number,fit=false):ParameterValue=>({id,name:id,unit:'',current:value,initial:value,min,max,fit});
- layer.modelId='bspline';layer.thickness=result.finalParams[0];layer.thicknessMin=40;layer.thicknessMax=200;
+ layer.modelId='bspline';layer.thickness=result.finalParams[0];
  layer.thicknessFit=true;layer.thicknessInitial=variables[0].value;
  layer.parameters={_knotCount:parameter('_knotCount',count,4,options.ladderSetting?80:40)};
  if(options.ladderSetting)layer.parameters._freeFormLadderV2=parameter('_freeFormLadderV2',1,1,1);

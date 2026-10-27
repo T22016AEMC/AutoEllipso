@@ -318,9 +318,9 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
   const message = optResult.stopped
     ? '使用者已中止擬合程序。'
     : optResult.converged
-    ? `擬合收斂成功！共執行 ${optResult.iterations} 次迭代。`
+    ? `優化器收斂；共執行 ${optResult.iterations} 次迭代。`
     : !improved
-    ? 'Fitting failed to improve the objective function. (擬合無法進一步降低目標誤差)'
+    ? '優化器停止：未能進一步降低目標函數'
     : `已達最大迭代上限 (${config.maxIterations} 次)。`;
 
   const perAoiMse: Record<number, number> = {};
@@ -338,7 +338,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
     updatedPoints: finalPoints,
     fittingResult: {
       statistics,fitAdequacy:assessFitAdequacy(statistics,finalMetrics.weightingMode).fitAdequacy,fitAdequacyWarning:assessFitAdequacy(statistics,finalMetrics.weightingMode).warning,
-      mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
+      underdetermined:finalMetrics.underdetermined,mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
         weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,
       rawMse:finalMetrics.rawMse,rawRmse:finalMetrics.rawRmse,psiRmse:Math.sqrt(finalMetrics.psiMse),deltaRmse:Math.sqrt(finalMetrics.deltaMse),
       convergenceStatus:optResult.status,improved:optResult.improved,converged:optResult.converged,numParameters:variables.length,
@@ -351,7 +351,7 @@ export async function runAutoFit(options: RunFitOptions): Promise<FitEngineOutpu
       finalRmse: finalMetrics.rmse,
       executionTimeMs: performance.now() - startTime,
       parameters: fittedParamResults,
-      message,
+      message: `${message} MSE_W=${finalMetrics.mseWoollam.toPrecision(6)}；Raw MSE=${finalMetrics.rawMse.toPrecision(6)} deg²；fitAdequacy=${assessFitAdequacy(statistics,finalMetrics.weightingMode).fitAdequacy}；${assessFitAdequacy(statistics,finalMetrics.weightingMode).warning??'依量測 σ 與 reduced χ² 評估為充分'}`,
       fittingMode: activeAois.length > 1 ? 'multi_aoi' : 'single_aoi',
       selectedAois: activeAois,
       perAoiMse,

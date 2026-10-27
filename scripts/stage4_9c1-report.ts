@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,statSync} from 'node:fs';
+const read=(name:string)=>JSON.parse(readFileSync(`.qa/stage4_9c1-${name}.json`,'utf8'));
+const v1=read('V1-summary'),v2=read('V2-summary'),v3=read('V3-summary'),verify=read('verify'),related=read('existing-related');
+const num=(v:number)=>Number.isFinite(v)?v.toPrecision(7):String(v),minutes=(ms:number)=>(ms/60000).toFixed(2);
+const q=(s:string)=>'`'+s+'`';
+const lines=[
+ '# Stage 4.9c-1：邊界、充分性、匯出、後備與測試（2026-10-27）',
+ '- 分支 v2.2-integration；基準 e81033f；只提交本段修改；不部署、不推送。',
+ '- Si 表／內插、TMM、LM、Jacobian、統計公式、容差、迭代上限不變；既有測試全文核對（僅增加新套件的呼叫行）。',
+ '- 設計與案例：`.qa/stage4_9c1-settings.json`；SHA256：'+read('settings-sha256').sha256+'。',
+ '## 改動檔案與目的',
+ '- `src/fitting/freeFormRefine.ts`：可選厚度邊界、起點夾值、保留輸出層邊界；未傳入仍 40–200；n/k 界限只抽具名常數。',
+ '- `src/fitting/autoWorkflow.ts`：現有 tMin/tMax 經 runFreeFormLadder 的既有 options 傳到精修；計算與選擇準則不變；充分性取代目標成敗訊息。',
+ '- `src/fitting/residual.ts`、`src/types/ellipsometry.ts`：新增 underdetermined（2×有效點數−參數數≤0）；DOF 仍夾為1，所有數值公式不變；舊 target 欄位 deprecated。',
+ '- `src/fitting/engine.ts`、`src/fitting/expertWorkflow.ts`：傳遞欠定旗標、更新狀態文案；Expert 數值流程不變。',
+ '- `src/fitting/freeFormOptics.ts`：光學曲線的可選欠定旗標；`src/fitting/fitPresentation.ts`：共用顯示充分性及較低 Raw MSE 匯出來源（平手物理）。',
+ '- `src/components/FitAssessmentSummary.tsx`：MSE_W、Raw MSE、充分性／說明及欠定警告；無 σ 一律 unknown。',
+ '- `src/components/FinalFitResultModal.tsx`、`FittingStatusBottomBar.tsx`：移除目標成敗判讀；模型警告改顯示現有曲線比較警告，不從舊 Raw MSE 門檻推論。',
+ '- `src/components/FittingStrategyModal.tsx`、`TopToolbar.tsx`、`src/App.tsx`：移除目標門檻顯示、預設按較低 Raw MSE 匯出及標示來源。',
+ '- `src/components/OpticalModelComparisonPanel.tsx`：物理／自由形式各一下載按鈕，來源檔名分開。',
+ '- `src/data/export.ts`、`validationReport.ts`：欠定警告、充分性說明；光學 CSV 欄位不變，欠定寫既有 flag；光譜 CSV 保持格式並於下載前警告。',
+ '- `src/solver/calculator.ts`：未知膜層／基板模型直接丟出含 ID 的錯誤，移除靜默後備。',
+ '- `scripts/stage4_9c1-{support,tests,related,regression,audit,report}.ts`：不同基板產生器、8項新增測試、原斷言執行、三組回歸、保護稽核、報告。',
+ '- `scripts/scientific-tests.ts`：僅新增套件呼叫，既有斷言未改。補充規劃只追加12.6、不提交；si-final.mat 不讀寫、不提交。',
+ '## V1：向下相容（40–200 nm）',
+ '- V0–V6 σ、V1/V3/V6 無 σ；種子49001；比對4.8c保存結果。判準：設定一致且膜厚／全曲線 n/k 最大差≤1e-9。',
+ '|真值/模式|所選 M,s|最大差|通過|', '|---|---|---:|---|',
+ ...v1.cards.map((c:any)=>`|${c.id}/${c.mode}|${c.selected.count},${c.selected.scale}|${num(c.maxDifference)}|${c.pass?'通過':'未通過'}|`),
+ '## V2：預設空白專案層邊界（1–500 nm）',
+ '- 以 createBlankProject 真正預設邊界1–500取代40–200，其餘資料／設定不變；不設通過門檻。物理及自由形式 u-space 正規化跨度皆改變，不能將差異全歸因於最後精修；另列物理終點漂移。',
+ '|真值/模式|所選 M,s|Δ自由膜厚 nm|Δn RMS|Δk RMS|Δ物理膜厚 nm|', '|---|---|---:|---:|---:|---:|',
+ ...v2.cards.map((c:any)=>`|${c.id}/${c.mode}|${c.selected.count},${c.selected.scale}|${num(c.thicknessDelta)}|${num(c.nRms)}|${num(c.kRms)}|${num(c.physicalThicknessDelta)}|`),
+ '## V3：薄／厚膜',
+ '- Cauchy A1.52/B.0045/C.00008/k0=0；Si；65/70/75°；190–900/10 nm；σ=.03°；20/300 nm、種子62001/62002、邊界1–500；Automatic target Gaussian。此為同表「自洽」邊界測試。',
+ '- 預定判準：自由形式厚度誤差≤1nm，且1e-6<u<1−1e-6；如實列結果、不調整。',
+ '|案例|所選 M,s|自由膜厚 nm|有號誤差 nm|u|判準|', '|---|---|---:|---:|---:|---|',
+ ...v3.cards.map((c:any)=>`|${c.id}|${c.selected.count},${c.selected.scale}|${num(c.thickness)}|${num(c.error)}|${num(c.u)}|${c.pass?'通過':'未通過'}|`),
+ '## 測試與限制',
+ '- 新增8項：厚度邊界／起點／ metadata；未知模型錯誤；欠定數值不變；無σ充分性顯示；較低Raw MSE與平手；來源檔名及雙下載；不同基板SiO₂與V2各一。',
+ '- 不同基板：現行Si n/k各乘1+.02exp(−((λ−300)/25)²)，不註冊；SiO₂100nm、V2 100nm，種子62003/62004，正式匹配族LM從真膜起點。僅斷言收斂與有限，未對厚度/n/k加精度門檻。',
+ '- 只模擬確定性基板偏差，不能代表真實基板不確定度；尚未換Si表。UI以SSR／匯出下載介面與來源選擇測試驗證，未做瀏覽器人工操作。',
+ `- 既有相關測試 ${related.rows.filter((r:any)=>r.passed).length}/${related.rows.length}；既有斷言新失敗：${related.rows.some((r:any)=>!r.passed)?'有（停止）':'無'}；保護稽核：.qa/stage4_9c1-preservation.json。`,
+ `- 完整 pnpm run verify 僅1次：original ${verify.suites.original.passed}/${verify.suites.original.total}、worker ${verify.suites.worker.passed}/${verify.suites.worker.total}、scientific ${verify.suites.scientific.passed}/${verify.suites.scientific.total}（含新增8項）；typecheck/build exit code ${verify.typecheck}/${verify.build}。`,
+ `- 兩項既有失敗名稱／內容${verify.failuresExactlyUnchanged?'完全相同':'有差異，詳見 .qa/stage4_9c1-verify.json'}；新增失敗${verify.newFailures.length}。`,
+ ...verify.suites.scientific.failures.map((f:any)=>'- '+q(f.name)+'：'+q(f.detail.replaceAll('\n',' '))),
+ '## 耗時與執行紀錄',
+ `- 相關既有測試 ${minutes(related.elapsedMs)}分；V1 ${minutes(v1.elapsedMs)}分；V2 ${minutes(v2.elapsedMs)}分；V3 ${minutes(v3.elapsedMs)}分；verify ${minutes(verify.elapsedMs)}分（各案例牆鐘見各summary及checkpoint）。`,
+ `- 實作與初步新增測試約6分；上述為指令執行牆鐘、不含檢查空檔。自首個實作檢查點建立至本報告含15分鐘檢查間隔：${minutes(Date.now()-statSync('.qa/stage4_9c1-edit.py').birthtimeMs)}分（不含之前唯讀檢查）。`,
+ '- 未中斷、未重跑已保存 Automatic 結果；UI／訊息調整前後新增短測試重跑範圍只含新增測試，既有斷言未改；V1/V2/V3均首次執行。',
+ '- 稽核工具首版嘗試TypeScript套件API不可用，改為逐檔全文比對（排除新增套件呼叫一行）；不涉及既有斷言失敗或擬合重算。',
+ '- 規格偏離：無。V1 10/10、V3 2/2通過，未修改任何預定門檻。',
+ '- 所有原始結果與逐點曲線：`.qa/stage4_9c1-*`；未提交。',
+];
+assert.ok(lines.length<=120,`Report has ${lines.length} lines`);
+writeFileSync('STAGE4_9C1_REPORT.md',lines.join('\n')+'\n');

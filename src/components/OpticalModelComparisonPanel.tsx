@@ -1,3 +1,5 @@
+import {UnderdeterminedWarning} from './FitAssessmentSummary';
+import {defaultOpticalExport} from '../fitting/fitPresentation';
 import {unreliableUncertainty} from '../fitting/freeFormOptics';
 import type {FittingResult} from '../types/ellipsometry';
 import {exportOpticalConstantsCsv} from '../data/export';
@@ -19,6 +21,9 @@ export function OpticalModelComparisonPanel({result}:{result:FittingResult}) {
     </table></div>
     <p>自由形式為非因果 n/k B-spline；有效參數排除鎖定與邊界。σ_k 使用含平滑正則化列的最終點共變異，條件於邊界係數固定。低於偵測限仍保留 k；無法識別時不提供 σ。兩者不會互相覆蓋。</p>
     {result.freeFormOpticalConstants&&<details><summary>自由形式 k 與 σ_k 預覽（每 50 nm）</summary><div className="overflow-auto max-h-64"><table><thead><tr><th>nm</th><th>k</th><th>σ_k</th><th>95% CI</th></tr></thead><tbody>{result.freeFormOpticalConstants.filter(q=>q.wavelength%50===0).map(q=><tr key={q.wavelength}><td>{q.wavelength}</td><td>{q.k.toPrecision(8)}</td><td>{q.kSigma?.toPrecision(6)??'—'}{unreliableUncertainty(q.fitAdequacy)&&<span title={result.freeFormFitAdequacyWarning}> ⚠ 不可信</span>}</td><td>{q.kCi95?.map(v=>v.toPrecision(6)).join(' — ')??'—'}</td></tr>)}</tbody></table></div></details>}
-    {result.freeFormOpticalConstants&&<button className="mt-2 rounded bg-slate-700 px-3 py-2" onClick={()=>exportOpticalConstantsCsv(result.freeFormOpticalConstants!,'AutoEllipso_free_form_optical_constants.csv','free_form')}>下載自由形式 n/k + σ_k CSV</button>}
+    <p>{defaultOpticalExport(result).label}</p>
+    <UnderdeterminedWarning value={result.freeFormUnderdetermined}/>
+    {result.finalOpticalConstants&&<button className="mt-2 rounded bg-slate-700 px-3 py-2" onClick={()=>exportOpticalConstantsCsv(result.finalOpticalConstants!.map(q=>({...q,underdetermined:result.underdetermined})),'AutoEllipso_physical_optical_constants.csv','physical')}>下載物理模型 n/k CSV</button>}
+    {result.freeFormOpticalConstants&&<button className="mt-2 rounded bg-slate-700 px-3 py-2" onClick={()=>exportOpticalConstantsCsv(result.freeFormOpticalConstants!.map(q=>({...q,underdetermined:result.freeFormUnderdetermined})),'AutoEllipso_free_form_optical_constants.csv','free_form')}>下載自由形式 n/k + σ_k CSV</button>}
   </details>;
 }

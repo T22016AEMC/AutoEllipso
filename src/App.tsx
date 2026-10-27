@@ -1,3 +1,4 @@
+import {defaultOpticalExport} from './fitting/fitPresentation';
 /**
  * Thin-Film Ellipsometry Fitting Tool - Main Application
  * Scientific workstation uniting Optical Models, Multilayer TMM Solvers,
@@ -101,7 +102,7 @@ export default function App() {
         rawRmse: 0,
         weightedMse: 0,
         weightedRmse: 0,
-        chiSquare: 0,dof:1,mseWoollam:0,reducedChiSquare:0,weightingMode:'uniform',
+        chiSquare: 0,dof:1,underdetermined:true,mseWoollam:0,reducedChiSquare:0,weightingMode:'uniform',
         psiMse: 0,
         deltaMse: 0,
         totalPoints: 0,
@@ -152,7 +153,8 @@ export default function App() {
   const handleExportNk = () => {
     try {
       if (!project.expert && project.fittingResult && finalOpticalConstants && finalOpticalConstants.length > 0) {
-        exportOpticalConstantsCsv(finalOpticalConstants.map(q=>({...q,fitAdequacy:project.fittingResult?.fitAdequacy})), `${project.name}_fitted_nk`);
+        const selected=defaultOpticalExport({...project.fittingResult,finalOpticalConstants});
+        exportOpticalConstantsCsv(selected.points!,'AutoEllipso_optical_constants.csv',selected.source);
         return;
       }
 
@@ -580,7 +582,7 @@ export default function App() {
                   </span>
 
                   <span className="text-slate-400">
-                    Target: <b className="text-cyan-400">&lt; {workflowProgress.targetMse.toFixed(1)}</b>
+                    擬合充分性由最終統計評估
                   </span>
 
                   {workflowProgress.oscillatorsCount !== undefined && (

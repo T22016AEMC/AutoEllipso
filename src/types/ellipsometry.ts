@@ -151,6 +151,7 @@ export interface FittingConfig {
   activeFitAois?: number[]; // Selected AOIs participating in fitting (defaults to all available)
   // Aggressive / Forced Fit Controls
   fittingStrategy?: 'standard' | 'aggressive';
+  /** @deprecated Legacy compatibility field; not a fit-adequacy criterion. */
   targetMse?: number; // Default 10.0
   maxOscillators?: number; // Default 3 (1 to 3)
   sampleStructure?: 'single_layer' | 'multi_layer'; // Default 'single_layer'
@@ -183,6 +184,8 @@ export interface FittedParameterResult {
 }
 
 export interface FittingResult {
+  underdetermined?: boolean;
+  freeFormUnderdetermined?: boolean;
   fitAdequacy?: import('../fitting/freeFormOptics').FitAdequacy;
   fitAdequacyWarning?:string;
   freeFormFitAdequacy?: import('../fitting/freeFormOptics').FitAdequacy;
@@ -215,7 +218,9 @@ export interface FittingResult {
     | 'stopped'
     | 'failed'
     | 'max_iter'
+    /** @deprecated Compatibility only; use fitAdequacy for assessment. */
     | 'target_achieved'
+    /** @deprecated Compatibility only; use fitAdequacy for assessment. */
     | 'target_not_achieved'
     | 'not_converged';
   iterations: number;
@@ -228,7 +233,9 @@ export interface FittingResult {
   psiRmse?: number;
   deltaRmse?: number;
   weightedMse?: number;
+  /** @deprecated Legacy compatibility field; not a fit-adequacy criterion. */
   targetMse?: number;
+  /** @deprecated Legacy compatibility field; not a fit-adequacy criterion. */
   targetAchieved?: boolean;
   aic?: number;
   bic?: number;

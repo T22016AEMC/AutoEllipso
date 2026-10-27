@@ -1,3 +1,4 @@
+import {FitAssessmentSummary,UnderdeterminedWarning} from './FitAssessmentSummary';
 import {FitStatisticsPanel,StatisticsWarning,ParameterEstimate} from './FitStatisticsPanel';
 /**
  * Fitting Status & Results Bottom Bar
@@ -64,32 +65,11 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
             </div>
           ) : fittingResult ? (
             <div className="flex items-center space-x-2 shrink-0">
-              {(fittingResult.status === 'target_achieved' ||
-                (fittingResult.rawMse !== undefined && fittingResult.rawMse < (fittingResult.targetMse ?? 10.0))) && (
-                <div className="flex items-center space-x-1.5 text-emerald-400 font-bold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>
-                    TARGET ACHIEVED (Raw MSE: {(fittingResult.rawMse ?? fittingResult.finalMse).toFixed(4)} &lt;{' '}
-                    {(fittingResult.targetMse ?? 10.0).toFixed(1)})
-                  </span>
-                </div>
-              )}
-              {(fittingResult.status === 'target_not_achieved' ||
-                fittingResult.status === 'not_converged' ||
-                (fittingResult.status === 'converged' &&
-                  (fittingResult.rawMse ?? fittingResult.finalMse) >= (fittingResult.targetMse ?? 10.0))) && (
-                <div className="flex items-center space-x-1.5 text-rose-400 font-bold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-800">
-                  <AlertCircle className="w-4 h-4 text-rose-400" />
-                  <span>
-                    TARGET NOT ACHIEVED (Raw MSE: {(fittingResult.rawMse ?? fittingResult.finalMse).toFixed(4)} ≥{' '}
-                    {(fittingResult.targetMse ?? 10.0).toFixed(1)})
-                  </span>
-                </div>
-              )}
+              <FitAssessmentSummary result={fittingResult}/>
               {fittingResult.status === 'failed' && (
                 <div className="flex items-center space-x-1.5 text-rose-400 font-medium">
                   <AlertCircle className="w-4 h-4" />
-                  <span>擬合失敗：未能改善目標誤差 ({fittingResult.iterations} 次迭代)</span>
+                  <span>優化器停止：未能降低目標函數 ({fittingResult.iterations} 次迭代)</span>
                 </div>
               )}
               {fittingResult.status === 'stopped' && (
@@ -149,6 +129,7 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
             <span>MSE (Woollam):</span>
             <span className="text-slate-100 font-bold">{(isFitting?liveCost:metrics.mseWoollam).toFixed(4)}</span>
             <small>Raw MSE {metrics.rawMse.toFixed(4)} deg² · χ²ᵣ {metrics.reducedChiSquare.toFixed(4)}</small>
+            <UnderdeterminedWarning value={metrics.underdetermined}/>
             {metrics.weightingWarning&&<small role="alert" title={metrics.weightingWarning} className="text-amber-300 max-w-56 truncate">{metrics.weightingWarning}</small>}
             {fittingResult?.converged===false&&<small className="text-amber-300">未收斂</small>}
           </div>
@@ -260,7 +241,7 @@ export const FittingStatusBottomBar: React.FC<FittingStatusBottomBarProps> = ({
             <div>
               <span className="text-slate-500 block">迭代 / 狀態</span>
               <span className="text-slate-200">
-                {fittingResult.iterations} 次 ({fittingResult.status})
+                {fittingResult.iterations} 次 ({fittingResult.convergenceStatus??'無收斂旗標'})
               </span>
             </div>
           </div>

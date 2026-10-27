@@ -44,7 +44,6 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
 
   const sampleStructure = config.sampleStructure ?? 'single_layer';
   const mode = config.fittingStrategy || 'aggressive';
-  const targetMse = config.targetMse ?? 10.0;
   const maxOscillators = config.maxOscillators ?? 3;
   const knotCount = config.maxBsplineKnots ?? config.knotCount ?? 40;
   const minThickness = config.minThickness ?? 0.1;
@@ -303,26 +302,7 @@ export const FittingStrategyModal: React.FC<FittingStrategyModalProps> = ({
               </div>
             </div>
 
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1 flex items-center justify-between">
-                <span>Target MSE 目標門檻</span>
-                <span className="text-cyan-400 font-mono text-[11px]">&lt; {targetMse.toFixed(1)}</span>
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0.1"
-                max="50.0"
-                value={targetMse}
-                onChange={(e) =>
-                  onUpdateConfig({ ...config, targetMse: Math.max(0.1, parseFloat(e.target.value) || 10.0) })
-                }
-                className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 font-mono text-slate-100 focus:outline-none focus:border-cyan-500"
-              />
-              <span className="text-[10px] text-slate-500 mt-1 block">
-                只有 Raw MSE &lt; 此值時方判定為 TARGET ACHIEVED
-              </span>
-            </div>
+
           </div>
 
           <label className="block pt-4 text-xs text-slate-300">擬合權重

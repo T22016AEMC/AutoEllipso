@@ -1,3 +1,4 @@
+import {defaultOpticalExport} from '../fitting/fitPresentation';
 /**
  * AutoEllipso — Top Application Toolbar
  *
@@ -231,7 +232,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
                     <FileSpreadsheet className="w-3.5 h-3.5 text-cyan-400" />
                     <div>
                       <div className="font-medium text-cyan-300">AutoEllipso_optical_constants.csv</div>
-                      <div className="text-[10px] text-slate-400">Wavelength, n, k</div>
+                      <div className="text-[10px] text-slate-400">{project.fittingResult?defaultOpticalExport(project.fittingResult).label:'Wavelength, n, k'}</div>
                     </div>
                   </button>
                   <button

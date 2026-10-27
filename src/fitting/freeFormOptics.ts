@@ -5,6 +5,7 @@ import type {ResidualMetrics} from './residual';
 
 export interface OpticalConstantPoint {
   wavelength:number;n:number;k:number;kSigma?:number|null;kCi95?:[number,number]|null;belowDetection?:boolean;fitAdequacy?:FitAdequacy;
+  underdetermined?:boolean;
   freeFormOrigin?:import('./freeFormRefine').FreeFormOrigin;
 }
 export type FitAdequacy='good'|'marginal'|'poor'|'unknown';

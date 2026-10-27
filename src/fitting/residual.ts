@@ -34,6 +34,7 @@ export interface ResidualMetrics {
   weightedRmse: number;
   chiSquare: number;
   dof: number;
+  underdetermined: boolean;
   mseWoollam: number;
   reducedChiSquare: number;
   weightingMode: 'sigma'|'uniform'|'psi_dominant';
@@ -93,7 +94,7 @@ export function computeResidualMetrics(
     weightedMse: weightedMse,
     weightedRmse: weightedRmse,
     chiSquare: sumWeightedResidualSq,
-    dof,mseWoollam:Math.sqrt(sumWeightedResidualSq/dof),reducedChiSquare:sumWeightedResidualSq/dof,
+    dof,underdetermined:totalObs-numParameters<=0,mseWoollam:Math.sqrt(sumWeightedResidualSq/dof),reducedChiSquare:sumWeightedResidualSq/dof,
     weightingMode:mode,weightingWarning:warning,
     psiMse: psiMse,
     deltaMse: deltaMse,

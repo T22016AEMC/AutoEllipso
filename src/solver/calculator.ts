@@ -21,8 +21,7 @@ export function evaluateLayerOpticalConstants(
 ): Complex {
   const model = modelRegistry.get(layer.modelId);
   if (!model) {
-    // Default fallback: SiO2 Cauchy
-    return new Complex(1.46, 0);
+    throw new Error(`Unknown layer model ID: ${layer.modelId}`);
   }
 
   const paramValues: Record<string, number> = {};
@@ -43,13 +42,7 @@ export function evaluateSubstrateOpticalConstants(
 ): Complex {
   const model = modelRegistry.get(substrate.modelId);
   if (!model) {
-    // Default to crystalline Silicon
-    const siModel = modelRegistry.get('tabulated_si');
-    if (siModel) {
-      const opt = siModel.calculate(wavelengthNm, {});
-      return new Complex(opt.n, opt.k);
-    }
-    return new Complex(3.88, 0.019);
+    throw new Error(`Unknown substrate model ID: ${substrate.modelId}`);
   }
 
   const paramValues: Record<string, number> = {};

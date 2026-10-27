@@ -1,4 +1,5 @@
 import {unreliableUncertainty} from '../fitting/freeFormOptics';
+import {fitAssessment} from '../fitting/fitPresentation';
 /**
  * AutoEllipso Export and Persistence Utilities
  *
@@ -41,7 +42,7 @@ export function exportOpticalConstantsCsv(
   filename: string = 'AutoEllipso_optical_constants.csv',
   source: 'physical'|'free_form' = 'physical'
 ): void {
-  const target=source==='physical'?'AutoEllipso_optical_constants.csv':filename.endsWith('.csv')?filename:filename+'.csv';
+  const target=filename.endsWith('.csv')?filename:filename+'.csv';
   downloadFile(target,opticalConstantsCsv(opticalConstants,source),'text/csv');
 }
 
@@ -56,7 +57,7 @@ export function opticalConstantsCsv(opticalConstants:import('../fitting/freeForm
   for (const pt of opticalConstants) {
     if(![pt.wavelength,pt.n,pt.k].every(Number.isFinite)||pt.kSigma!=null&&(!Number.isFinite(pt.kSigma)||pt.kSigma<0))throw new Error('Optical constants export requires finite values');
     // 17 significant digits preserve IEEE-754 doubles on CSV round-trip, including very small k.
-    rows.push(`${pt.wavelength},${pt.n.toPrecision(17)},${pt.k.toExponential(16)},${pt.kSigma==null?'':pt.kSigma.toExponential(16)},${[pt.belowDetection?'below_detection':'',unreliableUncertainty(pt.fitAdequacy)?'unreliable':''].filter(Boolean).join(';')},${source}${hasOrigin?','+(pt.freeFormOrigin??''):''}`);
+    rows.push(`${pt.wavelength},${pt.n.toPrecision(17)},${pt.k.toExponential(16)},${pt.kSigma==null?'':pt.kSigma.toExponential(16)},${[pt.belowDetection?'below_detection':'',unreliableUncertainty(pt.fitAdequacy)?'unreliable':'',pt.underdetermined?'underdetermined':''].filter(Boolean).join(';')},${source}${hasOrigin?','+(pt.freeFormOrigin??''):''}`);
   }
   return rows.join('\n');
 }
@@ -85,6 +86,7 @@ export function exportFittedCurveCsv(project: EllipsometryProject): void {
     );
   }
 
+  if(metrics.underdetermined)window.alert('欠定：總觀測數 − 參數數 ≤ 0；匯出數值仍保留');
   downloadFile('AutoEllipso_fitted_curve.csv', rows.join('\n'), 'text/csv');
 }
 
@@ -109,6 +111,7 @@ export function exportFittedParametersJson(
   const liveMetrics = computeMultiAoiResidualMetrics(project.experimentData?.points??[],project.fittingConfig.activeFitAois,project.fittingConfig.fitWeighting,project.fittingConfig.psiWeight,project.fittingConfig.deltaWeight,project.fittingResult?.numParameters??project.fittingResult?.parameters.filter(p=>p.fitted).length??0);
   const rawMse = liveMetrics.rawMse;
   const rawRmse = liveMetrics.rawRmse;
+  const assessment=fitAssessment({...project.fittingResult,weightingMode:liveMetrics.weightingMode});
 
   // Extract residual RMSEs
   let sumPsiSq = 0;
@@ -122,7 +125,9 @@ export function exportFittedParametersJson(
   const deltaRmse = pts.length > 0 ? Math.sqrt(sumDeltaSq / pts.length) : 0;
 
   const exportData = {
-    fitAdequacy:project.fittingResult?.fitAdequacy,fitAdequacyWarning:project.fittingResult?.fitAdequacyWarning,
+    underdetermined:liveMetrics.underdetermined,underdeterminedWarning:liveMetrics.underdetermined?'欠定：總觀測數 − 參數數 ≤ 0；數值保留，不應直接判讀充分性':undefined,
+    fitAdequacy:assessment.fitAdequacy,fitAdequacyWarning:assessment.description,
+    freeFormUnderdetermined:project.fittingResult?.freeFormUnderdetermined,
     freeFormFitAdequacy:project.fittingResult?.freeFormFitAdequacy,freeFormFitAdequacyWarning:project.fittingResult?.freeFormFitAdequacyWarning,
     initialization:project.fittingResult?.initialization,
     statistics:project.fittingResult?.statistics,convergenceStatus:project.fittingResult?.convergenceStatus,

@@ -272,7 +272,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
   if(!verified)throw new Error('Final forward verification failed');
   const statistics=shouldStop()?undefined:computeFitStatistics(vars.map((v,i)=>({...v,splineCoefficient:isSplineCoefficient(refs[i].key)||/^c\d+$/.test(refs[i].key)})),best,
     vector=>{apply(p,refs,vector);return residual(p,points);},{weights,regularizationResidualsFn:reg(best).length?reg:undefined});
-  final.fittingResult={fitAdequacy:assessFitAdequacy(statistics,metrics.weightingMode).fitAdequacy,fitAdequacyWarning:assessFitAdequacy(statistics,metrics.weightingMode).warning,initialization:session(p).initialization??project.fittingResult?.initialization,statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,
+  final.fittingResult={fitAdequacy:assessFitAdequacy(statistics,metrics.weightingMode).fitAdequacy,fitAdequacyWarning:assessFitAdequacy(statistics,metrics.weightingMode).warning,initialization:session(p).initialization??project.fittingResult?.initialization,statistics,mseWoollam:metrics.mseWoollam,reducedChiSquare:metrics.reducedChiSquare,chiSquare:metrics.chiSquare,dof:metrics.dof,underdetermined:metrics.underdetermined,
         weightingMode:metrics.weightingMode,weightingWarning:metrics.weightingWarning,
     convergenceStatus:shouldStop()?'cancelled':bestStatus,improved:bestObjective<initialObjective,converged:!shouldStop()&&bestConverged,numParameters:vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(metrics.perAoi).map(([a,m])=>[a,m.mseWoollam])),status:shouldStop()?'stopped':metrics.rawMse<10?'target_achieved':'target_not_achieved',iterations,
     initialMse:initial,finalMse:metrics.rawMse,initialRmse:Math.sqrt(initial),finalRmse:metrics.rawRmse,
@@ -282,7 +282,7 @@ export async function fitExpert(project:EllipsometryProject,global=false,onProgr
     multiStartSummary:{totalStarts:vars.length?starts.length:0,validStarts,bestStartIndex,bestRawMse:metrics.rawMse,bestMseWoollam:metrics.mseWoollam},
     parameters:refs.map((r,i)=>({layerId:r.kind==='substrate'?'substrate':p.layers[r.index].id,layerName:r.kind==='substrate'?'Substrate':p.layers[r.index].name,
       paramId:r.key||'thickness',paramName:vars[i].name,initialValue:vars[i].value,finalValue:best[i],min:vars[i].min,max:vars[i].max,unit:'',fitted:true})),
-    message:'Expert fit; full spectrum fresh TMM verified. Raw MSE is unweighted degrees squared.'};
+    message:`Expert：MSE_W=${metrics.mseWoollam.toPrecision(6)}；Raw MSE=${metrics.rawMse.toPrecision(6)} deg²；fitAdequacy=${assessFitAdequacy(statistics,metrics.weightingMode).fitAdequacy}；${assessFitAdequacy(statistics,metrics.weightingMode).warning??'依量測 σ 與 reduced χ² 評估為充分'}`};
   return final;
 }
 export async function preparePhysical(project:EllipsometryProject,index:number):Promise<EllipsometryProject> {
@@ -324,7 +324,7 @@ export async function runExpertStage(project:EllipsometryProject,stage:number,in
   if(stage===0||stage===5)p=freshForward(p);
   if(stage===5){const m=computeMultiAoiResidualMetrics(p.experimentData!.points,p.fittingConfig.activeFitAois,p.fittingConfig.fitWeighting,p.fittingConfig.psiWeight,p.fittingConfig.deltaWeight,collect(p).vars.length);
     p.fittingResult={...(project.fittingResult??{iterations:0,initialMse:m.rawMse,initialRmse:m.rawRmse,executionTimeMs:0,parameters:[]}),
-      mseWoollam:m.mseWoollam,reducedChiSquare:m.reducedChiSquare,chiSquare:m.chiSquare,dof:m.dof,
+      mseWoollam:m.mseWoollam,reducedChiSquare:m.reducedChiSquare,chiSquare:m.chiSquare,dof:m.dof,underdetermined:m.underdetermined,
         weightingMode:m.weightingMode,weightingWarning:m.weightingWarning,
       converged:project.fittingResult?.converged??false,numParameters:collect(p).vars.length,perAoiMseWoollam:Object.fromEntries(Object.entries(m.perAoi).map(([a,v])=>[a,v.mseWoollam])),
       status:m.rawMse<10?'target_achieved':'target_not_achieved',finalMse:m.rawMse,finalRmse:m.rawRmse,rawMse:m.rawMse,

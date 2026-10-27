@@ -85,6 +85,7 @@ export interface WorkflowProgress {
   currentMse: number;
   currentRmse: number;
   bestMse: number;
+  /** @deprecated Retained for progress-event compatibility only. */
   targetMse: number;
   currentThickness: number;
   message: string;
@@ -599,7 +600,7 @@ export async function runAutomatedEllipsometryFit(
   log(`樣品結構模式: ${isSingleLayerMode ? 'Single Layer (單層膜薄膜反演，預設)' : 'Multi-Layer Stack (多層結構)'}`);
   log(`流程固定前處理: [Cauchy 0-point] → [Progressive Regularized B-spline n/k] → [B-spline Diagnostic]`);
   log(`目標物理模型: 【${isAutoSelection ? 'Automatic (多模型自動比對)' : selectedPhysicalModelId}】`);
-  log(`擬合策略: ${isAggressiveMode ? 'Aggressive (強制擬合)' : 'Standard (標準擬合)'} (目標 Raw MSE < ${TARGET_MSE.toFixed(2)})`);
+  log(`擬合策略: ${isAggressiveMode ? 'Aggressive (強制擬合)' : 'Standard (標準擬合)'}`);
   log('========================================================================');
 
   // =========================================================================
@@ -1889,7 +1890,7 @@ export async function runAutomatedEllipsometryFit(
   const freeFormRefinement:FreeFormRefinement=freeFormWarning?{skipped:true,warning:freeFormWarning}:
     {origin:'ladder',ladder:{mseWoollam:selectedFreeMetrics.mseWoollam,rawMse:selectedFreeMetrics.rawMse}};
   if(freeFormWarning) {
-    const skipped=await runFreeFormLadder({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,shouldStop},
+    const skipped=await runFreeFormLadder({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,thicknessBounds:{min:tMin,max:tMax},shouldStop},
       finalMetrics.weightingMode==='sigma'?'sigma':'sigmaHat',()=>{});
     freeFormRefinement.ladderV2=skipped.selection;
   }
@@ -1901,7 +1902,7 @@ export async function runAutomatedEllipsometryFit(
       const fullLadder=freeFormSteps(2*fittingPoints.length)[0].count===40;
       const sigma=finalMetrics.weightingMode==='sigma',N=2*fittingPoints.length;
       const ladder=await runFreeFormLadder({ambient,layers:finalLayers,substrate,primaryLayerIndex,points:fittingPoints,config,
-        outputWavelengths:freeWavelengths,shouldStop},sigma?'sigma':'sigmaHat',(step,index,total)=>{
+        outputWavelengths:freeWavelengths,thicknessBounds:{min:tMin,max:tMax},shouldStop},sigma?'sigma':'sigmaHat',(step,index,total)=>{
           reportProgress({stage:'stage_free_form_refine',stageName:'自由形式階梯',stepNumber:8,
             progressPercent:96+2*(index+1)/total,currentThickness:finalThickness,
             message:`自由形式階梯 ${index+1}/${total}：M=${step.count}，s=${step.scale}，${step.status}`});
@@ -1937,7 +1938,7 @@ export async function runAutomatedEllipsometryFit(
       freeFormRefinement.warning=`自由形式精修失敗，保留階梯結果：${error instanceof Error?error.message:String(error)}`;
       log('⚠ '+freeFormRefinement.warning);
     }
-    freeFormOpticalConstants=freeFormOpticalConstants?.map(p=>({...p,freeFormOrigin:freeFormRefinement.origin}));
+    freeFormOpticalConstants=freeFormOpticalConstants?.map(p=>({...p,freeFormOrigin:freeFormRefinement.origin,underdetermined:selectedFreeMetrics.underdetermined}));
     log(`自由形式來源：${freeFormRefinement.origin}；階梯 MSE_W=${freeFormRefinement.ladder!.mseWoollam}；精修 MSE_W=${freeFormRefinement.physicalSeeded?.mseWoollam??'未取得'}`);
   }
   const physicalAdequacy=assessFitAdequacy(statistics,finalMetrics.weightingMode);
@@ -1951,9 +1952,7 @@ export async function runAutomatedEllipsometryFit(
   const targetAchieved = finalMetrics.rawMse < TARGET_MSE;
   const finalStatus: FittingResult['status'] = targetAchieved ? 'target_achieved' : 'target_not_achieved';
 
-  const statusMsg = targetAchieved
-    ? `TARGET ACHIEVED! 最終 Raw MSE: ${finalMetrics.rawMse.toFixed(4)} < ${TARGET_MSE.toFixed(2)}, 模型: 【${finalModelDef.name}】, 膜厚: ${finalThickness.toFixed(2)} nm (Ψ RMSE: ${finalPsiRmse.toFixed(3)}°, Δ RMSE: ${finalDeltaRmse.toFixed(3)}°)`
-    : `TARGET NOT ACHIEVED: 最終 Raw MSE = ${finalMetrics.rawMse.toFixed(4)} >= ${TARGET_MSE.toFixed(2)}, 模型: 【${finalModelDef.name}】, 膜厚: ${finalThickness.toFixed(2)} nm`;
+  const statusMsg = `MSE_W=${finalMetrics.mseWoollam.toPrecision(6)}；Raw MSE=${finalMetrics.rawMse.toPrecision(6)} deg²；fitAdequacy=${physicalAdequacy.fitAdequacy}；${physicalAdequacy.warning??'依量測 σ 與 reduced χ² 評估為充分'}；模型：${finalModelDef.name}；膜厚：${finalThickness.toFixed(2)} nm`;
 
   log('========================================================================');
   log(statusMsg);
@@ -1968,7 +1967,7 @@ export async function runAutomatedEllipsometryFit(
     currentRmse: finalMetrics.rawRmse,
     currentThickness: finalThickness,
     currentModelName: finalModelDef.name,
-    message: `[8/8] 擬合完成！最終 Raw MSE: ${finalMetrics.rawMse.toFixed(4)}, 膜厚: ${finalThickness.toFixed(2)} nm`,
+    message: statusMsg,
   });
 
   const MODEL_NAMES: Record<string, string> = {
@@ -2039,7 +2038,8 @@ export async function runAutomatedEllipsometryFit(
       freeFormWarning:freeFormWarning??(freeFormRefinement.skipped?freeFormRefinement.warning:undefined),freeFormOrigin:freeFormRefinement.origin,freeFormRefinement,
       freeFormFitAdequacy:freeAdequacy?.fitAdequacy,freeFormFitAdequacyWarning:freeAdequacy?.warning,
       freeFormStatistics,freeFormOpticalConstants,freeFormCoefficientBounds,opticalModelComparison,freeFormModel,
-      finalOpticalConstants:physicalComparisonCurve.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),
+      finalOpticalConstants:physicalComparisonCurve.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy,underdetermined:finalMetrics.underdetermined})),
+      underdetermined:finalMetrics.underdetermined,freeFormUnderdetermined:selectedFreeMetrics.underdetermined,
       mseWoollam:finalMetrics.mseWoollam,reducedChiSquare:finalMetrics.reducedChiSquare,chiSquare:finalMetrics.chiSquare,dof:finalMetrics.dof,
       weightingMode:finalMetrics.weightingMode,weightingWarning:finalMetrics.weightingWarning,converged:winningCandidate.converged,improved:winningCandidate.improved,convergenceStatus:winningCandidate.convergenceStatus,
       perAoiMseWoollam:Object.fromEntries(Object.entries(computeMultiAoiResidualMetrics(finalFittingPoints,activeAois,config.fitWeighting,psiWeight,deltaWeight,numActiveParams).perAoi).map(([a,m])=>[a,m.mseWoollam])),
@@ -2061,10 +2061,10 @@ export async function runAutomatedEllipsometryFit(
       numParameters: numActiveParams,
       isOverfitting: false,
       largestResidualRegion: resRegionInfo.regionDescription,
-      possibleCauses: targetAchieved
+      possibleCauses: physicalAdequacy.fitAdequacy==='good'||physicalAdequacy.fitAdequacy==='unknown'
         ? []
-        : isPhysicalModelMismatch
-        ? ['B-spline 能準確描述光學常數，但所選物理模型振盪子數目不足 (建議 +1 oscillator)']
+        : opticalModelComparison?.warning
+        ? [opticalModelComparison.warning]
         : ['實驗資料偏離或膜厚全域盆地邊界受限'],
       executionTimeMs: 0,
       parameters: winningCandidate.parametersRecord,
@@ -2098,7 +2098,7 @@ export async function runAutomatedEllipsometryFit(
       freshCalculationVerified,
     },
     finalThickness,
-    finalOpticalConstants:finalOpticalConstants.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy})),
+    finalOpticalConstants:finalOpticalConstants.map(p=>({...p,fitAdequacy:physicalAdequacy.fitAdequacy,underdetermined:finalMetrics.underdetermined})),
     modelComparisons: evaluatedCandidates.map((c) => ({
       modelId: c.modelId,
       modelName: c.modelName,
